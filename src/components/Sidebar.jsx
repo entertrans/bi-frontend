@@ -1,62 +1,9 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  FaTachometerAlt,
-  FaUsers,
-  FaChevronDown,
-  FaChevronRight,
-} from "react-icons/fa";
+import { FaChevronDown, FaChevronRight } from "react-icons/fa";
+import { menuConfig } from "./sidebarMenuConfig";
 
 // //sidebar-menu-config
-const menuConfig = {
-  admin: [
-    {
-      label: "Dashboard",
-      icon: <FaTachometerAlt className="mr-3" />,
-      path: "/admin",
-    },
-    {
-      label: "User List",
-      icon: <FaUsers className="mr-3" />,
-      path: "/admin/users",
-    },
-    {
-      label: "Siswa",
-      icon: <FaUsers className="mr-3" />,
-      children: [
-        {
-          label: "Siswa Aktif",
-          path: "/admin/siswa/aktif",
-        },
-        {
-          label: "Siswa Keluar",
-          path: "/admin/siswa/keluar",
-        },
-      ],
-    },
-  ],
-  guru: [
-    {
-      label: "Dashboard",
-      icon: <FaTachometerAlt className="mr-3" />,
-      path: "/guru",
-    },
-    {
-      label: "Absensi",
-      icon: <FaUsers className="mr-3" />,
-      children: [
-        {
-          label: "Input Absensi",
-          path: "/guru/absensi/input",
-        },
-        {
-          label: "Rekap Absensi",
-          path: "/guru/absensi/rekap",
-        },
-      ],
-    },
-  ],
-};
 
 const Sidebar = ({ isCollapsed, role = "admin" }) => {
   const location = useLocation();

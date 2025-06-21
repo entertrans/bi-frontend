@@ -3,7 +3,11 @@ import { Routes, Route } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 import GuruLayout from "../layouts/GuruLayout";
 import SiswaLayout from "../layouts/SiswaLayout";
-import { adminRoutes, guruRoutes, siswaRoutes } from "../routes/routeConfig";
+
+// 👉 Langsung impor dari file masing-masing
+import adminRoutes from "../routes/AdminRouter";
+import guruRoutes from "../routes/GuruRouter";
+import siswaRoutes from "../routes/SiswaRouter";
 
 const AppRouter = () => {
   return (
@@ -26,10 +30,10 @@ const AppRouter = () => {
         />
       ))}
 
-      {/* // SISWA ROUTES */}
-      {siswaRoutes.map((route, i) => (
+      {/* 👉 SISWA ROUTES */}
+      {siswaRoutes.map((route, idx) => (
         <Route
-          key={i}
+          key={idx}
           path={route.path}
           element={<SiswaLayout>{route.element}</SiswaLayout>}
         />
