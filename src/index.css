@@ -3,8 +3,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* jika ingin menambahkan CSS custom, boleh di bawahnya */
 body {
   @apply font-sans bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100;
 }
-
-/* jika ingin menambahkan CSS custom, boleh di bawahnya */
+/* hide-scrollbar */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

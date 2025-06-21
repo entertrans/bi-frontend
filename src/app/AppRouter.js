@@ -2,7 +2,8 @@
 import { Routes, Route } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 import GuruLayout from "../layouts/GuruLayout";
-import { adminRoutes, guruRoutes } from "../routes/routeConfig";
+import SiswaLayout from "../layouts/SiswaLayout";
+import { adminRoutes, guruRoutes, siswaRoutes } from "../routes/routeConfig";
 
 const AppRouter = () => {
   return (
@@ -22,6 +23,15 @@ const AppRouter = () => {
           key={idx}
           path={route.path}
           element={<GuruLayout>{route.element}</GuruLayout>}
+        />
+      ))}
+
+      {/* // SISWA ROUTES */}
+      {siswaRoutes.map((route, i) => (
+        <Route
+          key={i}
+          path={route.path}
+          element={<SiswaLayout>{route.element}</SiswaLayout>}
         />
       ))}
 
