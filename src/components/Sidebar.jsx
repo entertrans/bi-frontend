@@ -7,9 +7,65 @@ import {
   FaChevronRight,
 } from "react-icons/fa";
 
-const Sidebar = ({ isCollapsed }) => {
+// //sidebar-menu-config
+const menuConfig = {
+  admin: [
+    {
+      label: "Dashboard",
+      icon: <FaTachometerAlt className="mr-3" />,
+      path: "/admin",
+    },
+    {
+      label: "User List",
+      icon: <FaUsers className="mr-3" />,
+      path: "/admin/users",
+    },
+    {
+      label: "Siswa",
+      icon: <FaUsers className="mr-3" />,
+      children: [
+        {
+          label: "Siswa Aktif",
+          path: "/admin/siswa/aktif",
+        },
+        {
+          label: "Siswa Keluar",
+          path: "/admin/siswa/keluar",
+        },
+      ],
+    },
+  ],
+  guru: [
+    {
+      label: "Dashboard",
+      icon: <FaTachometerAlt className="mr-3" />,
+      path: "/guru",
+    },
+    {
+      label: "Absensi",
+      icon: <FaUsers className="mr-3" />,
+      children: [
+        {
+          label: "Input Absensi",
+          path: "/guru/absensi/input",
+        },
+        {
+          label: "Rekap Absensi",
+          path: "/guru/absensi/rekap",
+        },
+      ],
+    },
+  ],
+};
+
+const Sidebar = ({ isCollapsed, role = "admin" }) => {
   const location = useLocation();
-  const [openSiswa, setOpenSiswa] = useState(false); // //submenu-siswa toggle
+  const [openMenus, setOpenMenus] = useState({}); // submenu toggle by label
+  const menus = menuConfig[role] || [];
+
+  const toggleSubmenu = (label) => {
+    setOpenMenus((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
 
   return (
     // //sidebar-wrapper
@@ -20,78 +76,74 @@ const Sidebar = ({ isCollapsed }) => {
     >
       <nav className="p-4">
         <ul className="space-y-1">
-          {/* //admin-route */}
-          <li>
-            <Link
-              to="/admin/dashboard"
-              className={`flex items-center p-2 rounded transition ${
-                location.pathname === "/admin/dashboard"
-                  ? "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 font-medium"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              }`}
-            >
-              <FaTachometerAlt className="mr-3" />
-              {!isCollapsed && <span>Dashboard</span>}
-            </Link>
-          </li>
+          {menus.map((menu, idx) => {
+            const isActive = menu.path && location.pathname === menu.path;
 
-          {/* //admin-route */}
-          <li>
-            <Link
-              to="/admin/users"
-              className={`flex items-center p-2 rounded transition ${
-                location.pathname === "/admin/users"
-                  ? "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 font-medium"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              }`}
-            >
-              <FaUsers className="mr-3" />
-              {!isCollapsed && <span>User List</span>}
-            </Link>
-          </li>
-
-          {/* //submenu-siswa */}
-          <li>
-            <button
-              onClick={() => setOpenSiswa(!openSiswa)}
-              className="w-full flex items-center justify-between p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition"
-            >
-              <span className="flex items-center">
-                <FaUsers className="mr-3" />
-                {!isCollapsed && <span>Siswa</span>}
-              </span>
-              {openSiswa ? <FaChevronDown /> : <FaChevronRight />}
-            </button>
-
-            {!isCollapsed && openSiswa && (
-              <ul className="mt-1 space-y-1">
-                <li>
-                  <Link
-                    to="/admin/siswa/aktif"
-                    className={`flex items-center pl-10 p-2 rounded transition ${
-                      location.pathname === "/admin/siswa/aktif"
+            // //submenu-render
+            if (menu.children) {
+              const isOpen = openMenus[menu.label] || false;
+              return (
+                <li key={idx}>
+                  {/* //sidebar-submenu-toggle */}
+                  <button
+                    onClick={() => toggleSubmenu(menu.label)}
+                    className={`w-full flex items-center justify-between p-2 rounded transition ${
+                      isOpen
                         ? "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 font-medium"
                         : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                     }`}
                   >
-                    {!isCollapsed && <span>Siswa Aktif</span>}
-                  </Link>
+                    <span className="flex items-center">
+                      {menu.icon}
+                      {!isCollapsed && <span>{menu.label}</span>}
+                    </span>
+                    {!isCollapsed &&
+                      (isOpen ? <FaChevronDown /> : <FaChevronRight />)}
+                  </button>
+
+                  {/* //sidebar-subitems */}
+                  {!isCollapsed && isOpen && (
+                    <ul className="mt-1 space-y-1">
+                      {menu.children.map((child, cidx) => {
+                        const isChildActive = location.pathname === child.path;
+                        return (
+                          <li key={cidx}>
+                            <Link
+                              to={child.path}
+                              className={`flex items-center pl-10 p-2 rounded transition ${
+                                isChildActive
+                                  ? "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 font-medium"
+                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                              }`}
+                            >
+                              {child.label}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </li>
-                <li>
-                  <Link
-                    to="/admin/siswa/keluar"
-                    className={`flex items-center pl-10 p-2 rounded transition ${
-                      location.pathname === "/admin/siswa/keluar"
-                        ? "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 font-medium"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                    }`}
-                  >
-                    {!isCollapsed && <span>Siswa Keluar</span>}
-                  </Link>
-                </li>
-              </ul>
-            )}
-          </li>
+              );
+            }
+
+            // //sidebar-item
+            return (
+              <li key={idx}>
+                <Link
+                  to={menu.path}
+                  className={`flex items-center p-2 rounded transition ${
+                    isActive
+                      ? "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 font-medium"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  }`}
+                >
+                  {menu.icon}
+                  {!isCollapsed && <span>{menu.label}</span>}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
     </aside>

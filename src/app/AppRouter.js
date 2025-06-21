@@ -1,29 +1,32 @@
 // src/app/AppRouter.js
 import { Routes, Route } from "react-router-dom";
-import Dashboard from "../pages/admin/Dashboard";
-import UserList from "../pages/admin/UserList"; // kalau sudah dibuat
 import AdminLayout from "../layouts/AdminLayout";
+import GuruLayout from "../layouts/GuruLayout";
+import { adminRoutes, guruRoutes } from "../routes/routeConfig";
 
 const AppRouter = () => {
   return (
     <Routes>
-      {/* // ADMIN ROUTES */}
-      <Route
-        path="/admin/dashboard"
-        element={
-          <AdminLayout>
-            <Dashboard />
-          </AdminLayout>
-        }
-      />
-      <Route
-        path="/admin/users"
-        element={
-          <AdminLayout>
-            <UserList />
-          </AdminLayout>
-        }
-      />
+      {/* 👉 ADMIN ROUTES */}
+      {adminRoutes.map((route, idx) => (
+        <Route
+          key={idx}
+          path={route.path}
+          element={<AdminLayout>{route.element}</AdminLayout>}
+        />
+      ))}
+
+      {/* 👉 GURU ROUTES */}
+      {guruRoutes.map((route, idx) => (
+        <Route
+          key={idx}
+          path={route.path}
+          element={<GuruLayout>{route.element}</GuruLayout>}
+        />
+      ))}
+
+      {/* 👉 404 Page */}
+      <Route path="*" element={<div className="p-10">404 Not Found</div>} />
     </Routes>
   );
 };
