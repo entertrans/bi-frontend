@@ -117,5 +117,10 @@ export const menuConfig = {
         { label: "Rekap Absensi", path: "/guru/absensi/rekap" },
       ],
     },
+    {
+      label: "Logout",
+      icon: <FaSignOutAlt className="mr-3 text-red-500" />,
+      path: "/guru/logout",
+    },
   ],
 };
