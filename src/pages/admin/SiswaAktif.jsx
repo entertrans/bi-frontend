@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import siswaDummy from "../../data/siswaDummy";
+
+import { Link } from "react-router-dom";
 import {
   FaEdit,
-  FaPrint,
+  FaVideo,
   FaUserSlash,
-  FaEnvelope,
+  FaVideoSlash,
   FaUserCheck,
 } from "react-icons/fa";
 
@@ -21,6 +23,37 @@ const SiswaAktifTable = () => {
       siswa.siswa_nis.includes(searchTerm);
     return kelasMatch && searchMatch;
   });
+  const [dataSiswa, setDataSiswa] = useState(filteredData);
+
+  const toggleKelasOnline = (nis) => {
+    if (!window.confirm("Masukkan atau keluarkan dari kelas online?")) return;
+
+    const updated = dataSiswa.map((siswa) =>
+      siswa.siswa_nis === nis
+        ? {
+            ...siswa,
+            kelas_online: !siswa.kelas_online,
+            kelas_offline: siswa.kelas_online ? siswa.kelas_offline : false,
+          }
+        : siswa
+    );
+    setDataSiswa(updated);
+  };
+
+  const toggleKelasOffline = (nis) => {
+    if (!window.confirm("Masukkan atau keluarkan dari kelas offline?")) return;
+
+    const updated = dataSiswa.map((siswa) =>
+      siswa.siswa_nis === nis
+        ? {
+            ...siswa,
+            kelas_offline: !siswa.kelas_offline,
+            kelas_online: siswa.kelas_offline ? siswa.kelas_online : false,
+          }
+        : siswa
+    );
+    setDataSiswa(updated);
+  };
 
   const kelasOptions = [
     "Kelas I",
@@ -42,6 +75,29 @@ const SiswaAktifTable = () => {
 
   return (
     <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
+      {/* <div className="flex justify-end mb-4 gap-2">
+        <Link
+          to="/admin/siswa/kelas-online"
+          className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded shadow"
+        >
+          Kelas Online
+        </Link>
+
+        <Link
+          to="/admin/siswa/kelas-komunitas"
+          className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-2 rounded shadow"
+        >
+          Kelas Komunitas
+        </Link>
+
+        <Link
+          to="/admin/siswa/tambah"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded shadow"
+        >
+          Tambah Siswa
+        </Link>
+      </div> */}
+
       {/* Filter & Search */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
         <select
@@ -93,6 +149,7 @@ const SiswaAktifTable = () => {
               <th className="px-6 py-3 text-left">Kelas</th>
               <th className="px-6 py-3 text-left">Telp</th>
               <th className="px-6 py-3 text-left">Cabang</th>
+              <th className="px-6 py-3 text-left">Program</th>
               <th className="px-6 py-3 text-center">Aksi</th>
             </tr>
           </thead>
@@ -125,26 +182,50 @@ const SiswaAktifTable = () => {
                     {siswa.satelit}
                   </div>
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex flex-col items-start space-y-1">
+                    {siswa.kelas_online && (
+                      <span className="bg-blue-600 text-white px-3 py-1 text-xs rounded shadow">
+                        Kelas Online
+                      </span>
+                    )}
+                    {siswa.kelas_offline && (
+                      <span className="bg-red-600 text-white px-3 py-1 text-xs rounded shadow">
+                        Kelas Offline
+                      </span>
+                    )}
+                  </div>
+                </td>
+
                 <td className="px-6 py-4 text-center space-x-2 text-gray-500 dark:text-gray-300">
-                  <FaEdit
-                    title="Edit"
-                    className="inline-block cursor-pointer hover:text-blue-500"
-                  />
-                  <FaPrint
-                    title="Cetak Biodata"
-                    className="inline-block cursor-pointer hover:text-gray-700"
-                  />
+                  <Link to={`/admin/siswa/edit/${siswa.siswa_nis}`}>
+                    <FaEdit
+                      title="Edit"
+                      className="inline-block cursor-pointer hover:text-blue-500"
+                    />
+                  </Link>
                   <FaUserSlash
                     title="Keluarkan"
                     className="inline-block cursor-pointer hover:text-red-500"
                   />
-                  <FaEnvelope
-                    title="Kirim Pesan"
-                    className="inline-block cursor-pointer hover:text-yellow-500"
-                  />
                   <FaUserCheck
                     title="Absensi"
                     className="inline-block cursor-pointer hover:text-green-500"
+                  />
+                  <FaVideo
+                    title="Toggle Kelas Online"
+                    onClick={() => toggleKelasOnline(siswa.siswa_nis)}
+                    className={`inline-block cursor-pointer hover:text-blue-500 ${
+                      siswa.kelas_online ? "text-blue-600" : "text-gray-500"
+                    }`}
+                  />
+
+                  <FaVideoSlash
+                    title="Toggle Kelas Offline"
+                    onClick={() => toggleKelasOffline(siswa.siswa_nis)}
+                    className={`inline-block cursor-pointer hover:text-red-500 ${
+                      siswa.kelas_offline ? "text-red-600" : "text-gray-500"
+                    }`}
                   />
                 </td>
               </tr>

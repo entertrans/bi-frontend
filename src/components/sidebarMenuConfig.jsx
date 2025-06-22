@@ -47,6 +47,10 @@ export const menuConfig = {
       icon: <FaUsers className="mr-3" />,
       children: [
         {
+          label: "PPDB",
+          path: "/admin/siswa/ppdb",
+        },
+        {
           label: "Siswa Aktif",
           path: "/admin/siswa/aktif",
         },

@@ -51,6 +51,8 @@ const siswaDummy = [
     wali_penghasilan: "",
     no_alamat: "",
     wali_notelp: "",
+    kelas_online: false,
+    kelas_offline: true,
   },
 
   {
@@ -105,6 +107,8 @@ const siswaDummy = [
     wali_penghasilan: "",
     no_alamat: "",
     wali_notelp: "",
+    kelas_online: true,
+    kelas_offline: true,
   },
 
   // Tambahkan 8+ data lagi agar pagination terasa

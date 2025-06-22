@@ -1,0 +1,151 @@
+import React from "react";
+import { PhotoProvider, PhotoView } from "react-photo-view";
+import "react-photo-view/dist/react-photo-view.css";
+
+const SiswaEdit = () => {
+  return (
+    <div className="max-w mx-auto">
+      {/* Title */}
+      <h1 className="text-2xl font-semibold text-gray-800 dark:text-white mb-6">
+        Setting
+      </h1>
+
+      {/* Avatar & Profil Ringkas (Pusat) */}
+      <div className="flex flex-col items-center justify-center mb-6">
+        {/* Avatar */}
+        <img
+          src="https://i.pravatar.cc/100?u=siswa1"
+          alt="Foto Siswa"
+          className="w-24 h-24 rounded-full border-2 border-blue-500 shadow"
+        />
+
+        {/* Nama */}
+        <p className="text-xl font-bold text-gray-800 dark:text-white mt-4">
+          Aditya Narayan
+        </p>
+
+        {/* NIS / NISN */}
+        <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+          2017151 | 9988776655
+        </p>
+      </div>
+
+      {/* Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Kontainer 1 - Kiri Atas */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <p className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">
+            Lampiran
+          </p>
+
+          {/* Loop Grid Dokumen */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* KTP Ayah */}
+            <FormLampiran
+              id="ktp-ayah"
+              label="KTP Ayah"
+              img="https://picsum.photos/id/237/800/600"
+            />
+            {/* KTP Ibu */}
+            <FormLampiran
+              id="ktp-ibu"
+              label="KTP Ibu"
+              img="https://picsum.photos/id/238/800/600"
+            />
+            {/* Kartu Keluarga */}
+            <FormLampiran
+              id="kk"
+              label="Kartu Keluarga"
+              img="https://picsum.photos/id/239/800/600"
+            />
+            {/* Akta Lahir */}
+            <FormLampiran
+              id="akta-lahir"
+              label="Akta Lahir"
+              img="https://picsum.photos/id/240/800/600"
+            />
+            {/* KITAS (optional) */}
+            <FormLampiran
+              id="kitas"
+              label="KITAS (opsional)"
+              img="https://picsum.photos/id/241/800/600"
+            />
+            {/* Ijazah Depan */}
+            <FormLampiran
+              id="ijazah-depan"
+              label="Ijazah Terakhir (Depan)"
+              img="https://picsum.photos/id/242/800/600"
+            />
+            {/* Ijazah Belakang */}
+            <FormLampiran
+              id="ijazah-belakang"
+              label="Ijazah Terakhir (Belakang)"
+              img="https://picsum.photos/id/243/800/600"
+            />
+            {/* Surat Pindah (opsional) */}
+            <FormLampiran
+              id="surat-pindah"
+              label="Surat Pindah (opsional)"
+              img="https://picsum.photos/id/244/800/600"
+            />
+          </div>
+        </div>
+
+        {/* Kontainer 2 - Kanan Atas */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <p className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">
+            Kontainer 2 (Kanan Atas)
+          </p>
+        </div>
+
+        {/* Kontainer 3 - Kiri Bawah */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <p className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">
+            Kontainer 3 (Kiri Bawah)
+          </p>
+        </div>
+
+        {/* Kontainer 4 - Kanan Bawah */}
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <p className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">
+            Kontainer 4 (Kanan Bawah)
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Komponen reusable
+const FormLampiran = ({ id, label, img }) => (
+  <div className="flex justify-between items-start gap-4">
+    {/* Upload */}
+    <div className="flex-1">
+      <label
+        htmlFor={id}
+        className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+      >
+        {label}
+      </label>
+      <input
+        id={id}
+        type="file"
+        className="block w-full text-xs text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+      />
+    </div>
+    {/* Preview */}
+    <div className="text-right">
+      <PhotoProvider>
+        <PhotoView src={img}>
+          <img
+            src={img}
+            alt={label}
+            className="w-[80px] h-auto border rounded shadow cursor-pointer hover:opacity-90 transition"
+          />
+        </PhotoView>
+      </PhotoProvider>
+    </div>
+  </div>
+);
+
+export default SiswaEdit;
