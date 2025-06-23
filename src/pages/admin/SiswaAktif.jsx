@@ -1,29 +1,44 @@
-import React, { useState } from "react";
-import siswaDummy from "../../data/siswaDummy";
-
+import React, { useEffect, useState } from "react";
+import { fetchAllSiswa } from "../../api/siswaAPI";
 import { Link } from "react-router-dom";
 import {
   FaEdit,
-  FaVideo,
   FaUserSlash,
-  FaVideoSlash,
   FaUserCheck,
+  FaVideo,
+  FaVideoSlash,
 } from "react-icons/fa";
 
 const SiswaAktifTable = () => {
+  const [dataSiswa, setDataSiswa] = useState([]);
   const [selectedKelas, setSelectedKelas] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const siswaPerPage = 10;
 
-  const filteredData = siswaDummy.filter((siswa) => {
+  useEffect(() => {
+    fetchAllSiswa()
+      .then((data) => setDataSiswa(data))
+      .catch((err) => console.error("Gagal ambil data siswa:", err));
+  }, []);
+
+  const filteredData = dataSiswa.filter((siswa) => {
     const kelasMatch = selectedKelas
-      ? siswa.siswa_kelas_id === selectedKelas
+      ? siswa.siswa_kelas_id.toString() === selectedKelas
       : true;
     const searchMatch =
       siswa.siswa_nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
       siswa.siswa_nis.includes(searchTerm);
     return kelasMatch && searchMatch;
   });
-  const [dataSiswa, setDataSiswa] = useState(filteredData);
+
+  const totalPages = Math.ceil(filteredData.length / siswaPerPage);
+  const paginatedData = filteredData.slice(
+    (currentPage - 1) * siswaPerPage,
+    currentPage * siswaPerPage
+  );
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const toggleKelasOnline = (nis) => {
     if (!window.confirm("Masukkan atau keluarkan dari kelas online?")) return;
@@ -56,113 +71,100 @@ const SiswaAktifTable = () => {
   };
 
   const kelasOptions = [
-    "Kelas I",
-    "Kelas II",
-    "Kelas III",
-    "Kelas IV",
-    "Kelas V",
-    "Kelas VI",
-    "Kelas VII",
-    "Kelas VIII",
-    "Kelas IX",
-    "Kelas X IPA",
-    "Kelas X IPS",
-    "Kelas XI IPA",
-    "Kelas XI IPS",
-    "Kelas XII IPA",
-    "Kelas XII IPS",
+    { id: "", label: "Semua Kelas" },
+    { id: "14", label: "Kelas X IPA" },
+    { id: "15", label: "Kelas XI IPA" },
+    { id: "16", label: "Kelas XII IPA" },
   ];
+
+  // Helper untuk buat pagination dengan "..." kalau halaman panjang
+  const getPaginationButtons = () => {
+    const range = [];
+    const total = totalPages;
+
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) range.push(i);
+    } else {
+      if (currentPage <= 4) {
+        range.push(1, 2, 3, 4, 5, "...", total);
+      } else if (currentPage >= total - 3) {
+        range.push(1, "...", total - 4, total - 3, total - 2, total - 1, total);
+      } else {
+        range.push(
+          1,
+          "...",
+          currentPage - 1,
+          currentPage,
+          currentPage + 1,
+          "...",
+          total
+        );
+      }
+    }
+
+    return range;
+  };
 
   return (
     <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
-      {/* <div className="flex justify-end mb-4 gap-2">
-        <Link
-          to="/admin/siswa/kelas-online"
-          className="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded shadow"
-        >
-          Kelas Online
-        </Link>
-
-        <Link
-          to="/admin/siswa/kelas-komunitas"
-          className="bg-purple-600 hover:bg-purple-700 text-white text-sm px-4 py-2 rounded shadow"
-        >
-          Kelas Komunitas
-        </Link>
-
-        <Link
-          to="/admin/siswa/tambah"
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded shadow"
-        >
-          Tambah Siswa
-        </Link>
-      </div> */}
-
-      {/* Filter & Search */}
+      {/* Filter */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
         <select
           className="border text-sm border-gray-300 rounded-lg p-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
           value={selectedKelas}
-          onChange={(e) => setSelectedKelas(e.target.value)}
+          onChange={(e) => {
+            setSelectedKelas(e.target.value);
+            setCurrentPage(1);
+          }}
         >
-          <option value="">Semua Kelas</option>
           {kelasOptions.map((kelas) => (
-            <option key={kelas} value={kelas}>
-              {kelas}
+            <option key={kelas.id} value={kelas.id}>
+              {kelas.label}
             </option>
           ))}
         </select>
 
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Cari siswa..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="block p-2 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg w-72 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-          />
-          <div className="absolute inset-y-0 left-0 flex items-center ps-3 pointer-events-none">
-            <svg
-              className="w-5 h-5 text-gray-500 dark:text-gray-400"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                clipRule="evenodd"
-              ></path>
-            </svg>
-          </div>
-        </div>
+        <input
+          type="text"
+          placeholder="Cari siswa..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="block p-2 text-sm border border-gray-300 rounded-lg w-72 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+        />
       </div>
 
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left dark: tracking-wider">
-                Siswa
-              </th>
+              <th className="px-6 py-3 text-left tracking-wider">Siswa</th>
               <th className="px-6 py-3 text-left">NISN</th>
-              <th className="px-6 py-3 text-left">Kelas</th>
+              <th className="px-6 py-3 w-32 text-left">Kelas</th>
               <th className="px-6 py-3 text-left">Telp</th>
-              <th className="px-6 py-3 text-left">Cabang</th>
+              <th className="px-6 py-3 w-32 text-left">Cabang</th>
               <th className="px-6 py-3 text-left">Program</th>
-              <th className="px-6 py-3 text-center">Aksi</th>
+              <th className="px-6 py-3 w-32 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {filteredData.map((siswa) => (
+            {paginatedData.map((siswa) => (
               <tr key={siswa.siswa_id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center space-x-4">
                     <img
-                      src={siswa.siswa_photo}
+                      src={
+                        siswa.siswa_photo
+                          ? `https://placehold.co/40x40?text=AA&font=roboto`
+                          : `https://placehold.co/40x40?text=AA&font=roboto`
+                      }
                       alt={siswa.siswa_nama}
-                      className="w-10 h-10 rounded-full border"
+                      className="w-10 h-10 rounded-full border object-cover"
                     />
+
                     <div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {siswa.siswa_nama}
@@ -174,64 +176,88 @@ const SiswaAktifTable = () => {
                   </div>
                 </td>
                 <td className="px-6 py-4">{siswa.siswa_nisn}</td>
-                <td className="px-6 py-4">{siswa.siswa_kelas_id}</td>
-                <td className="px-6 py-4">{siswa.siswa_no_telp}</td>
                 <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <div className="h-2.5 w-2.5 rounded-full bg-green-500 mr-2"></div>
-                    {siswa.satelit}
-                  </div>
+                  {siswa.kelas?.kelas_nama?.replace(/^Kelas\s*/i, "") || "-"}
                 </td>
+                <td className="px-6 py-4">{siswa.siswa_no_telp}</td>
+                <td className="px-6 py-4">{siswa.Satelit.satelit_nama}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex flex-col items-start space-y-1">
-                    {siswa.kelas_online && (
+                    {siswa.oc === 1 && (
                       <span className="bg-blue-600 text-white px-3 py-1 text-xs rounded shadow">
                         Kelas Online
                       </span>
                     )}
-                    {siswa.kelas_offline && (
+                    {siswa.kc === 1 && (
                       <span className="bg-red-600 text-white px-3 py-1 text-xs rounded shadow">
                         Kelas Offline
                       </span>
                     )}
                   </div>
                 </td>
+                <td className="px-4 py-3 text-center space-y-1">
+                  <div className="flex flex-wrap justify-center gap-1">
+                    <Link to={`/admin/siswa/edit/${siswa.siswa_nis}`}>
+                      <button className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Edit
+                      </button>
+                    </Link>
+                    <button className="px-2 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700">
+                      Keluarkan
+                    </button>
+                    <button className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">
+                      Absensi
+                    </button>
+                    <button
+                      onClick={() => toggleKelasOnline(siswa.siswa_nis)}
+                      className={`px-2 py-1 text-xs rounded transition ${
+                        siswa.oc === 1
+                          ? "bg-green-100 text-green-700 hover:bg-green-200"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
+                    >
+                      Online
+                    </button>
 
-                <td className="px-6 py-4 text-center space-x-2 text-gray-500 dark:text-gray-300">
-                  <Link to={`/admin/siswa/edit/${siswa.siswa_nis}`}>
-                    <FaEdit
-                      title="Edit"
-                      className="inline-block cursor-pointer hover:text-blue-500"
-                    />
-                  </Link>
-                  <FaUserSlash
-                    title="Keluarkan"
-                    className="inline-block cursor-pointer hover:text-red-500"
-                  />
-                  <FaUserCheck
-                    title="Absensi"
-                    className="inline-block cursor-pointer hover:text-green-500"
-                  />
-                  <FaVideo
-                    title="Toggle Kelas Online"
-                    onClick={() => toggleKelasOnline(siswa.siswa_nis)}
-                    className={`inline-block cursor-pointer hover:text-blue-500 ${
-                      siswa.kelas_online ? "text-blue-600" : "text-gray-500"
-                    }`}
-                  />
-
-                  <FaVideoSlash
-                    title="Toggle Kelas Offline"
-                    onClick={() => toggleKelasOffline(siswa.siswa_nis)}
-                    className={`inline-block cursor-pointer hover:text-red-500 ${
-                      siswa.kelas_offline ? "text-red-600" : "text-gray-500"
-                    }`}
-                  />
+                    <button
+                      onClick={() => toggleKelasOffline(siswa.siswa_nis)}
+                      className={`px-2 py-1 text-xs rounded ${
+                        siswa.kc === 1
+                          ? "bg-red-100 text-red-700 hover:bg-red-200"
+                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                      }`}
+                    >
+                      Offline
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Pagination */}
+      <div className="flex justify-center mt-4 gap-2 flex-wrap text-sm">
+        {getPaginationButtons().map((num, index) =>
+          num === "..." ? (
+            <span key={index} className="px-3 py-1 text-gray-400">
+              ...
+            </span>
+          ) : (
+            <button
+              key={index}
+              onClick={() => paginate(num)}
+              className={`px-3 py-1 rounded ${
+                num === currentPage
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 dark:bg-gray-600 dark:text-white"
+              }`}
+            >
+              {num}
+            </button>
+          )
+        )}
       </div>
     </div>
   );
