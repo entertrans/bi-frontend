@@ -55,6 +55,10 @@ export const menuConfig = {
           path: "/admin/siswa/aktif",
         },
         {
+          label: "Siswa Alumni",
+          path: "/admin/siswa/alumni",
+        },
+        {
           label: "Siswa Keluar",
           path: "/admin/siswa/keluar",
         },

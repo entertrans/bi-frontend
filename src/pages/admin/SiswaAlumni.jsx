@@ -4,7 +4,7 @@ import siswaDummy from "../../data/siswaDummy";
 import { Link } from "react-router-dom";
 import { FaTrash, FaUndo } from "react-icons/fa";
 
-const SiswaKeluarTable = () => {
+const SiswaAlumni = () => {
   const [selectedKelas, setSelectedKelas] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -33,22 +33,11 @@ const SiswaKeluarTable = () => {
     }
   };
 
-  const kelasOptions = [
-    "Kelas I",
-    "Kelas II",
-    "Kelas III",
-    "Kelas IV",
-    "Kelas V",
-    "Kelas VI",
-    "Kelas VII",
-    "Kelas VIII",
-    "Kelas IX",
-    "Kelas X IPA",
-    "Kelas X IPS",
-    "Kelas XI IPA",
-    "Kelas XI IPS",
-    "Kelas XII IPA",
-    "Kelas XII IPS",
+  const tahunAjaran = [
+    "2022/2023",
+    "2023/2024",
+    "2024/2025",
+    "2025/2026",
   ];
 
   return (
@@ -60,10 +49,10 @@ const SiswaKeluarTable = () => {
           value={selectedKelas}
           onChange={(e) => setSelectedKelas(e.target.value)}
         >
-          <option value="">Semua Kelas</option>
-          {kelasOptions.map((kelas) => (
-            <option key={kelas} value={kelas}>
-              {kelas}
+          <option value="">Tahun Ajaran</option>
+          {tahunAjaran.map((ta) => (
+            <option key={ta} value={ta}>
+              {ta}
             </option>
           ))}
         </select>
@@ -101,11 +90,10 @@ const SiswaKeluarTable = () => {
                 Siswa
               </th>
               <th className="px-6 py-3 text-left">NISN</th>
-              <th className="px-6 py-3 text-left">Kelas</th>
+              <th className="px-6 py-3 text-left">Alumni</th>
               <th className="px-6 py-3 text-left">Telp</th>
               <th className="px-6 py-3 text-left">Cabang</th>
-              <th className="px-6 py-3 text-left">Tgl Keluar</th>
-              <th className="text-center">Aksi</th>
+              <th className="px-6 py-3 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -137,9 +125,8 @@ const SiswaKeluarTable = () => {
                     {siswa.satelit}
                   </div>
                 </td>
-                <td className="px-6 py-4">{siswa.siswa_tgl_lahir} / Afrida</td>
 
-                <td className="text-center space-x-2 text-gray-500 dark:text-gray-300">
+                <td className="px-6 py-4 text-center space-x-2 text-gray-500 dark:text-gray-300">
                   <FaTrash
                     title="Hapus Permanen"
                     className="inline-block cursor-pointer hover:text-red-600"
@@ -160,4 +147,4 @@ const SiswaKeluarTable = () => {
   );
 };
 
-export default SiswaKeluarTable;
+export default SiswaAlumni;
