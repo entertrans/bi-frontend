@@ -1,54 +1,102 @@
 import React, { useEffect, useState } from "react";
 import { fetchAllSiswa } from "../../api/siswaAPI";
+import { fetchAllkelas } from "../../api/siswaAPI";
 import { Link } from "react-router-dom";
-import {
-  FaEdit,
-  FaUserSlash,
-  FaUserCheck,
-  FaVideo,
-  FaVideoSlash,
-} from "react-icons/fa";
 
 const SiswaAktifTable = () => {
+  // fitur: state
   const [dataSiswa, setDataSiswa] = useState([]);
+  const [kelasOptions, setKelasOptions] = useState([]);
   const [selectedKelas, setSelectedKelas] = useState("");
+  const [selectedProgram, setSelectedProgram] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState(""); // fitur sortir
+  const [sortOrder, setSortOrder] = useState("asc"); // fitur sortir
   const siswaPerPage = 10;
 
+  // fitur: fetch data
   useEffect(() => {
-    fetchAllSiswa()
-      .then((data) => setDataSiswa(data))
-      .catch((err) => console.error("Gagal ambil data siswa:", err));
+    async function fetchData() {
+      try {
+        const [siswaData, kelasData] = await Promise.all([
+          fetchAllSiswa(),
+          fetchAllkelas(),
+        ]);
+
+        setDataSiswa(siswaData);
+
+        // Ubah format data kelas untuk dropdown
+        const options = [
+          { id: "", label: "Semua Kelas" },
+          ...kelasData.aktif.map((kelas) => ({
+            id: kelas.kelas_id.toString(),
+            label: kelas.kelas_nama,
+          })),
+        ];
+        setKelasOptions(options);
+      } catch (err) {
+        console.error("Gagal ambil data:", err);
+      }
+    }
+
+    fetchData();
   }, []);
 
-  const filteredData = dataSiswa.filter((siswa) => {
-    const kelasMatch = selectedKelas
-      ? siswa.siswa_kelas_id.toString() === selectedKelas
-      : true;
-    const searchMatch =
-      siswa.siswa_nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      siswa.siswa_nis.includes(searchTerm);
-    return kelasMatch && searchMatch;
-  });
+  // fitur: sortir
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortOrder("asc");
+    }
+  };
 
+  // fitur: filter dan sortir data
+  const filteredData = dataSiswa
+    .filter((siswa) => {
+      const kelasMatch = selectedKelas
+        ? siswa.siswa_kelas_id?.toString() === selectedKelas
+        : true;
+
+      const programMatch =
+        selectedProgram === "online"
+          ? siswa.oc === 1
+          : selectedProgram === "offline"
+          ? siswa.kc === 1
+          : true;
+      const searchMatch =
+        siswa.siswa_nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        siswa.siswa_nis.includes(searchTerm);
+      return kelasMatch && searchMatch && programMatch;
+    })
+    .sort((a, b) => {
+      if (!sortField) return 0;
+      const aValue = a[sortField] || "";
+      const bValue = b[sortField] || "";
+      return sortOrder === "asc"
+        ? aValue.toString().localeCompare(bValue.toString())
+        : bValue.toString().localeCompare(aValue.toString());
+    });
+
+  // fitur: pagination
   const totalPages = Math.ceil(filteredData.length / siswaPerPage);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * siswaPerPage,
     currentPage * siswaPerPage
   );
-
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  // fitur: toggle kelas online/offline (simulasi UI)
   const toggleKelasOnline = (nis) => {
     if (!window.confirm("Masukkan atau keluarkan dari kelas online?")) return;
-
     const updated = dataSiswa.map((siswa) =>
       siswa.siswa_nis === nis
         ? {
             ...siswa,
-            kelas_online: !siswa.kelas_online,
-            kelas_offline: siswa.kelas_online ? siswa.kelas_offline : false,
+            oc: siswa.oc === 1 ? 0 : 1,
+            kc: siswa.oc === 1 ? siswa.kc : 0,
           }
         : siswa
     );
@@ -57,38 +105,36 @@ const SiswaAktifTable = () => {
 
   const toggleKelasOffline = (nis) => {
     if (!window.confirm("Masukkan atau keluarkan dari kelas offline?")) return;
-
     const updated = dataSiswa.map((siswa) =>
       siswa.siswa_nis === nis
         ? {
             ...siswa,
-            kelas_offline: !siswa.kelas_offline,
-            kelas_online: siswa.kelas_offline ? siswa.kelas_online : false,
+            kc: siswa.kc === 1 ? 0 : 1,
+            oc: siswa.kc === 1 ? siswa.oc : 0,
           }
         : siswa
     );
     setDataSiswa(updated);
   };
 
-  const kelasOptions = [
-    { id: "", label: "Semua Kelas" },
-    { id: "14", label: "Kelas X IPA" },
-    { id: "15", label: "Kelas XI IPA" },
-    { id: "16", label: "Kelas XII IPA" },
-  ];
-
-  // Helper untuk buat pagination dengan "..." kalau halaman panjang
+  // helper: tombol pagination
   const getPaginationButtons = () => {
     const range = [];
-    const total = totalPages;
-
-    if (total <= 7) {
-      for (let i = 1; i <= total; i++) range.push(i);
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) range.push(i);
     } else {
       if (currentPage <= 4) {
-        range.push(1, 2, 3, 4, 5, "...", total);
-      } else if (currentPage >= total - 3) {
-        range.push(1, "...", total - 4, total - 3, total - 2, total - 1, total);
+        range.push(1, 2, 3, 4, 5, "...", totalPages);
+      } else if (currentPage >= totalPages - 3) {
+        range.push(
+          1,
+          "...",
+          totalPages - 4,
+          totalPages - 3,
+          totalPages - 2,
+          totalPages - 1,
+          totalPages
+        );
       } else {
         range.push(
           1,
@@ -97,42 +143,58 @@ const SiswaAktifTable = () => {
           currentPage,
           currentPage + 1,
           "...",
-          total
+          totalPages
         );
       }
     }
-
     return range;
   };
 
   return (
     <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
       {/* Filter */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
-        <select
-          className="border text-sm border-gray-300 rounded-lg p-2 dark:bg-gray-700 dark:text-white dark:border-gray-600"
-          value={selectedKelas}
-          onChange={(e) => {
-            setSelectedKelas(e.target.value);
-            setCurrentPage(1);
-          }}
-        >
-          {kelasOptions.map((kelas) => (
-            <option key={kelas.id} value={kelas.id}>
-              {kelas.label}
-            </option>
-          ))}
-        </select>
+      <div className="flex flex-wrap md:flex-nowrap gap-4 items-center justify-between mb-4">
+        {/* Kiri: filter kelas dan program */}
+        <div className="flex flex-wrap gap-2">
+          <select
+            value={selectedKelas}
+            onChange={(e) => {
+              setSelectedKelas(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="p-2 border rounded dark:bg-gray-700 dark:text-white"
+          >
+            {kelasOptions.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
 
+          <select
+            value={selectedProgram}
+            onChange={(e) => {
+              setSelectedProgram(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="p-2 border rounded dark:bg-gray-700 dark:text-white"
+          >
+            <option value="">Semua Program</option>
+            <option value="online">Kelas Online</option>
+            <option value="offline">Kelas Offline</option>
+          </select>
+        </div>
+
+        {/* Kanan: search */}
         <input
           type="text"
-          placeholder="Cari siswa..."
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          className="block p-2 text-sm border border-gray-300 rounded-lg w-72 bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+          placeholder="Cari siswa..."
+          className="p-2 border rounded w-full md:w-72 dark:bg-gray-700 dark:text-white"
         />
       </div>
 
@@ -180,7 +242,12 @@ const SiswaAktifTable = () => {
                   {siswa.kelas?.kelas_nama?.replace(/^Kelas\s*/i, "") || "-"}
                 </td>
                 <td className="px-6 py-4">{siswa.siswa_no_telp}</td>
-                <td className="px-6 py-4">{siswa.Satelit.satelit_nama}</td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center">
+                    <div className="h-2.5 w-2.5 rounded-full bg-green-500 mr-2"></div>
+                    {siswa.Satelit.satelit_nama}
+                  </div>
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex flex-col items-start space-y-1">
                     {siswa.oc === 1 && (
@@ -198,19 +265,19 @@ const SiswaAktifTable = () => {
                 <td className="px-4 py-3 text-center space-y-1">
                   <div className="flex flex-wrap justify-center gap-1">
                     <Link to={`/admin/siswa/edit/${siswa.siswa_nis}`}>
-                      <button className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
+                      <button className="px-2 w-32 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
                         Edit
                       </button>
                     </Link>
-                    <button className="px-2 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700">
+                    <button className="px-2 w-32 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700">
                       Keluarkan
                     </button>
-                    <button className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">
+                    <button className="px-2 w-32 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">
                       Absensi
                     </button>
                     <button
                       onClick={() => toggleKelasOnline(siswa.siswa_nis)}
-                      className={`px-2 py-1 text-xs rounded transition ${
+                      className={`px-2 py-1 w-32 text-xs rounded transition ${
                         siswa.oc === 1
                           ? "bg-green-100 text-green-700 hover:bg-green-200"
                           : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -221,7 +288,7 @@ const SiswaAktifTable = () => {
 
                     <button
                       onClick={() => toggleKelasOffline(siswa.siswa_nis)}
-                      className={`px-2 py-1 text-xs rounded ${
+                      className={`px-2 py-1 w-32 text-xs rounded ${
                         siswa.kc === 1
                           ? "bg-red-100 text-red-700 hover:bg-red-200"
                           : "bg-gray-200 text-gray-700 hover:bg-gray-300"
