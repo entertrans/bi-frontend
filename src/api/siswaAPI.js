@@ -28,6 +28,20 @@ export async function fetchAllkelas() {
   }
   return await response.json();
 }
+export async function fetchAllSatelit() {
+  const response = await fetch("http://localhost:8080/lookup/satelit");
+  if (!response.ok) {
+    throw new Error("Gagal mengambil data satelit dari server");
+  }
+  return await response.json();
+}
+export async function fetchAllagama() {
+  const response = await fetch("http://localhost:8080/lookup/agama");
+  if (!response.ok) {
+    throw new Error("Gagal mengambil data agama dari server");
+  }
+  return await response.json();
+}
 
 export async function fetchAllTa() {
   const response = await fetch("http://localhost:8080/lookup/tahun_ajaran");

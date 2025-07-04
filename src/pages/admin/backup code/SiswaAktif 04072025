@@ -1,27 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { fetchAllSiswa, fetchAllkelas } from "../../api/siswaAPI";
-import SiswaDetailPanel from "../../pages/admin/siswa/SiswaDetailPanel"; // sesuaikan path-nya
-
+import { fetchAllSiswa } from "../../../api/siswaAPI";
+import { fetchAllkelas } from "../../../api/siswaAPI";
 import { Link } from "react-router-dom";
 
 const SiswaAktifTable = () => {
+  // fitur: state
   const [dataSiswa, setDataSiswa] = useState([]);
   const [kelasOptions, setKelasOptions] = useState([]);
   const [selectedKelas, setSelectedKelas] = useState("");
   const [selectedProgram, setSelectedProgram] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortField, setSortField] = useState("");
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [sortField, setSortField] = useState(""); // fitur sortir
+  const [sortOrder, setSortOrder] = useState("asc"); // fitur sortir
   const siswaPerPage = 10;
-  const [selectedSiswa, setSelectedSiswa] = useState(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  const handleClosePanel = () => {
-    setIsDetailOpen(false);
-    setTimeout(() => setSelectedSiswa(null), 300);
-  };
-
+  // fitur: fetch data
   useEffect(() => {
     async function fetchData() {
       try {
@@ -32,6 +26,7 @@ const SiswaAktifTable = () => {
 
         setDataSiswa(siswaData);
 
+        // Ubah format data kelas untuk dropdown
         const options = [
           { id: "", label: "Semua Kelas" },
           ...kelasData.aktif.map((kelas) => ({
@@ -48,6 +43,7 @@ const SiswaAktifTable = () => {
     fetchData();
   }, []);
 
+  // fitur: sortir
   const handleSort = (field) => {
     if (sortField === field) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -57,11 +53,13 @@ const SiswaAktifTable = () => {
     }
   };
 
+  // fitur: filter dan sortir data
   const filteredData = dataSiswa
     .filter((siswa) => {
       const kelasMatch = selectedKelas
         ? siswa.siswa_kelas_id?.toString() === selectedKelas
         : true;
+
       const programMatch =
         selectedProgram === "online"
           ? siswa.oc === 1
@@ -82,6 +80,7 @@ const SiswaAktifTable = () => {
         : bValue.toString().localeCompare(aValue.toString());
     });
 
+  // fitur: pagination
   const totalPages = Math.ceil(filteredData.length / siswaPerPage);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * siswaPerPage,
@@ -89,6 +88,7 @@ const SiswaAktifTable = () => {
   );
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  // fitur: toggle kelas online/offline (simulasi UI)
   const toggleKelasOnline = (nis) => {
     if (!window.confirm("Masukkan atau keluarkan dari kelas online?")) return;
     const updated = dataSiswa.map((siswa) =>
@@ -117,6 +117,7 @@ const SiswaAktifTable = () => {
     setDataSiswa(updated);
   };
 
+  // helper: tombol pagination
   const getPaginationButtons = () => {
     const range = [];
     if (totalPages <= 7) {
@@ -153,6 +154,7 @@ const SiswaAktifTable = () => {
     <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
       {/* Filter */}
       <div className="flex flex-wrap md:flex-nowrap gap-4 items-center justify-between mb-4">
+        {/* Kiri: filter kelas dan program */}
         <div className="flex flex-wrap gap-2">
           <select
             value={selectedKelas}
@@ -183,6 +185,7 @@ const SiswaAktifTable = () => {
           </select>
         </div>
 
+        {/* Kanan: search */}
         <input
           type="text"
           value={searchTerm}
@@ -242,7 +245,7 @@ const SiswaAktifTable = () => {
                 <td className="px-6 py-4">
                   <div className="flex items-center">
                     <div className="h-2.5 w-2.5 rounded-full bg-green-500 mr-2"></div>
-                    {siswa.Satelit?.satelit_nama}
+                    {siswa.Satelit.satelit_nama}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -261,16 +264,11 @@ const SiswaAktifTable = () => {
                 </td>
                 <td className="px-4 py-3 text-center space-y-1">
                   <div className="flex flex-wrap justify-center gap-1">
-                    <button
-                      onClick={() => {
-                        setSelectedSiswa(siswa);
-                        setIsDetailOpen(true);
-                      }}
-                      className="px-2 w-32 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      Lihat
-                    </button>
-
+                    <Link to={`/admin/siswa/edit/${siswa.siswa_nis}`}>
+                      <button className="px-2 w-32 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Edit
+                      </button>
+                    </Link>
                     <button className="px-2 w-32 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700">
                       Keluarkan
                     </button>
@@ -328,14 +326,6 @@ const SiswaAktifTable = () => {
           )
         )}
       </div>
-
-      {/* Off-Canvas Panel */}
-      <SiswaDetailPanel
-  siswa={selectedSiswa}
-  isOpen={isDetailOpen}
-  onClose={handleClosePanel}
-/>
-
     </div>
   );
 };
