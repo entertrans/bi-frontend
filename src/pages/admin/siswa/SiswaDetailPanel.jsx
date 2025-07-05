@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import EditableField from "./EditableField";
 import DokumenUploadField from "./DokumenUploadField";
+import uploadSignedToCloudinary from "../../../utils/uploadSignedToCloudinary";
+import convertToJpeg from "../../../utils/convertToJpeg";
+
 import {
   fetchAllkelas,
   fetchAllagama,
@@ -15,6 +18,8 @@ import {
   FaCheck,
   FaTimes,
 } from "react-icons/fa";
+const DEFAULT_IMAGE =
+  "https://res.cloudinary.com/dalcsrtd9/image/upload/v1751646282/404_f4obmp.jpg";
 
 const TABS = [
   { key: "informasi", label: "Informasi", icon: <FaUser /> },
@@ -24,56 +29,16 @@ const TABS = [
 ];
 
 const dokumenList = [
-  {
-    id: "profil-picture",
-    label: "Photo Profile",
-    preview: "https://picsum.photos/id/1011/800/600",
-  },
-  {
-    id: "ktp-ayah",
-    label: "KTP Ayah",
-    preview: "https://picsum.photos/id/1011/800/600",
-  },
-  {
-    id: "ktp-ibu",
-    label: "KTP Ibu",
-    preview: "https://picsum.photos/id/1012/800/600",
-  },
-  {
-    id: "kk",
-    label: "Kartu Keluarga",
-    preview: "https://picsum.photos/id/1013/800/600",
-  },
-  {
-    id: "akta",
-    label: "Akta Lahir",
-    preview: "https://picsum.photos/id/1014/800/600",
-  },
-  {
-    id: "kitas",
-    label: "KITAS (optional)",
-    preview: "https://picsum.photos/id/1015/800/600",
-  },
-  {
-    id: "ijazah-depan",
-    label: "Ijazah Depan (SMP/SMA)",
-    preview: "https://picsum.photos/id/1016/800/600",
-  },
-  {
-    id: "ijazah-belakang",
-    label: "Ijazah Belakang (SMP/SMA)",
-    preview: "https://picsum.photos/id/1016/800/600",
-  },
-  {
-    id: "surat-pindah",
-    label: "Surat Pindah (optional)",
-    preview: "https://picsum.photos/id/1018/800/600",
-  },
-  {
-    id: "surat-perjanjian",
-    label: "Surat Perjanjian",
-    preview: "https://picsum.photos/id/1018/800/600",
-  },
+  { id: "profil-picture", label: "Photo Profile" },
+  { id: "ktp-ayah", label: "KTP Ayah" },
+  { id: "ktp-ibu", label: "KTP Ibu" },
+  { id: "kk", label: "Kartu Keluarga" },
+  { id: "akta", label: "Akta Lahir" },
+  { id: "kitas", label: "KITAS (optional)" },
+  { id: "ijazah-depan", label: "Ijazah Depan (SMP/SMA)" },
+  { id: "ijazah-belakang", label: "Ijazah Belakang (SMP/SMA)" },
+  { id: "surat-pindah", label: "Surat Pindah (optional)" },
+  { id: "surat-perjanjian", label: "Surat Perjanjian" },
 ];
 
 const jenkelList = [
@@ -114,25 +79,44 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
   const [showPanel, setShowPanel] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("informasi");
+  const [dokumenListState, setDokumenListState] = useState(dokumenList);
+
   // const [siswaState, setSiswaState] = useState(siswa);
   const handleFileChange = (id, file) => {
     setFiles((prev) => ({ ...prev, [id]: file }));
     setSavedStatus((prev) => ({ ...prev, [id]: false }));
   };
-  const handleSave = (id) => {
+  const handleSave = async (id) => {
     const file = files[id];
-    if (!file) return;
+    const nis = currentSiswa?.siswa_nis;
+    if (!file || !nis) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("jenis", id);
+    if (!file.type.includes("image")) {
+      alert("Hanya file gambar yang diperbolehkan!");
+      return;
+    }
 
-    // Panggil API simpan
-    // contoh: axios.post('/api/upload', formData)
+    const publicId = `${id}-${nis}`;
+    const folder = `lampiran/${nis}`;
 
-    // Setelah berhasil simpan:
-    setSavedStatus((prev) => ({ ...prev, [id]: true }));
+    try {
+      const jpegFile = await convertToJpeg(file);
+      const { url } = await uploadSignedToCloudinary(
+        jpegFile,
+        publicId,
+        folder
+      );
+
+      setDokumenListState((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, preview: url } : item))
+      );
+
+      setSavedStatus((prev) => ({ ...prev, [id]: true }));
+    } catch (err) {
+      console.error("Upload gagal:", err);
+    }
   };
+
   const [currentSiswa, setCurrentSiswa] = useState(siswa);
 
   const handleFieldSave = (field, value) => {
@@ -209,7 +193,7 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
       ></div>
 
       <div
-        className={`fixed top-0 right-0 h-full w-full sm:w-[600px] z-50 bg-white dark:bg-gray-900 shadow-lg transition-transform duration-300 transform ${
+        className={`overflow-y-auto scroll-thin scroll-hidden fixed top-0 right-0 h-full w-full sm:w-[600px] z-50 bg-white dark:bg-gray-900 shadow-lg transition-transform duration-300 transform ${
           showPanel ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -376,39 +360,39 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <EditableField
                   label="Nama Ayah"
-                  value={currentSiswa?.orangtua.ayah_nama}
+                  value={currentSiswa?.orangtua?.ayah_nama}
                   onSave={(val) => handleFieldSave("ayah_nama", val)}
                 />
                 <EditableField
                   label="NIK"
-                  value={currentSiswa?.orangtua.ayah_nik}
+                  value={currentSiswa?.orangtua?.ayah_nik}
                   onSave={(val) => handleFieldSave("ayah_nik", val)}
                 />
                 <EditableField
                   label="Tempat Lahir"
-                  value={currentSiswa?.orangtua.ayah_tempat}
+                  value={currentSiswa?.orangtua?.ayah_tempat}
                   onSave={(val) => handleFieldSave("ayah_tempat", val)}
                 />
                 <EditableField
                   label="Tanggal Lahir"
-                  value={formatTanggal(currentSiswa?.orangtua.ayah_tanggal)}
-                  rawValue={currentSiswa?.orangtua.ayah_tanggal}
+                  value={formatTanggal(currentSiswa?.orangtua?.ayah_tanggal)}
+                  rawValue={currentSiswa?.orangtua?.ayah_tanggal}
                   type="date"
                   onSave={(val) => handleFieldSave("ayah_tanggal", val)}
                 />
                 <EditableField
                   label="Pendidikan Terakhir"
-                  value={currentSiswa?.orangtua.ayah_pekerjaan}
+                  value={currentSiswa?.orangtua?.ayah_pekerjaan}
                   onSave={(val) => handleFieldSave("ayah_pekerjaan", val)}
                 />
                 <EditableField
                   label="No. Telp Ayah"
-                  value={currentSiswa?.orangtua.no_telp_ayah}
+                  value={currentSiswa?.orangtua?.no_telp_ayah}
                   onSave={(val) => handleFieldSave("no_telp_ayah", val)}
                 />
                 <EditableField
                   label="Email"
-                  value={currentSiswa?.orangtua.email_ayah}
+                  value={currentSiswa?.orangtua?.email_ayah}
                   onSave={(val) => handleFieldSave("email_ayah", val)}
                 />
               </div>
@@ -418,39 +402,39 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <EditableField
                   label="Nama Ibu"
-                  value={currentSiswa?.orangtua.ibu_nama}
+                  value={currentSiswa?.orangtua?.ibu_nama}
                   onSave={(val) => handleFieldSave("ibu_nama", val)}
                 />
                 <EditableField
                   label="NIK"
-                  value={currentSiswa?.orangtua.ibu_nik}
+                  value={currentSiswa?.orangtua?.ibu_nik}
                   onSave={(val) => handleFieldSave("ibu_nik", val)}
                 />
                 <EditableField
                   label="Tempat Lahir"
-                  value={currentSiswa?.orangtua.ibu_tempat}
+                  value={currentSiswa?.orangtua?.ibu_tempat}
                   onSave={(val) => handleFieldSave("ibu_tempat", val)}
                 />
                 <EditableField
                   label="Tanggal Lahir"
-                  value={formatTanggal(currentSiswa?.orangtua.ibu_tanggal)}
-                  rawValue={currentSiswa?.orangtua.ibu_tanggal}
+                  value={formatTanggal(currentSiswa?.orangtua?.ibu_tanggal)}
+                  rawValue={currentSiswa?.orangtua?.ibu_tanggal}
                   type="date"
                   onSave={(val) => handleFieldSave("ibu_tanggal", val)}
                 />
                 <EditableField
                   label="Pendidikan Terakhir"
-                  value={currentSiswa?.orangtua.ibu_pekerjaan}
+                  value={currentSiswa?.orangtua?.ibu_pekerjaan}
                   onSave={(val) => handleFieldSave("ibu_pekerjaan", val)}
                 />
                 <EditableField
                   label="No. Telp Ibu"
-                  value={currentSiswa?.orangtua.no_telp_ibu}
+                  value={currentSiswa?.orangtua?.no_telp_ibu}
                   onSave={(val) => handleFieldSave("no_telp_ibu", val)}
                 />
                 <EditableField
                   label="Email"
-                  value={currentSiswa?.orangtua.email_ibu}
+                  value={currentSiswa?.orangtua?.email_ibu}
                   onSave={(val) => handleFieldSave("email_ibu", val)}
                 />
               </div>
@@ -465,39 +449,39 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <EditableField
                   label="Nama Ayah"
-                  value={currentSiswa?.orangtua.wali_nama}
+                  value={currentSiswa?.orangtua?.wali_nama}
                   onSave={(val) => handleFieldSave("wali_nama", val)}
                 />
                 <EditableField
                   label="NIK"
-                  value={currentSiswa?.orangtua.wali_nik}
+                  value={currentSiswa?.orangtua?.wali_nik}
                   onSave={(val) => handleFieldSave("wali_nik", val)}
                 />
                 <EditableField
                   label="Tempat Lahir"
-                  value={currentSiswa?.orangtua.wali_tempat}
+                  value={currentSiswa?.orangtua?.wali_tempat}
                   onSave={(val) => handleFieldSave("wali_tempat", val)}
                 />
                 <EditableField
                   label="Tanggal Lahir"
-                  value={formatTanggal(currentSiswa?.orangtua.wali_tanggal)}
-                  rawValue={currentSiswa?.orangtua.wali_tanggal}
+                  value={formatTanggal(currentSiswa?.orangtua?.wali_tanggal)}
+                  rawValue={currentSiswa?.orangtua?.wali_tanggal}
                   type="date"
                   onSave={(val) => handleFieldSave("wali_tanggal", val)}
                 />
                 <EditableField
                   label="Pendidikan Terakhir"
-                  value={currentSiswa?.orangtua.wali_pekerjaan}
+                  value={currentSiswa?.orangtua?.wali_pekerjaan}
                   onSave={(val) => handleFieldSave("wali_pekerjaan", val)}
                 />
                 <EditableField
                   label="No. Telp Ayah"
-                  value={currentSiswa?.orangtua.wali_notelp}
+                  value={currentSiswa?.orangtua?.wali_notelp}
                   onSave={(val) => handleFieldSave("wali_notelp", val)}
                 />
                 <EditableField
                   label="Alamat"
-                  value={currentSiswa?.orangtua.wali_alamat}
+                  value={currentSiswa?.orangtua?.wali_alamat}
                   onSave={(val) => handleFieldSave("wali_alamat", val)}
                 />
               </div>
@@ -505,20 +489,23 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
           )}
 
           {activeTab === "lampiran" && (
-            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              
-              {dokumenList.map((item) => (
-                <DokumenUploadField
-                  key={item.id}
-                  id={item.id}
-                  label={item.label}
-                  previewUrl={item.preview}
-                  onChange={handleFileChange}
-                  onSave={handleSave}
-                  saved={savedStatus[item.id]}
-                />
-              ))}
+              {dokumenListState.map((item) => {
+                const nis = currentSiswa?.siswa_nis;
+                const cloudinaryPreviewUrl = item.preview || DEFAULT_IMAGE;
+
+                return (
+                  <DokumenUploadField
+                    key={item.id}
+                    id={item.id}
+                    label={item.label}
+                    previewUrl={cloudinaryPreviewUrl}
+                    onChange={handleFileChange}
+                    onSave={handleSave}
+                    saved={savedStatus[item.id]}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

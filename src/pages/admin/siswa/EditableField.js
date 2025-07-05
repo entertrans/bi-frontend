@@ -1,11 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaEdit, FaCheck, FaTimes } from "react-icons/fa";
 
+const EditableField = ({
+  label,
+  value,
+  rawValue,
+  options,
+  onSave,
+  type = "text", // default
+}) => {
+  const getInitialValue = () => {
+    if (type === "date" && rawValue) {
+      // Ambil hanya tanggalnya dari ISO format
+      return rawValue.split("T")[0];
+    }
+    return rawValue ?? value ?? "";
+  };
 
-const EditableField = ({ label, value, rawValue, options, onSave }) => {
   const [editing, setEditing] = useState(false);
-  const [tempValue, setTempValue] = useState(rawValue || value);
-  
+  const [tempValue, setTempValue] = useState(getInitialValue());
+
+  useEffect(() => {
+    setTempValue(getInitialValue());
+  }, [rawValue, value]);
 
   const handleSave = () => {
     onSave(tempValue);
@@ -13,7 +30,7 @@ const EditableField = ({ label, value, rawValue, options, onSave }) => {
   };
 
   const handleCancel = () => {
-    setTempValue(rawValue || value);
+    setTempValue(getInitialValue());
     setEditing(false);
   };
 
@@ -49,7 +66,7 @@ const EditableField = ({ label, value, rawValue, options, onSave }) => {
             </select>
           ) : (
             <input
-              type="text"
+              type={type}
               value={tempValue}
               onChange={(e) => setTempValue(e.target.value)}
               className="flex-1 p-1 border rounded text-sm dark:bg-gray-800 dark:text-white"

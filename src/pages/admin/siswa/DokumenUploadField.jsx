@@ -1,9 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PhotoProvider, PhotoView } from "react-photo-view";
 import { FaSave } from "react-icons/fa";
 
-const DokumenUploadField = ({ id, label, previewUrl, onChange, onSave, saved }) => {
+const DEFAULT_IMAGE =
+  "https://res.cloudinary.com/dalcsrtd9/image/upload/v1751646282/404_f4obmp.jpg";
+
+const DokumenUploadField = ({
+  id,
+  label,
+  previewUrl,
+  onChange,
+  onSave,
+  saved,
+}) => {
   const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(DEFAULT_IMAGE);
+  const [imageError, setImageError] = useState(false);
+
+  // Fallback preview dari props
+  useEffect(() => {
+    if (previewUrl) {
+      setPreview(previewUrl);
+    }
+  }, [previewUrl]);
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setImageError(false);
+    img.onerror = () => setImageError(true);
+    img.src = previewUrl;
+  }, [previewUrl]);
 
   const handleChange = (e) => {
     const selectedFile = e.target.files?.[0];
@@ -13,9 +38,12 @@ const DokumenUploadField = ({ id, label, previewUrl, onChange, onSave, saved }) 
     }
   };
 
+  const handleImageError = () => {
+    setPreview(DEFAULT_IMAGE);
+  };
+
   return (
     <div className="flex items-center justify-between gap-4 flex-wrap border-b pb-4">
-      {/* Input */}
       <div className="flex-1 min-w-[100px]">
         <label
           htmlFor={id}
@@ -31,20 +59,20 @@ const DokumenUploadField = ({ id, label, previewUrl, onChange, onSave, saved }) 
         />
       </div>
 
-      {/* Preview */}
       <div className="min-w-[60px] text-end">
         <PhotoProvider>
-          <PhotoView src={previewUrl}>
+          <PhotoView src={preview}>
             <img
-              src={previewUrl?.replace("/800/600", "/120/80") || ""}
-              alt={`Preview ${label}`}
+              src={imageError ? DEFAULT_IMAGE : previewUrl}
+              alt="Preview"
               className="w-full max-w-[60px] border rounded shadow cursor-pointer hover:opacity-90 transition"
             />
+
+            {/* className="w-full max-w-[60px] border rounded shadow cursor-pointer hover:opacity-90 transition" */}
           </PhotoView>
         </PhotoProvider>
       </div>
 
-      {/* Save Button */}
       <div>
         <button
           onClick={() => onSave(id)}

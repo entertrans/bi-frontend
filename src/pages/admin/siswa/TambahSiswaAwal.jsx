@@ -1,6 +1,13 @@
 import React, { useState } from "react";
+import { useEffect } from "react";
+import { fetchAllSatelit } from "../../../api/siswaAPI";
+import Swal from "sweetalert2";
 
 const TambahSiswaAwal = () => {
+  const API_URL = process.env.REACT_APP_API_URL;
+
+  const [satelitList, setSatelitList] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nama: "",
     nis: "",
@@ -19,12 +26,64 @@ const TambahSiswaAwal = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Kirim ke API kamu (axios/fetch)
-    console.log(formData);
-    // Redirect ke /admin/siswa/ppdb
+
+    const form = new FormData();
+    form.append("nis", formData.nis);
+    form.append("nisn", formData.nisn);
+    form.append("nama", formData.nama);
+    form.append("jenkel", formData.jenkel);
+    form.append("satelit", formData.satelit);
+    form.append("photo", formData.photo);
+
+    try {
+      Swal.fire({
+        title: "Menyimpan data...",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
+      const res = await fetch(`${API_URL}/ppdb`, {
+        method: "POST",
+        body: form,
+      });
+
+      Swal.close();
+
+      if (res.ok) {
+        Swal.fire({
+          icon: "success",
+          title: "Berhasil",
+          text: "Siswa berhasil ditambahkan!",
+          timer: 1500,
+          showConfirmButton: false,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          allowEnterKey: false,
+        }).then(() => {
+          window.location.reload();
+        });
+      } else {
+        Swal.fire("Gagal", "Gagal menambahkan siswa.", "error");
+      }
+    } catch (err) {
+      Swal.close();
+      Swal.fire("Error", "Terjadi kesalahan: " + err.message, "error");
+    }
   };
+
+  useEffect(() => {
+    fetchAllSatelit()
+      .then((data) => {
+        // console.log("DATA SATELIT", data); // Ini harus array
+        setSatelitList(data); // Data langsung, bukan data.data
+      })
+      .catch((err) => {
+        console.error("Gagal mengambil data satelit", err);
+        setSatelitList([]); // fallback kalau error
+      });
+  }, []);
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow max-w-xl mx-auto">
@@ -95,9 +154,11 @@ const TambahSiswaAwal = () => {
             required
           >
             <option value="">-- Pilih Cabang --</option>
-            <option value="BSD">BSD</option>
-            <option value="Serpong">Serpong</option>
-            <option value="Bogor">Bogor</option>
+            {satelitList.map((s) => (
+              <option key={s.satelit_id} value={s.satelit_id}>
+                {s.satelit_nama}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -139,9 +200,12 @@ const TambahSiswaAwal = () => {
 
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mt-4"
+          disabled={loading}
+          className={`bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mt-4 ${
+            loading && "opacity-50 cursor-not-allowed"
+          }`}
         >
-          Simpan
+          {loading ? "Menyimpan..." : "Simpan"}
         </button>
       </form>
     </div>

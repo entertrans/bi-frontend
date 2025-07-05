@@ -15,5 +15,6 @@ module.exports = {
   },
   plugins: [
     require("flowbite/plugin"), // <- ini penting!
+    require("tailwind-scrollbar-hide"),
   ],
 };
