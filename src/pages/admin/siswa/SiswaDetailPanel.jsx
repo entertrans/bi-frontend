@@ -1,23 +1,18 @@
 import React, { useEffect, useState } from "react";
 import EditableField from "./EditableField";
+import { updateSiswaField } from "../../../api/siswaAPI";
 import DokumenUploadField from "./DokumenUploadField";
 import uploadSignedToCloudinary from "../../../utils/uploadSignedToCloudinary";
 import convertToJpeg from "../../../utils/convertToJpeg";
+import { showToast } from "../../../utils/toast";
+import Swal from "sweetalert2";
 
 import {
   fetchAllkelas,
   fetchAllagama,
   fetchAllSatelit,
 } from "../../../api/siswaAPI";
-import {
-  FaUser,
-  FaPaperclip,
-  FaUserFriends,
-  FaGraduationCap,
-  FaEdit,
-  FaCheck,
-  FaTimes,
-} from "react-icons/fa";
+import { FaUser, FaPaperclip, FaUserFriends } from "react-icons/fa";
 const DEFAULT_IMAGE =
   "https://res.cloudinary.com/dalcsrtd9/image/upload/v1751646282/404_f4obmp.jpg";
 
@@ -119,16 +114,49 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
 
   const [currentSiswa, setCurrentSiswa] = useState(siswa);
 
-  const handleFieldSave = (field, value) => {
-    setCurrentSiswa((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const handleFieldSave = async (field, value) => {
+    try {
+      const nis = currentSiswa?.siswa_nis;
+      if (!nis) throw new Error("NIS tidak ditemukan");
+
+      // Optimistic update (langsung update UI)
+      setCurrentSiswa((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+
+      // Kirim ke backend
+      await updateSiswaField(nis, field, value);
+      // console.log(`Field ${field} berhasil diperbarui.`);
+      showToast(`Berhasil mengubah ${field}`);
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal menyimpan!",
+        text: error.message || "Terjadi kesalahan.",
+      });
+      console.error("Gagal update:", error);
+    }
   };
 
   useEffect(() => {
     if (siswa) {
       setCurrentSiswa(siswa);
+    }
+  }, [siswa]);
+  useEffect(() => {
+    if (siswa?.lampiran && Array.isArray(siswa.lampiran)) {
+      const updatedList = dokumenList.map((item) => {
+        const found = siswa.lampiran.find(
+          (lampiran) => lampiran.dokumen_jenis === item.id
+        );
+        return {
+          ...item,
+          preview: found?.url || DEFAULT_IMAGE,
+        };
+      });
+
+      setDokumenListState(updatedList);
     }
   }, [siswa]);
 
@@ -211,7 +239,10 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
 
         <div className="flex flex-col items-center justify-center my-6">
           <img
-            src="https://i.pravatar.cc/100?u=siswa1"
+            src={
+              dokumenListState.find((d) => d.id === "profil-picture")
+                ?.preview || DEFAULT_IMAGE
+            }
             alt="Foto Siswa"
             className="w-24 h-24 rounded-full border-2 border-blue-500 shadow"
           />

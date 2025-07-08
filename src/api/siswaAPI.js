@@ -1,3 +1,17 @@
+import axios from "./axios"; // ini mengarah ke file konfigurasi di atas
+
+export const updateSiswaField = async (nis, field, value) => {
+  const response = await axios.put(`http://localhost:8080/updatesiswa/${nis}`, {
+    field,
+    value,
+  });
+  return response.data;
+};
+
+export const batalkanSiswa = async (nis) => {
+  return await axios.delete(`http://localhost:8080/batalkan-siswa/${nis}`);
+};
+
 export async function fetchAllSiswa() {
   const response = await fetch("http://localhost:8080/siswaaktif");
   if (!response.ok) {

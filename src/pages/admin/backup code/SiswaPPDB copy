@@ -1,36 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { fetchAllPPDB, batalkanSiswa } from "../../../api/siswaAPI";
+import { fetchAllPPDB } from "../../../api/siswaAPI";
 import { useNavigate, Link } from "react-router-dom";
-import SiswaDetailPanel from "./SiswaDetailPanel"; // sesuaikan path-nya
-import { showAlert } from "../../../utils/toast";
-import Swal from "sweetalert2";
 
 const SiswaPPDB = () => {
   const [dataSiswa, setDataSiswa] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1); // <-- dipindah ke sini
   const siswaPerPage = 5;
-  const [selectedSiswa, setSelectedSiswa] = useState(null);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-
-  const handleClosePanel = () => {
-    setIsDetailOpen(false);
-    setTimeout(() => setSelectedSiswa(null), 300);
-  };
-  const fetchData = async () => {
-    try {
-      const siswa = await fetchAllPPDB();
-      setDataSiswa(siswa);
-    } catch (err) {
-      console.error("Gagal mengambil data PPDB:", err);
-    }
-  };
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   useEffect(() => {
     async function getData() {
@@ -45,46 +23,12 @@ const SiswaPPDB = () => {
   }, []);
 
   const handleLanjutkan = (nis) => {
-    const siswa = dataSiswa.find((s) => s.siswa_nis === nis);
-    if (siswa) {
-      setSelectedSiswa(siswa);
-      setIsDetailOpen(true);
-    }
+    navigate(`/admin/siswa/lanjutkan-ppdb/${nis}`);
   };
 
-  const handleBatalkan = async (nis) => {
-    const result = await Swal.fire({
-      title: "Yakin?",
-      text: "Apakah kamu yakin ingin membatalkan siswa ini?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya, batalkan!",
-      cancelButtonText: "Batal",
-      buttonsStyling: false,
-      customClass: {
-        actions: "flex justify-center", // << ini untuk center tombol
-        confirmButton:
-          "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
-        cancelButton:
-          "bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 ml-2 rounded",
-      },
-    });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await batalkanSiswa(nis);
-      showAlert("Siswa berhasil dibatalkan", "success");
-      fetchData();
-    } catch (error) {
-      console.error("Gagal membatalkan siswa:", error);
-      showAlert("Gagal membatalkan siswa", "error");
-    }
-  };
-
-  const handleTerima = (nis) => {
+  const handleBatalkan = (nis) => {
     const konfirmasi = window.confirm(
-      "Apakah kamu yakin ingin menerima siswa ini menjadi siswa anak panah?"
+      "Apakah kamu yakin ingin membatalkan siswa ini?"
     );
     if (konfirmasi) {
       console.log("Siswa dengan NIS", nis, "dibatalkan.");
@@ -200,12 +144,6 @@ const SiswaPPDB = () => {
                         Lanjutkan
                       </button>
                       <button
-                        onClick={() => handleTerima(siswa.siswa_nis)}
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs rounded shadow"
-                      >
-                        Terima
-                      </button>
-                      <button
                         onClick={() => handleBatalkan(siswa.siswa_nis)}
                         className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 text-xs rounded shadow"
                       >
@@ -234,20 +172,6 @@ const SiswaPPDB = () => {
           </button>
         ))}
       </div>
-      {/* Backdrop saat panel aktif */}
-      {isDetailOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={handleClosePanel}
-        />
-      )}
-
-      {/* Panel Detail */}
-      <SiswaDetailPanel
-        siswa={selectedSiswa}
-        isOpen={isDetailOpen}
-        onClose={handleClosePanel}
-      />
     </div>
   );
 };
