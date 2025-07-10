@@ -12,6 +12,19 @@ export const batalkanSiswa = async (nis) => {
   return await axios.delete(`http://localhost:8080/batalkan-siswa/${nis}`);
 };
 
+export const keluarkanSiswa = async (nis) => {
+  const res = await axios.patch(`http://localhost:8080/siswa/${nis}/keluarkan`);
+  return res.data;
+};
+export const toggleKelasOnline = async (nis) => {
+  const res = await axios.patch(`http://localhost:8080/siswa/${nis}/online`);
+  return res.data;
+};
+export const toggleKelasOffline = async (nis) => {
+  const res = await axios.patch(`http://localhost:8080/siswa/${nis}/offline`);
+  return res.data;
+};
+
 export const terimaSiswa = async (nis) => {
   const res = await fetch(`http://localhost:8080/siswa/${nis}/terima`, {
     method: "PATCH",

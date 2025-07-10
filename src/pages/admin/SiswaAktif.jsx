@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { fetchAllSiswa, fetchAllkelas } from "../../api/siswaAPI";
+import {
+  fetchAllSiswa,
+  fetchAllkelas,
+  keluarkanSiswa,
+  toggleKelasOnline,
+  toggleKelasOffline,
+} from "../../api/siswaAPI";
 import SiswaDetailPanel from "../../pages/admin/siswa/SiswaDetailPanel"; // sesuaikan path-nya
-
-import { Link } from "react-router-dom";
+import { showAlert } from "../../utils/toast";
+import Swal from "sweetalert2";
 
 const SiswaAktifTable = () => {
   const [dataSiswa, setDataSiswa] = useState([]);
@@ -22,40 +28,33 @@ const SiswaAktifTable = () => {
     setTimeout(() => setSelectedSiswa(null), 300);
   };
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [siswaData, kelasData] = await Promise.all([
-          fetchAllSiswa(),
-          fetchAllkelas(),
-        ]);
+  // Pindahkan ke luar useEffect
+  const fetchData = async () => {
+    try {
+      const [siswaData, kelasData] = await Promise.all([
+        fetchAllSiswa(),
+        fetchAllkelas(),
+      ]);
 
-        setDataSiswa(siswaData);
+      setDataSiswa(siswaData);
 
-        const options = [
-          { id: "", label: "Semua Kelas" },
-          ...kelasData.aktif.map((kelas) => ({
-            id: kelas.kelas_id.toString(),
-            label: kelas.kelas_nama,
-          })),
-        ];
-        setKelasOptions(options);
-      } catch (err) {
-        console.error("Gagal ambil data:", err);
-      }
-    }
-
-    fetchData();
-  }, []);
-
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortOrder("asc");
+      const options = [
+        { id: "", label: "Semua Kelas" },
+        ...kelasData.aktif.map((kelas) => ({
+          id: kelas.kelas_id.toString(),
+          label: kelas.kelas_nama,
+        })),
+      ];
+      setKelasOptions(options);
+    } catch (err) {
+      console.error("Gagal ambil data:", err);
     }
   };
+
+  // Tetap pakai useEffect seperti ini
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const filteredData = dataSiswa
     .filter((siswa) => {
@@ -89,32 +88,120 @@ const SiswaAktifTable = () => {
   );
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  const toggleKelasOnline = (nis) => {
-    if (!window.confirm("Masukkan atau keluarkan dari kelas online?")) return;
-    const updated = dataSiswa.map((siswa) =>
-      siswa.siswa_nis === nis
-        ? {
-            ...siswa,
-            oc: siswa.oc === 1 ? 0 : 1,
-            kc: siswa.oc === 1 ? siswa.kc : 0,
-          }
-        : siswa
-    );
-    setDataSiswa(updated);
+  const handleToggleOnline = async (nis, currentOC) => {
+    const newOC = currentOC === 1 ? 0 : 1;
+
+    const result = await Swal.fire({
+      title:
+        newOC === 1 ? "Aktifkan Kelas Online?" : "Nonaktifkan Kelas Online?",
+      text:
+        newOC === 1
+          ? "Siswa akan dimasukkan ke program online. Lanjutkan?"
+          : "Siswa akan dikeluarkan dari program online. Lanjutkan?",
+      icon: "info",
+      showCancelButton: true,
+      confirmButtonText: newOC === 1 ? "Ya, aktifkan!" : "Ya, nonaktifkan!",
+      cancelButtonText: "Batal",
+      buttonsStyling: false,
+      customClass: {
+        actions: "flex justify-center",
+        confirmButton:
+          "bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        cancelButton:
+          "bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 ml-2 rounded",
+      },
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await fetch(`http://localhost:8080/siswa/${nis}/online`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ value: newOC }),
+      });
+
+      showAlert("Status kelas online diperbarui.", "success");
+      fetchData(); // reload data
+    } catch (error) {
+      console.error("Gagal mengubah status kelas online:", error);
+      showAlert("Gagal mengubah status kelas online.", "error");
+    }
   };
 
-  const toggleKelasOffline = (nis) => {
-    if (!window.confirm("Masukkan atau keluarkan dari kelas offline?")) return;
-    const updated = dataSiswa.map((siswa) =>
-      siswa.siswa_nis === nis
-        ? {
-            ...siswa,
-            kc: siswa.kc === 1 ? 0 : 1,
-            oc: siswa.kc === 1 ? siswa.oc : 0,
-          }
-        : siswa
-    );
-    setDataSiswa(updated);
+  const handleKeluarkan = async (nis) => {
+    const result = await Swal.fire({
+      title: "Keluarkan Siswa?",
+      text: "Apakah kamu yakin ingin mengeluarkan siswa ini?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, keluarkan!",
+      cancelButtonText: "Batal",
+      buttonsStyling: false,
+      customClass: {
+        actions: "flex justify-center",
+        confirmButton:
+          "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        cancelButton:
+          "bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 ml-2 rounded",
+      },
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await keluarkanSiswa(nis);
+      showAlert("Siswa berhasil dikeluarkan.", "success");
+      fetchData(); // refresh data siswa
+    } catch (error) {
+      console.error("Gagal mengeluarkan siswa:", error);
+      showAlert("Gagal mengeluarkan siswa.", "error");
+    }
+  };
+
+  const handleToggleOffline = async (nis, currentKC) => {
+    const newKC = currentKC === 1 ? 0 : 1;
+
+    const result = await Swal.fire({
+      title:
+        newKC === 1 ? "Aktifkan Kelas Offline?" : "Nonaktifkan Kelas Offline?",
+      text:
+        newKC === 1
+          ? "Siswa akan dimasukkan ke program offline. Lanjutkan?"
+          : "Siswa akan dikeluarkan dari program offline. Lanjutkan?",
+      icon: "info",
+      showCancelButton: true,
+      confirmButtonText: newKC === 1 ? "Ya, aktifkan!" : "Ya, nonaktifkan!",
+      cancelButtonText: "Batal",
+      buttonsStyling: false,
+      customClass: {
+        actions: "flex justify-center",
+        confirmButton:
+          "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        cancelButton:
+          "bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 ml-2 rounded",
+      },
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await fetch(`http://localhost:8080/siswa/${nis}/offline`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ value: newKC }),
+      });
+
+      showAlert("Status kelas offline diperbarui.", "success");
+      fetchData(); // reload data
+    } catch (error) {
+      console.error("Gagal mengubah status kelas offline:", error);
+      showAlert("Gagal mengubah status kelas offline.", "error");
+    }
   };
 
   const getPaginationButtons = () => {
@@ -214,15 +301,24 @@ const SiswaAktifTable = () => {
               <tr key={siswa.siswa_id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center space-x-4">
-                    <img
-                      src={
-                        siswa.siswa_photo
-                          ? `https://placehold.co/40x40?text=AA&font=roboto`
-                          : `https://placehold.co/40x40?text=AA&font=roboto`
-                      }
-                      alt={siswa.siswa_nama}
-                      className="w-10 h-10 rounded-full border object-cover"
-                    />
+                    {(() => {
+                      const profilePicture =
+                        Array.isArray(siswa.lampiran) &&
+                        siswa.lampiran.find(
+                          (l) => l.dokumen_jenis === "profil-picture"
+                        )?.url;
+
+                      return (
+                        <img
+                          src={
+                            profilePicture ||
+                            `https://placehold.co/40x40?text=AA&font=roboto`
+                          }
+                          alt={siswa.siswa_nama}
+                          className="w-10 h-10 rounded-full border object-cover"
+                        />
+                      );
+                    })()}
 
                     <div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
@@ -271,14 +367,19 @@ const SiswaAktifTable = () => {
                       Lihat
                     </button>
 
-                    <button className="px-2 w-32 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700">
+                    <button
+                      onClick={() => handleKeluarkan(siswa.siswa_nis)}
+                      className="px-2 w-32 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700"
+                    >
                       Keluarkan
                     </button>
                     <button className="px-2 w-32 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">
                       Absensi
                     </button>
                     <button
-                      onClick={() => toggleKelasOnline(siswa.siswa_nis)}
+                      onClick={() =>
+                        handleToggleOnline(siswa.siswa_nis, siswa.oc)
+                      }
                       className={`px-2 py-1 w-32 text-xs rounded transition ${
                         siswa.oc === 1
                           ? "bg-green-100 text-green-700 hover:bg-green-200"
@@ -289,7 +390,9 @@ const SiswaAktifTable = () => {
                     </button>
 
                     <button
-                      onClick={() => toggleKelasOffline(siswa.siswa_nis)}
+                      onClick={() =>
+                        handleToggleOffline(siswa.siswa_nis, siswa.kc)
+                      }
                       className={`px-2 py-1 w-32 text-xs rounded ${
                         siswa.kc === 1
                           ? "bg-red-100 text-red-700 hover:bg-red-200"
@@ -331,11 +434,10 @@ const SiswaAktifTable = () => {
 
       {/* Off-Canvas Panel */}
       <SiswaDetailPanel
-  siswa={selectedSiswa}
-  isOpen={isDetailOpen}
-  onClose={handleClosePanel}
-/>
-
+        siswa={selectedSiswa}
+        isOpen={isDetailOpen}
+        onClose={handleClosePanel}
+      />
     </div>
   );
 };
