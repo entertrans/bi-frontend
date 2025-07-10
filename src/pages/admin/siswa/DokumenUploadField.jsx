@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { PhotoProvider, PhotoView } from "react-photo-view";
-import { FaSave } from "react-icons/fa";
+import { FaSave, FaSpinner } from "react-icons/fa";
 
 const DEFAULT_IMAGE =
   "https://res.cloudinary.com/dalcsrtd9/image/upload/v1751646282/404_f4obmp.jpg";
@@ -16,6 +16,7 @@ const DokumenUploadField = ({
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(DEFAULT_IMAGE);
   const [imageError, setImageError] = useState(false);
+  const [isUploading, setIsUploading] = useState(false); // NEW
 
   // Fallback preview dari props
   useEffect(() => {
@@ -23,6 +24,7 @@ const DokumenUploadField = ({
       setPreview(previewUrl);
     }
   }, [previewUrl]);
+
   useEffect(() => {
     const img = new Image();
     img.onload = () => setImageError(false);
@@ -38,8 +40,13 @@ const DokumenUploadField = ({
     }
   };
 
-  const handleImageError = () => {
-    setPreview(DEFAULT_IMAGE);
+  const handleSave = async () => {
+    setIsUploading(true); // MULAI LOADING
+    try {
+      await onSave(id); // CALL props onSave async
+    } finally {
+      setIsUploading(false); // SELESAI LOADING
+    }
   };
 
   return (
@@ -67,21 +74,20 @@ const DokumenUploadField = ({
               alt="Preview"
               className="w-full max-w-[60px] border rounded shadow cursor-pointer hover:opacity-90 transition"
             />
-
-            {/* className="w-full max-w-[60px] border rounded shadow cursor-pointer hover:opacity-90 transition" */}
           </PhotoView>
         </PhotoProvider>
       </div>
 
       <div>
         <button
-          onClick={() => onSave(id)}
+          onClick={handleSave}
           title="Simpan"
-          className={`p-2 text-white rounded ${
+          disabled={isUploading}
+          className={`p-2 text-white rounded transition flex items-center justify-center ${
             saved ? "bg-green-600" : "bg-blue-600 hover:bg-blue-700"
-          } transition`}
+          } ${isUploading && "opacity-70 cursor-not-allowed"}`}
         >
-          <FaSave />
+          {isUploading ? <FaSpinner className="animate-spin" /> : <FaSave />}
         </button>
       </div>
     </div>

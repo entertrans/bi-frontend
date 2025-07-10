@@ -7,12 +7,12 @@ const EditableField = ({
   rawValue,
   options,
   onSave,
-  type = "text", // default
+  type = "text", // default input type
+  onlyNumber = false, // new prop: hanya angka
 }) => {
   const getInitialValue = () => {
     if (type === "date" && rawValue) {
-      // Ambil hanya tanggalnya dari ISO format
-      return rawValue.split("T")[0];
+      return rawValue.split("T")[0]; // ambil tanggal saja
     }
     return rawValue ?? value ?? "";
   };
@@ -37,6 +37,7 @@ const EditableField = ({
   return (
     <div className="relative group">
       <div className="text-gray-500 dark:text-gray-400">{label}:</div>
+
       {!editing ? (
         <div className="flex justify-between items-center text-gray-800 dark:text-white">
           <span className="whitespace-pre-line break-words max-w-[85%]">
@@ -68,10 +69,18 @@ const EditableField = ({
             <input
               type={type}
               value={tempValue}
-              onChange={(e) => setTempValue(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (onlyNumber) {
+                  if (/^\d*$/.test(val)) setTempValue(val); // hanya angka
+                } else {
+                  setTempValue(val);
+                }
+              }}
               className="flex-1 p-1 border rounded text-sm dark:bg-gray-800 dark:text-white"
             />
           )}
+
           <button
             onClick={handleSave}
             className="text-green-600 hover:text-green-800"

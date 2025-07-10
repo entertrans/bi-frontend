@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { fetchAllPPDB, batalkanSiswa } from "../../../api/siswaAPI";
+import {
+  fetchAllPPDB,
+  batalkanSiswa,
+  terimaSiswa,
+} from "../../../api/siswaAPI";
 import { useNavigate, Link } from "react-router-dom";
 import SiswaDetailPanel from "./SiswaDetailPanel"; // sesuaikan path-nya
 import { showAlert } from "../../../utils/toast";
@@ -82,13 +86,33 @@ const SiswaPPDB = () => {
     }
   };
 
-  const handleTerima = (nis) => {
-    const konfirmasi = window.confirm(
-      "Apakah kamu yakin ingin menerima siswa ini menjadi siswa anak panah?"
-    );
-    if (konfirmasi) {
-      console.log("Siswa dengan NIS", nis, "dibatalkan.");
-      // Tambahkan logika update status/hapus di sini
+  const handleTerima = async (nis) => {
+    const result = await Swal.fire({
+      title: "Terima Siswa?",
+      text: "Apakah kamu yakin ingin menerima siswa ini menjadi siswa aktif?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Ya, terima!",
+      cancelButtonText: "Batal",
+      buttonsStyling: false,
+      customClass: {
+        actions: "flex justify-center",
+        confirmButton:
+          "bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        cancelButton:
+          "bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 ml-2 rounded",
+      },
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await terimaSiswa(nis);
+      showAlert("Siswa berhasil diterima.", "success");
+      fetchData(); // refresh data
+    } catch (error) {
+      console.error("Gagal menerima siswa:", error);
+      showAlert("Gagal menerima siswa.", "error");
     }
   };
 

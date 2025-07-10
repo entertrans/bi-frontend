@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
-import EditableField from "./EditableField";
-import { updateSiswaField, uploadDokumen } from "../../../api/siswaAPI";
-import DokumenUploadField from "./DokumenUploadField";
+import EditableField from "../siswa/EditableField";
+import { updateSiswaField } from "../../../api/siswaAPI";
+import DokumenUploadField from "../siswa/DokumenUploadField";
+import uploadSignedToCloudinary from "../../../utils/uploadSignedToCloudinary";
+import convertToJpeg from "../../../utils/convertToJpeg";
 import { showToast } from "../../../utils/toast";
 import Swal from "sweetalert2";
 
@@ -84,19 +86,29 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
     const nis = currentSiswa?.siswa_nis;
     if (!file || !nis) return;
 
+    if (!file.type.includes("image")) {
+      alert("Hanya file gambar yang diperbolehkan!");
+      return;
+    }
+
+    const publicId = `${id}-${nis}`;
+    const folder = `lampiran/${nis}`;
+
     try {
-      const data = await uploadDokumen(nis, id, file); // ← pakai API centralized
-      showToast(`Upload ${id} berhasil`);
+      const jpegFile = await convertToJpeg(file);
+      const { url } = await uploadSignedToCloudinary(
+        jpegFile,
+        publicId,
+        folder
+      );
+
+      setDokumenListState((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, preview: url } : item))
+      );
 
       setSavedStatus((prev) => ({ ...prev, [id]: true }));
-      setDokumenListState((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, preview: data.url } : item
-        )
-      );
     } catch (err) {
-      console.error(err);
-      showToast("Upload gagal");
+      console.error("Upload gagal:", err);
     }
   };
 
@@ -300,13 +312,11 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
                   label="NISN Siswa"
                   value={currentSiswa?.siswa_nisn}
                   onSave={(val) => handleFieldSave("siswa_nisn", val)}
-                  onlyNumber={true}
                 />
                 <EditableField
                   label="NIK Siswa"
                   value={currentSiswa?.nik_siswa}
                   onSave={(val) => handleFieldSave("nik_siswa", val)}
-                  onlyNumber={true}
                 />
                 <EditableField
                   label="Anak Ke"
@@ -327,7 +337,6 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
                   label="No. Telp"
                   value={currentSiswa?.siswa_no_telp}
                   onSave={(val) => handleFieldSave("siswa_no_telp", val)}
-                  onlyNumber={true}
                 />
                 <EditableField
                   label="Tempat Lahir"
@@ -389,7 +398,6 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
                   label="NIK"
                   value={currentSiswa?.orangtua?.ayah_nik}
                   onSave={(val) => handleFieldSave("ayah_nik", val)}
-                  onlyNumber={true}
                 />
                 <EditableField
                   label="Tempat Lahir"
@@ -412,7 +420,6 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
                   label="No. Telp Ayah"
                   value={currentSiswa?.orangtua?.no_telp_ayah}
                   onSave={(val) => handleFieldSave("no_telp_ayah", val)}
-                  onlyNumber={true}
                 />
                 <EditableField
                   label="Email"
@@ -433,7 +440,6 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
                   label="NIK"
                   value={currentSiswa?.orangtua?.ibu_nik}
                   onSave={(val) => handleFieldSave("ibu_nik", val)}
-                  onlyNumber={true}
                 />
                 <EditableField
                   label="Tempat Lahir"
@@ -456,7 +462,6 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
                   label="No. Telp Ibu"
                   value={currentSiswa?.orangtua?.no_telp_ibu}
                   onSave={(val) => handleFieldSave("no_telp_ibu", val)}
-                  onlyNumber={true}
                 />
                 <EditableField
                   label="Email"
@@ -482,7 +487,6 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
                   label="NIK"
                   value={currentSiswa?.orangtua?.wali_nik}
                   onSave={(val) => handleFieldSave("wali_nik", val)}
-                  onlyNumber={true}
                 />
                 <EditableField
                   label="Tempat Lahir"
@@ -502,10 +506,9 @@ const SiswaDetailPanel = ({ siswa, isOpen, onClose }) => {
                   onSave={(val) => handleFieldSave("wali_pekerjaan", val)}
                 />
                 <EditableField
-                  label="No. Telp Wali"
+                  label="No. Telp Ayah"
                   value={currentSiswa?.orangtua?.wali_notelp}
                   onSave={(val) => handleFieldSave("wali_notelp", val)}
-                  onlyNumber={true}
                 />
                 <EditableField
                   label="Alamat"

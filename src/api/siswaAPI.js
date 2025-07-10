@@ -12,6 +12,39 @@ export const batalkanSiswa = async (nis) => {
   return await axios.delete(`http://localhost:8080/batalkan-siswa/${nis}`);
 };
 
+export const terimaSiswa = async (nis) => {
+  const res = await fetch(`http://localhost:8080/siswa/${nis}/terima`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      soft_deleted: 0,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Gagal menerima siswa.");
+  }
+
+  return await res.json();
+};
+
+export const uploadDokumen = async (nis, id, file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("nis", nis);
+  formData.append("dokumen_jenis", id);
+
+  const res = await fetch("http://localhost:8080/api/upload-dokumen", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) throw new Error("Gagal upload");
+  return res.json(); // { url }
+};
+
 export async function fetchAllSiswa() {
   const response = await fetch("http://localhost:8080/siswaaktif");
   if (!response.ok) {
