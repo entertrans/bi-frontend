@@ -1,5 +1,61 @@
 import axios from "./axios"; // ini mengarah ke file konfigurasi di atas
+//penerima invoice
+export const searchSiswa = async (q) => {
+  const response = await fetch(`http://localhost:8080/siswa/search?q=${q}`);
+  if (!response.ok) throw new Error("Gagal mencari siswa");
+  return await response.json();
+};
+export const tambahPenerimaInvoice = async (id_invoice, siswaList) => {
+  const res = await axios.post(
+    `http://localhost:8080/invoice/penerima/id?id=${encodeURIComponent(
+      id_invoice
+    )}`,
+    {
+      penerima: siswaList,
+    }
+  );
+  return res.data;
+};
 
+// invoice
+export const getInvoiceById = async (id_invoice) => {
+  const response = await fetch(
+    `http://localhost:8080/invoice/by-id?id=${encodeURIComponent(id_invoice)}`
+  );
+  const data = await response.json();
+  return data;
+};
+
+export const getPenerimaInvoice = async (id_invoice) => {
+  const response = await fetch(
+    `http://localhost:8080/invoice/penerima?id=${encodeURIComponent(
+      id_invoice
+    )}`
+  );
+  const data = await response.json();
+  return data;
+};
+
+//check invoice
+export const cekInvoiceID = async (id_invoice) => {
+  const res = await fetch(`http://localhost:8080/invoice/cek?id=${id_invoice}`);
+  if (!res.ok) throw new Error("Gagal cek ID Invoice");
+  return await res.json(); // { exists: true/false }
+};
+
+// Ambil semua invoice
+export const getAllInvoice = async () => {
+  const response = await axios.get(`http://localhost:8080/invoice`);
+  return response.data;
+};
+
+// Tambah invoice baru
+export const createInvoice = async (data) => {
+  const res = await axios.post("http://localhost:8080/invoice", data);
+  return res.data;
+};
+
+//siswa
 export const updateSiswaField = async (nis, field, value) => {
   const response = await axios.put(`http://localhost:8080/updatesiswa/${nis}`, {
     field,
@@ -12,10 +68,16 @@ export const batalkanSiswa = async (nis) => {
   return await axios.delete(`http://localhost:8080/batalkan-siswa/${nis}`);
 };
 
-export const keluarkanSiswa = async (nis) => {
-  const res = await axios.patch(`http://localhost:8080/siswa/${nis}/keluarkan`);
+export const keluarkanSiswa = async (nis, tanggalKeluar) => {
+  const res = await axios.patch(
+    `http://localhost:8080/siswa/${nis}/keluarkan`,
+    {
+      tgl_keluar: tanggalKeluar, // << ganti key-nya
+    }
+  );
   return res.data;
 };
+
 export const toggleKelasOnline = async (nis) => {
   const res = await axios.patch(`http://localhost:8080/siswa/${nis}/online`);
   return res.data;
@@ -118,3 +180,51 @@ export async function fetchAllPPDB() {
   }
   return await response.json();
 }
+//end of siswa
+
+//tagihan
+export const fetchAllTagihan = async () => {
+  const res = await axios.get("http://localhost:8080/tagihan");
+  return res.data;
+};
+
+export const tambahTagihan = async ({ jns_tagihan, nom_tagihan }) => {
+  const res = await fetch("http://localhost:8080/tagihan/tambah", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      jns_tagihan,
+      nom_tagihan,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Gagal menambah tagihan.");
+  }
+
+  return await res.json();
+};
+
+export const editTagihan = async (id, data) => {
+  const res = await fetch(`http://localhost:8080/tagihan/${id}/edit`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) throw new Error("Gagal update tagihan.");
+  return await res.json();
+};
+
+export const deleteTagihan = async (id) => {
+  const res = await fetch(`http://localhost:8080/tagihan/${id}/delete`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) throw new Error("Gagal hapus tagihan.");
+  return await res.json();
+};
+
+// invoice

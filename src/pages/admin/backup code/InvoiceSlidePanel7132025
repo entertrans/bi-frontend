@@ -1,0 +1,169 @@
+import React, { useState } from "react";
+import { showToast } from "../../../utils/toast";
+import { createInvoice } from "../../../api/siswaAPI";
+import { FaPlus, FaTrash } from "react-icons/fa";
+
+const InvoiceSlidePanel = ({ isOpen, onClose, daftarTagihan }) => {
+  const [formData, setFormData] = useState({
+    deskripsi: "",
+    tgl_invoice: "",
+    tgl_jatuh_tempo: "",
+    tagihan: [],
+  });
+
+  const handleAddTagihan = (tagihan) => {
+    if (!formData.tagihan.some((t) => t.id === tagihan.id)) {
+      setFormData({ ...formData, tagihan: [...formData.tagihan, tagihan] });
+    }
+  };
+
+  const handleRemoveTagihan = (id) => {
+    const updated = formData.tagihan.filter((t) => t.id !== id);
+    setFormData({ ...formData, tagihan: updated });
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await createInvoice(formData);
+      showToast("Invoice berhasil dibuat");
+      onClose();
+    } catch (err) {
+      console.error(err);
+      showToast("Gagal membuat invoice");
+    }
+  };
+
+  return (
+    <div
+      className={`fixed top-0 right-0 h-full w-full max-w-lg bg-white dark:bg-gray-800 shadow-lg z-50 transform transition-transform duration-300 overflow-y-auto ${
+        isOpen ? "translate-x-0" : "translate-x-full"
+      }`}
+    >
+      <div className="p-4 border-b flex justify-between items-center">
+        <h2 className="text-lg font-bold text-gray-800 dark:text-white">
+          Buat Invoice Baru
+        </h2>
+        <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
+          ❌
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-white">
+            Deskripsi
+          </label>
+          <input
+            name="deskripsi"
+            type="text"
+            required
+            value={formData.deskripsi}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white"
+            placeholder="Contoh: SPP Semester 1"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-white">
+              Tanggal Invoice
+            </label>
+            <input
+              name="tgl_invoice"
+              type="date"
+              required
+              value={formData.tgl_invoice}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-white">
+              Tanggal Jatuh Tempo
+            </label>
+            <input
+              name="tgl_jatuh_tempo"
+              type="date"
+              required
+              value={formData.tgl_jatuh_tempo}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-white">
+            Tambah Tagihan
+          </label>
+          <div className="space-y-2 max-h-40 overflow-y-auto border rounded p-2">
+            {daftarTagihan.map((tagihan) => (
+              <div
+                key={tagihan.id}
+                className="flex justify-between items-center text-sm"
+              >
+                <span>
+                  {tagihan.nama} - Rp{tagihan.nominal.toLocaleString("id-ID")}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleAddTagihan(tagihan)}
+                  className="text-green-600 hover:text-green-800"
+                >
+                  <FaPlus />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-white">
+            Tagihan Dipilih
+          </label>
+          <div className="space-y-2 border rounded p-2">
+            {formData.tagihan.length === 0 ? (
+              <p className="text-gray-500 italic">Belum ada tagihan dipilih</p>
+            ) : (
+              formData.tagihan.map((t) => (
+                <div
+                  key={t.id}
+                  className="flex justify-between items-center text-sm"
+                >
+                  <span>
+                    {t.nama} - Rp{t.nominal.toLocaleString("id-ID")}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTagihan(t.id)}
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+          >
+            Simpan Invoice
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default InvoiceSlidePanel;

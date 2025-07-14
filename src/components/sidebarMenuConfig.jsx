@@ -77,7 +77,20 @@ export const menuConfig = {
     {
       label: "Keuangan",
       icon: <FaMoneyBillWave className="mr-3" />,
-      path: "/admin/keuangan",
+      children: [
+        {
+          label: "Tagihan",
+          path: "/admin/keuangan/tagihan",
+        },
+        {
+          label: "Invoice",
+          path: "/admin/keuangan/invoice",
+        },
+        {
+          label: "Kwitansi",
+          path: "/admin/keuangan/kwitansi",
+        },
+      ],
     },
     {
       label: "Logout",

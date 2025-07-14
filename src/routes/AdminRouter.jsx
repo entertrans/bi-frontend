@@ -13,7 +13,11 @@ import TambahSiswa from "../pages/admin/siswa/TambahSiswa";
 import SiswaKeluar from "../pages/admin/SiswaKeluar";
 import Eraport from "../pages/admin/Eraport";
 import KisiKisi from "../pages/admin/KisiKisi";
-import Keuangan from "../pages/admin/Keuangan";
+import Tagihan from "../pages/admin/keuangan/Tagihan";
+import Invoice from "../pages/admin/keuangan/InvoiceTemp";
+import PenerimaInvoice from "../pages/admin/keuangan/PenerimaInvoice";
+
+import Kwitansi from "../pages/admin/keuangan/Kwitansi";
 import Logout from "../pages/admin/Logout"; // nanti bisa di-handle dengan logic auth/logout
 
 const adminRoutes = [
@@ -38,7 +42,10 @@ const adminRoutes = [
   { path: "/admin/siswa/keluar", element: <SiswaKeluar /> },
   { path: "/admin/eraport", element: <Eraport /> },
   { path: "/admin/kisi-kisi", element: <KisiKisi /> },
-  { path: "/admin/keuangan", element: <Keuangan /> },
+  { path: "/admin/keuangan/tagihan", element: <Tagihan /> },
+  { path: "/admin/keuangan/invoice", element: <Invoice /> },
+  { path: "/admin/invoice/:id/penerima", element: <PenerimaInvoice /> },
+  { path: "/admin/keuangan/kwitansi", element: <Kwitansi /> },
   { path: "/admin/logout", element: <Logout /> }, // bisa diarahkan ke halaman login atau handle redirect
 ];
 

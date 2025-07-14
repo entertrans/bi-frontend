@@ -3,8 +3,12 @@ import {
   fetchAllSiswaAlumni,
   fetchAllkelas,
   fetchAllTa,
+  batalkanSiswa,
+  terimaSiswa,
 } from "../../api/siswaAPI";
 import { FaTrash, FaUndo } from "react-icons/fa";
+import Swal from "sweetalert2";
+import { showAlert } from "../../utils/toast";
 
 const SiswaAlumniTable = () => {
   const [dataSiswa, setDataSiswa] = useState([]);
@@ -18,47 +22,45 @@ const SiswaAlumniTable = () => {
   const [sortOrder, setSortOrder] = useState("asc");
   const siswaPerPage = 10;
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [siswaData, kelasData, taData] = await Promise.all([
-          fetchAllSiswaAlumni(),
-          fetchAllkelas(),
-          fetchAllTa(),
-        ]);
+  const fetchData = async () => {
+    try {
+      const [siswaData, kelasData, taData] = await Promise.all([
+        fetchAllSiswaAlumni(),
+        fetchAllkelas(),
+        fetchAllTa(),
+      ]);
 
-        setDataSiswa(siswaData);
+      setDataSiswa(siswaData);
 
-        const kelasOpts = [
-          { id: "", label: "Semua Alumni" },
-          ...kelasData.alumni.map((kelas) => ({
-            id: kelas.kelas_id.toString(),
-            label: kelas.kelas_nama,
-          })),
-        ];
-        setKelasOptions(kelasOpts);
+      const kelasOpts = [
+        { id: "", label: "Semua Alumni" },
+        ...kelasData.alumni.map((kelas) => ({
+          id: kelas.kelas_id.toString(),
+          label: kelas.kelas_nama,
+        })),
+      ];
+      setKelasOptions(kelasOpts);
 
-        const uniqueTaMap = new Map();
+      const uniqueTaMap = new Map();
+      taData.forEach((ta) => {
+        if (!uniqueTaMap.has(ta.thn_ajaran)) {
+          uniqueTaMap.set(ta.thn_ajaran, {
+            id: ta.id_ta.toString(),
+            label: ta.thn_ajaran,
+          });
+        }
+      });
 
-        taData.forEach((ta) => {
-          if (!uniqueTaMap.has(ta.thn_ajaran)) {
-            uniqueTaMap.set(ta.thn_ajaran, {
-              id: ta.id_ta.toString(),
-              label: ta.thn_ajaran,
-            });
-          }
-        });
-
-        const taOpts = [
-          { id: "", label: "Semua T/A" },
-          ...Array.from(uniqueTaMap.values()),
-        ];
-        setTahunAjaranOptions(taOpts);
-      } catch (err) {
-        console.error("Gagal ambil data:", err);
-      }
+      const taOpts = [
+        { id: "", label: "Semua T/A" },
+        ...Array.from(uniqueTaMap.values()),
+      ];
+      setTahunAjaranOptions(taOpts);
+    } catch (err) {
+      console.error("Gagal ambil data:", err);
     }
-
+  };
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -66,15 +68,63 @@ const SiswaAlumniTable = () => {
     setCurrentPage(1);
   }, [selectedKelas, selectedProgram, searchTerm]);
 
-  const handleHapusPermanen = (nis) => {
-    if (window.confirm("Yakin ingin menghapus data ini secara permanen?")) {
-      console.log("Hapus permanen siswa NIS:", nis);
+  const handleHapusPermanen = async (nis) => {
+    const result = await Swal.fire({
+      title: "Hapus Permanen?",
+      text: "Seluruh data dan file akan dihapus permanen.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, keluarkan!",
+      cancelButtonText: "Batal",
+      buttonsStyling: false,
+      customClass: {
+        actions: "flex justify-center",
+        confirmButton:
+          "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        cancelButton:
+          "bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 ml-2 rounded",
+      },
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await batalkanSiswa(nis);
+        setDataSiswa((prev) => prev.filter((siswa) => siswa.siswa_nis !== nis));
+        showAlert("Data siswa dihapus permanen.", "success");
+      } catch (err) {
+        console.error(err);
+        showAlert("Gagal menghapus data.", "error");
+      }
     }
   };
 
-  const handleAktifkanKembali = (nis) => {
-    if (window.confirm("Aktifkan kembali siswa ini?")) {
-      console.log("Aktifkan kembali siswa NIS:", nis);
+  const handleAktifkanKembali = async (nis) => {
+    const result = await Swal.fire({
+      title: "Aktifkan Kembali?",
+      text: "Siswa akan diaktifkan ke program aktif.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Aktifkan!",
+      cancelButtonText: "Batal",
+      buttonsStyling: false,
+      customClass: {
+        actions: "flex justify-center",
+        confirmButton:
+          "bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        cancelButton:
+          "bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 ml-2 rounded",
+      },
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await terimaSiswa(nis);
+        showAlert("Status Siswa diperbarui.", "success");
+        fetchData();
+      } catch (err) {
+        console.error(err);
+        showAlert("Gagal mengaktifkan kembali siswa.", "error");
+      }
     }
   };
   const [selectedTahunAjaran, setSelectedTahunAjaran] = useState("");
@@ -190,11 +240,24 @@ const SiswaAlumniTable = () => {
                 <tr key={siswa.siswa_id}>
                   <td className="px-6 py-4 w-32 whitespace-nowrap">
                     <div className="flex items-center space-x-4">
-                      <img
-                        src={`https://placehold.co/40x40?text=AA&font=roboto`}
-                        alt={siswa.siswa_nama}
-                        className="h-10 rounded-full border object-cover"
-                      />
+                      {(() => {
+                        const profilePicture =
+                          Array.isArray(siswa.lampiran) &&
+                          siswa.lampiran.find(
+                            (l) => l.dokumen_jenis === "profil-picture"
+                          )?.url;
+
+                        return (
+                          <img
+                            src={
+                              profilePicture ||
+                              `https://placehold.co/40x40?text=AA&font=roboto`
+                            }
+                            alt={siswa.siswa_nama}
+                            className="w-10 h-10 rounded-full border object-cover"
+                          />
+                        );
+                      })()}
                       <div>
                         <div className="text-sm font-medium text-gray-900 dark:text-white break-words max-w-[150px]">
                           {siswa.siswa_nama}
@@ -212,7 +275,14 @@ const SiswaAlumniTable = () => {
                   <td className="px-6 py-4">{siswa.siswa_no_telp}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center">
-                      <div className="h-2.5 w-2.5 rounded-full bg-red-500 mr-2"></div>
+                      <div
+                        className={`h-2.5 w-2.5 rounded-full mr-2 ${
+                          siswa.soft_deleted === 1
+                            ? "bg-red-500"
+                            : "bg-green-500"
+                        }`}
+                      ></div>
+
                       {siswa.Satelit?.satelit_nama || "-"}
                     </div>
                   </td>

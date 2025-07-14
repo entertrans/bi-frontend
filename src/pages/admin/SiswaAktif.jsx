@@ -9,7 +9,8 @@ import {
 import SiswaDetailPanel from "../../pages/admin/siswa/SiswaDetailPanel"; // sesuaikan path-nya
 import { showAlert } from "../../utils/toast";
 import Swal from "sweetalert2";
-
+import withReactContent from "sweetalert2-react-content";
+const MySwal = withReactContent(Swal);
 const SiswaAktifTable = () => {
   const [dataSiswa, setDataSiswa] = useState([]);
   const [kelasOptions, setKelasOptions] = useState([]);
@@ -131,15 +132,60 @@ const SiswaAktifTable = () => {
     }
   };
 
-  const handleKeluarkan = async (nis) => {
-    const result = await Swal.fire({
-      title: "Keluarkan Siswa?",
-      text: "Apakah kamu yakin ingin mengeluarkan siswa ini?",
-      icon: "warning",
+  // const handleKeluarkan = async (nis) => {
+  //   const result = await Swal.fire({
+  //     title: "Keluarkan Siswa?",
+  //     text: "Apakah kamu yakin ingin mengeluarkan siswa ini?",
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //     confirmButtonText: "Ya, keluarkan!",
+  //     cancelButtonText: "Batal",
+  //     buttonsStyling: false,
+  //     customClass: {
+  //       actions: "flex justify-center",
+  //       confirmButton:
+  //         "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+  //       cancelButton:
+  //         "bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 ml-2 rounded",
+  //     },
+  //   });
+
+  //   if (!result.isConfirmed) return;
+
+  //   try {
+  //     await keluarkanSiswa(nis);
+  //     showAlert("Siswa berhasil dikeluarkan.", "success");
+  //     fetchData(); // refresh data siswa
+  //   } catch (error) {
+  //     console.error("Gagal mengeluarkan siswa:", error);
+  //     showAlert("Gagal mengeluarkan siswa.", "error");
+  //   }
+  // };
+
+  const handleKeluarkan = async (nis, nama) => {
+    const { isConfirmed, value: tanggalKeluar } = await Swal.fire({
+      title: `Keluarkan ${nama}?`,
+      text: "Masukkan tanggal siswa keluar:",
+      input: "date",
+      inputValue: new Date().toISOString().split("T")[0], // default: hari ini
       showCancelButton: true,
-      confirmButtonText: "Ya, keluarkan!",
+      confirmButtonText: "Keluarkan",
       cancelButtonText: "Batal",
-      buttonsStyling: false,
+      showLoaderOnConfirm: true,
+      preConfirm: async (tanggal) => {
+        if (!tanggal) {
+          Swal.showValidationMessage("Tanggal wajib diisi.");
+          return false;
+        }
+
+        try {
+          await keluarkanSiswa(nis, tanggal); // kirim ke API
+        } catch (err) {
+          Swal.showValidationMessage("Gagal mengeluarkan siswa.");
+          console.error(err);
+        }
+      },
+      allowOutsideClick: () => !Swal.isLoading(),
       customClass: {
         actions: "flex justify-center",
         confirmButton:
@@ -149,18 +195,11 @@ const SiswaAktifTable = () => {
       },
     });
 
-    if (!result.isConfirmed) return;
-
-    try {
-      await keluarkanSiswa(nis);
+    if (isConfirmed) {
       showAlert("Siswa berhasil dikeluarkan.", "success");
-      fetchData(); // refresh data siswa
-    } catch (error) {
-      console.error("Gagal mengeluarkan siswa:", error);
-      showAlert("Gagal mengeluarkan siswa.", "error");
+      fetchData(); // Refresh data
     }
   };
-
   const handleToggleOffline = async (nis, currentKC) => {
     const newKC = currentKC === 1 ? 0 : 1;
 
@@ -368,7 +407,9 @@ const SiswaAktifTable = () => {
                     </button>
 
                     <button
-                      onClick={() => handleKeluarkan(siswa.siswa_nis)}
+                      onClick={() =>
+                        handleKeluarkan(siswa.siswa_nis, siswa.siswa_nama)
+                      }
                       className="px-2 w-32 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700"
                     >
                       Keluarkan

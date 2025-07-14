@@ -1,0 +1,160 @@
+import React, { useState, useEffect } from "react";
+
+// Format angka ke Rupiah
+const formatRupiah = (angka) => `Rp${Number(angka).toLocaleString("id-ID")}`;
+
+const InvoiceSiswaPanel = ({ siswa, onClose }) => {
+  const [tambahanTagihan, setTambahanTagihan] = useState([]);
+  const [newTagihan, setNewTagihan] = useState({ nama: "", nominal: "" });
+
+  useEffect(() => {
+    if (siswa) {
+      setTambahanTagihan(siswa.tambahan_tagihan || []);
+    }
+  }, [siswa]);
+
+  if (!siswa) return null;
+
+  const totalTagihanAwal = 500000;
+  const totalTambahan = tambahanTagihan.reduce(
+    (acc, t) => acc + Number(t.nominal),
+    0
+  );
+  const totalBayar = totalTagihanAwal + totalTambahan - siswa.potongan;
+
+  const handleAddTagihan = () => {
+    if (!newTagihan.nama || !newTagihan.nominal) return;
+    setTambahanTagihan([...tambahanTagihan, { ...newTagihan }]);
+    setNewTagihan({ nama: "", nominal: "" });
+  };
+
+  const handleDeleteTagihan = (idx) => {
+    if (window.confirm("Yakin ingin menghapus tagihan ini?")) {
+      const updated = tambahanTagihan.filter((_, i) => i !== idx);
+      setTambahanTagihan(updated);
+    }
+  };
+
+  const handleChangeInput = (e) => {
+    const { name, value } = e.target;
+    setNewTagihan((prev) => ({
+      ...prev,
+      [name]: name === "nominal" ? value.replace(/[^0-9]/g, "") : value,
+    }));
+  };
+
+  return (
+    <div className="fixed top-0 right-0 w-full max-w-md h-full bg-white dark:bg-gray-800 shadow-lg z-50 overflow-y-auto transition-transform">
+      <div className="p-4 border-b flex justify-between items-center">
+        <h2 className="text-lg font-bold">Detail Invoice Siswa</h2>
+        <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
+          ❌
+        </button>
+      </div>
+
+      <div className="p-4 space-y-4">
+        <div>
+          <p>
+            <strong>Nama:</strong> {siswa.nama}
+          </p>
+          <p>
+            <strong>Kelas:</strong> {siswa.kelas}
+          </p>
+          <p>
+            <strong>NIS:</strong> {siswa.nis}
+          </p>
+        </div>
+
+        <div>
+          <h3 className="font-semibold mb-2">Tagihan Awal</h3>
+          <p>SPP Semester 1 - {formatRupiah(totalTagihanAwal)}</p>
+        </div>
+
+        <div className="mt-4">
+          <h3 className="font-semibold mb-2">Tambahan Tagihan Baru</h3>
+          <table className="min-w-full text-sm border border-gray-300 dark:border-gray-700">
+            <thead>
+              <tr className="bg-gray-100 dark:bg-gray-700">
+                <th className="p-2 text-left">Jenis Tagihan</th>
+                <th className="p-2 text-left">Nominal</th>
+                <th className="p-2 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tambahanTagihan.map((item, idx) => (
+                <tr key={idx}>
+                  <td className="p-2">{item.nama}</td>
+                  <td className="p-2">{formatRupiah(item.nominal)}</td>
+                  <td className="p-2 text-center">
+                    <button
+                      onClick={() => handleDeleteTagihan(idx)}
+                      className="text-red-600 hover:text-red-800"
+                      title="Hapus"
+                    >
+                      ❌
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              <tr>
+                <td className="p-2">
+                  <input
+                    type="text"
+                    name="nama"
+                    placeholder="Jenis Tagihan"
+                    value={newTagihan.nama}
+                    onChange={handleChangeInput}
+                    className="w-full px-2 py-1 border rounded bg-white text-gray-900 dark:bg-gray-700 dark:text-white"
+                  />
+                </td>
+                <td className="p-2">
+                  <input
+                    type="text"
+                    name="nominal"
+                    placeholder="Nominal"
+                    value={newTagihan.nominal}
+                    onChange={handleChangeInput}
+                    className="w-full px-2 py-1 border rounded bg-white text-gray-900 dark:bg-gray-700 dark:text-white"
+                  />
+                </td>
+                <td className="p-2 text-center">
+                  <button
+                    onClick={handleAddTagihan}
+                    className="text-green-600 hover:text-green-800"
+                    title="Tambah"
+                  >
+                    ➕
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div className="mt-4 flex justify-end">
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+              onClick={() => {
+                console.log("Simpan perubahan:", tambahanTagihan);
+                alert("Perubahan disimpan (dummy)");
+              }}
+            >
+              Simpan Perubahan
+            </button>
+          </div>
+        </div>
+
+        <div className="pt-4">
+          <p>
+            <strong>Potongan:</strong> {formatRupiah(siswa.potongan)}
+          </p>
+        </div>
+
+        <div className="border-t pt-3 font-bold text-lg">
+          Total Bayar: {formatRupiah(totalBayar)}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default InvoiceSiswaPanel;
