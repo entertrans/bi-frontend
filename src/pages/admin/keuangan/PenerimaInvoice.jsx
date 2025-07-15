@@ -24,6 +24,7 @@ const PenerimaInvoice = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedSiswa, setSelectedSiswa] = useState(null);
   const [isTambahOpen, setIsTambahOpen] = useState(false);
+  
 
   const fetchInvoiceData = async () => {
     try {
@@ -40,6 +41,15 @@ const PenerimaInvoice = () => {
       console.error("Gagal memuat penerima:", error);
     }
   };
+
+  const fetchPenerima = async () => {
+  const data = await getPenerimaInvoice(decodedId); // API call kamu
+  setPenerimaList(data);
+};
+
+useEffect(() => {
+  fetchPenerima(); // load awal
+}, []);
 
   useEffect(() => {
     fetchInvoiceData();
@@ -78,6 +88,14 @@ const PenerimaInvoice = () => {
       showCancelButton: true,
       confirmButtonText: "Ya, hapus",
       cancelButtonText: "Batal",
+      buttonsStyling: false,
+      customClass: {
+        actions: "flex justify-center", // << ini untuk center tombol
+        confirmButton:
+          "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        cancelButton:
+          "bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 ml-2 rounded",
+      },
     });
 
     if (result.isConfirmed) {
@@ -95,6 +113,7 @@ const PenerimaInvoice = () => {
     setIsOpen(false);
     setTimeout(() => setSelectedSiswa(null), 0);
   };
+  
 
   if (!invoice) {
     return (
@@ -180,6 +199,7 @@ const PenerimaInvoice = () => {
               <th className="px-6 py-3 text-left">Nama</th>
               <th className="px-6 py-3 text-left">Kelas</th>
               <th className="px-6 py-3 text-right">Potongan</th>
+              <th className="px-6 py-3 text-right">Tagihan Dll.</th>
               <th className="px-6 py-3 text-right">Total Bayar</th>
               <th className="px-6 py-3 text-center">Aksi</th>
             </tr>
@@ -196,7 +216,14 @@ const PenerimaInvoice = () => {
               </tr>
             ) : (
               penerimaList.map((siswa) => {
-                const totalBayar = total - siswa.potongan;
+                const totalTambahan =
+                  siswa.tambahan_tagihan?.reduce(
+                    (acc, item) => acc + Number(item.nominal),
+                    0
+                  ) || 0;
+
+                const totalBayar = total + totalTambahan - siswa.potongan;
+
                 return (
                   <tr key={siswa.nis}>
                     <td className="px-6 py-4">{siswa.nis}</td>
@@ -209,6 +236,12 @@ const PenerimaInvoice = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       {siswa.potongan.toLocaleString("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                      })}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      {totalTambahan.toLocaleString("id-ID", {
                         style: "currency",
                         currency: "IDR",
                       })}
@@ -264,10 +297,14 @@ const PenerimaInvoice = () => {
           invoiceId={invoice.id_invoice}
           onClose={() => setIsTambahOpen(false)}
           onSubmit={() => {
+            fetchPenerima();
             fetchInvoiceData(); // <--- sudah bisa dipanggil sekarang
             setIsTambahOpen(false);
+            
           }}
+          penerimaList={penerimaList}
         />
+
       )}
       {/* edit potongan */}
       {editPotonganSiswa && (
