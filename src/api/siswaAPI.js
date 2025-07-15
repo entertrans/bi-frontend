@@ -16,6 +16,50 @@ export const tambahPenerimaInvoice = async (id_invoice, siswaList) => {
   );
   return res.data;
 };
+export const updatePotonganPenerima = async (id_penerima, potongan) => {
+  const res = await axios.put(
+    `http://localhost:8080/invoice/penerima/potongan`,
+    {
+      id_penerima,
+      potongan,
+    }
+  );
+  return res.data;
+};
+export const hapusPenerimaInvoice = async (idPenerima) => {
+  const res = await axios.delete(
+    `http://localhost:8080/invoice/penerima/${idPenerima}`
+  );
+  return res.data;
+};
+export const updateTagihanTambahanPenerima = (payload) =>
+  axios.put(`http://localhost:8080/invoice/penerima/tambahan`, payload);
+
+export const fetchInvoicePenerima = async (nis) => {
+  const res = await fetch(`http://localhost:8080/invoice/penerima/${nis}`);
+  if (!res.ok) throw new Error("Gagal mengambil data invoice");
+  return await res.json();
+};
+
+export async function updateTambahanTagihan(penerimaId, tambahanTagihan) {
+  const res = await fetch(
+    `http://localhost:8080/invoice/penerima/${penerimaId}/tambahan`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ tambahan_tagihan: tambahanTagihan }),
+    }
+  );
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || "Gagal menyimpan tagihan tambahan");
+  }
+
+  return await res.json();
+}
 
 // invoice
 export const getInvoiceById = async (id_invoice) => {

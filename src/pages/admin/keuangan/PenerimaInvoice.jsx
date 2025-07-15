@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { getInvoiceById, getPenerimaInvoice } from "../../../api/siswaAPI"; // gunakan path sesuai strukturmu
+import {
+  getInvoiceById,
+  getPenerimaInvoice,
+  updatePotonganPenerima,
+  hapusPenerimaInvoice,
+  fetchInvoicePenerima,
+} from "../../../api/siswaAPI"; // gunakan path sesuai strukturmu
 import InvoiceSiswaPanel from "./InvoiceSiswaPanel";
 import TambahPenerimaPanel from "./TambahPenerimaPanel";
 import { FaTrash, FaEdit } from "react-icons/fa";
 import { formatTanggalLengkap } from "../../../utils/date";
+import { showToast, showAlert } from "../../../utils/toast";
+import Swal from "sweetalert2";
 
 const PenerimaInvoice = () => {
   const { id } = useParams();
   const decodedId = decodeURIComponent(id);
-
+  const [editPotonganSiswa, setEditPotonganSiswa] = useState(null); // simpan siswa yang akan di-edit
+  const [potonganBaru, setPotonganBaru] = useState(0);
   const [invoice, setInvoice] = useState(null);
   const [penerimaList, setPenerimaList] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -36,14 +45,55 @@ const PenerimaInvoice = () => {
     fetchInvoiceData();
   }, [decodedId]);
 
-  const handleLihatInvoice = (siswa) => {
-    setSelectedSiswa(siswa);
-    setIsOpen(true);
+  const handleLihatInvoice = async (siswa) => {
+    try {
+      const data = await fetchInvoicePenerima(siswa.nis);
+      setSelectedSiswa(data);
+      setIsOpen(true);
+    } catch (error) {
+      console.error("Gagal mengambil invoice:", error);
+      alert("Terjadi kesalahan saat mengambil invoice");
+    }
+  };
+
+  const handleEditPotongan = (siswa) => {
+    setEditPotonganSiswa(siswa);
+    setPotonganBaru(siswa.potongan);
+  };
+  const handleSimpanPotongan = async () => {
+    try {
+      await updatePotonganPenerima(editPotonganSiswa.id, potonganBaru);
+      showToast("Potongan diperbarui");
+      setEditPotonganSiswa(null);
+      fetchInvoiceData(); // refresh data
+    } catch (err) {
+      showAlert("Potongan gagal diperbarui", "error");
+    }
+  };
+  const handleHapusPenerima = async (siswa) => {
+    const result = await Swal.fire({
+      title: "Hapus Penerima?",
+      text: `Yakin ingin menghapus ${siswa.siswa?.siswa_nama || siswa.nis}?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await hapusPenerimaInvoice(siswa.id);
+        showToast("Penerima berhasil dihapus");
+        fetchInvoiceData();
+      } catch (error) {
+        showAlert("Gagal menghapus penerima.", "error");
+      }
+    }
   };
 
   const closePanel = () => {
     setIsOpen(false);
-    setTimeout(() => setSelectedSiswa(null), 300);
+    setTimeout(() => setSelectedSiswa(null), 0);
   };
 
   if (!invoice) {
@@ -171,12 +221,14 @@ const PenerimaInvoice = () => {
                     </td>
                     <td className="px-6 py-4 text-center space-x-2">
                       <button
+                        onClick={() => handleEditPotongan(siswa)}
                         className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 text-xs rounded shadow"
                         title="Edit Potongan"
                       >
                         <FaEdit />
                       </button>
                       <button
+                        onClick={() => handleHapusPenerima(siswa)}
                         className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-xs rounded shadow"
                         title="Hapus Penerima"
                       >
@@ -197,14 +249,16 @@ const PenerimaInvoice = () => {
         </table>
       </div>
 
-      {/* Panel Lihat */}
+      {/* Panel Lihat invoice */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-40 z-40"
           onClick={closePanel}
         />
       )}
+
       <InvoiceSiswaPanel siswa={selectedSiswa} onClose={closePanel} />
+
       {isTambahOpen && (
         <TambahPenerimaPanel
           invoiceId={invoice.id_invoice}
@@ -214,6 +268,37 @@ const PenerimaInvoice = () => {
             setIsTambahOpen(false);
           }}
         />
+      )}
+      {/* edit potongan */}
+      {editPotonganSiswa && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 className="text-xl font-semibold mb-4">Edit Potongan</h2>
+            <p className="mb-2">
+              {editPotonganSiswa.siswa?.siswa_nama || editPotonganSiswa.nis}
+            </p>
+            <input
+              type="number"
+              className="w-full px-4 py-2 mb-4 border rounded-md dark:bg-gray-700 dark:text-white dark:border-gray-600"
+              value={potonganBaru}
+              onChange={(e) => setPotonganBaru(Number(e.target.value))}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setEditPotonganSiswa(null)}
+                className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSimpanPotongan}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
+              >
+                Simpan
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

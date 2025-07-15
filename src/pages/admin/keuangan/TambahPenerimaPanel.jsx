@@ -2,7 +2,12 @@ import React, { useState } from "react";
 import { searchSiswa, tambahPenerimaInvoice } from "../../../api/siswaAPI";
 import { showToast, showAlert } from "../../../utils/toast";
 
-const TambahPenerimaPanel = ({ invoiceId, onClose, onSubmit }) => {
+const TambahPenerimaPanel = ({
+  invoiceId,
+  onClose,
+  onSubmit,
+  penerimaList = [],
+}) => {
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [selectedSiswa, setSelectedSiswa] = useState([]);
@@ -174,23 +179,29 @@ const TambahPenerimaPanel = ({ invoiceId, onClose, onSubmit }) => {
                     </td>
                   </tr>
                 ) : (
-                  searchResults.map((siswa) => (
-                    <tr key={siswa.nis}>
-                      <td className="px-6 py-4">{siswa.nis}</td>
-                      <td className="px-6 py-4">{siswa.nama}</td>
-                      <td className="px-6 py-4">
-                        {siswa.kelas?.replace(/^Kelas\s*/i, "") || "-"}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() => handleAddSiswa(siswa)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded shadow text-xs"
-                        >
-                          +
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  searchResults
+                    .filter(
+                      (s) =>
+                        !penerimaList.some((p) => p.nis === s.nis) &&
+                        !selectedSiswa.some((sel) => sel.nis === s.nis)
+                    ) // ⛔ hide yg sudah jadi penerima
+                    .map((siswa) => (
+                      <tr key={siswa.nis}>
+                        <td className="px-6 py-4">{siswa.nis}</td>
+                        <td className="px-6 py-4">{siswa.nama}</td>
+                        <td className="px-6 py-4">
+                          {siswa.kelas?.replace(/^Kelas\s*/i, "") || "-"}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <button
+                            onClick={() => handleAddSiswa(siswa)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded shadow text-xs"
+                          >
+                            +
+                          </button>
+                        </td>
+                      </tr>
+                    ))
                 )}
               </tbody>
             </table>
