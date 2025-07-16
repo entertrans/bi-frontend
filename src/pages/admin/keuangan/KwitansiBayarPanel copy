@@ -55,7 +55,7 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data }) => {
       />
 
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-4xl bg-white dark:bg-gray-800 shadow-lg z-50 transform transition-transform duration-300 overflow-y-auto ${
+        className={`fixed top-0 right-0 h-full w-full max-w-5xl bg-white dark:bg-gray-800 shadow-lg z-50 transform transition-transform duration-300 overflow-y-auto ${
           showPanel ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -72,7 +72,7 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data }) => {
         </div>
 
         <div className="p-4 space-y-4">
-          <div className="text-sm text-gray-600 dark:text-gray-300">
+          <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
             <p>
               <strong>Nama:</strong> {data?.nama}
             </p>
@@ -116,6 +116,7 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data }) => {
                     <button
                       onClick={() => handleDeletePembayaran(idx)}
                       className="text-red-600 hover:text-red-800"
+                      title="Hapus"
                     >
                       ❌
                     </button>
@@ -146,6 +147,7 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data }) => {
                   <button
                     onClick={handleAddPembayaran}
                     className="text-green-600 hover:text-green-800"
+                    title="Tambah"
                   >
                     ➕
                   </button>
