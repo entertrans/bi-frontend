@@ -93,6 +93,20 @@ export const menuConfig = {
       ],
     },
     {
+      label: "Petty Cash",
+      icon: <FaMoneyBillWave className="mr-3" />,
+      children: [
+        {
+          label: "Serpong",
+          path: "/admin/pettycash/serpong",
+        },
+        {
+          label: "Bogor",
+          path: "/admin/pettycash/bogor",
+        },
+      ],
+    },
+    {
       label: "Logout",
       icon: <FaSignOutAlt className="mr-3 text-red-500" />,
       path: "/admin/logout",

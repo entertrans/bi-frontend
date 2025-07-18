@@ -12,3 +12,12 @@ export const formatRupiah = (angka) => {
     minimumFractionDigits: 0,
   }).format(angka);
 };
+
+export const formatTanggalIndo = (isoDate) => {
+  if (!isoDate) return "-";
+  return new Date(isoDate).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};

@@ -18,6 +18,8 @@ import Invoice from "../pages/admin/keuangan/InvoiceTemp";
 import PenerimaInvoice from "../pages/admin/keuangan/PenerimaInvoice";
 import Kwitansi from "../pages/admin/keuangan/Kwitansi";
 import KwitansiDetail from "../pages/admin/keuangan/KwitansiDetail";
+import PettyCashSerpongPage from "../pages/admin/pettycash/PettyCashSerpongPage";
+import PettyCashTransaksiPage from "../pages/admin/pettycash/PettyCashTransaksiPage";
 
 import Logout from "../pages/admin/Logout"; // nanti bisa di-handle dengan logic auth/logout
 
@@ -48,6 +50,13 @@ const adminRoutes = [
   { path: "/admin/invoice/:id/penerima", element: <PenerimaInvoice /> },
   { path: "/admin/keuangan/kwitansi", element: <Kwitansi /> },
   { path: "/admin/keuangan/kwitansi/:id_invoice", element: <KwitansiDetail /> },
+  { path: "/admin/pettycash/serpong", element: <PettyCashSerpongPage /> },
+  {
+    path: "/pettycash/serpong/:id/transaksi",
+    element: <PettyCashTransaksiPage />,
+  },
+  // path="/pettycash/serpong/:id/transaksi" element={<PettyCashTransaksiPage />
+
   { path: "/admin/logout", element: <Logout /> }, // bisa diarahkan ke halaman login atau handle redirect
 ];
 
