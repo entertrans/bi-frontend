@@ -7,9 +7,18 @@ import KwitansiBayarPanel from "../keuangan/KwitansiBayarPanel";
 const KwitansiDetail = () => {
   const handleRefresh = async () => {
     await fetchData();
-    const refreshed = penerimaList.find((s) => s.id === selectedSiswa?.id);
-    setSelectedSiswa(refreshed); // ✅ Perbarui data yang dikirim ke panel
+
+    try {
+      const updatedList = await getPenerimaInvoice(decodedId); // ambil data terbaru
+      const refreshed = updatedList.find((s) => s.id === selectedSiswa?.id);
+
+      setPenerimaList(updatedList); // update state juga
+      setSelectedSiswa(refreshed); // langsung ambil dari data terbaru
+    } catch (err) {
+      console.error("Gagal refresh data:", err);
+    }
   };
+
   const hitungTotalTagihan = (siswa) => {
     const tambahan =
       siswa?.tambahan_tagihan?.reduce((a, b) => a + Number(b.nominal), 0) || 0;

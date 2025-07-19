@@ -7,6 +7,12 @@ export const getAllKwitansi = async () => {
   return data;
 };
 
+export const fetchPembayaran = async (idPenerima) => {
+  const res = await fetch(`http://localhost:8080/pembayaran/${idPenerima}`);
+  if (!res.ok) throw new Error("Gagal ambil data pembayaran");
+  return await res.json();
+};
+
 export const getPembayaranByNis = async (nis) => {
   const response = await fetch(
     `http://localhost:8080/pembayaran/by-nis?nis=${encodeURIComponent(nis)}`
@@ -16,21 +22,26 @@ export const getPembayaranByNis = async (nis) => {
 };
 
 export const tambahPembayaran = async (payload) => {
-  const response = await fetch("http://localhost:8080/pembayaran", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!response.ok) throw new Error("Gagal menambah pembayaran");
-  return await response.json();
+  try {
+    const { data } = await axios.post(
+      "http://localhost:8080/pembayaran",
+      payload
+    );
+    return data;
+  } catch (error) {
+    throw new Error("Gagal menambah pembayaran");
+  }
 };
 
 export const hapusPembayaranById = async (id) => {
-  const response = await fetch(`http://localhost:8080/pembayaran/${id}`, {
-    method: "DELETE",
-  });
-  if (!response.ok) throw new Error("Gagal menghapus pembayaran");
-  return await response.json();
+  try {
+    const { data } = await axios.delete(
+      `http://localhost:8080/pembayaran/${id}`
+    );
+    return data;
+  } catch (error) {
+    throw new Error("Gagal menghapus pembayaran");
+  }
 };
 
 //penerima invoice

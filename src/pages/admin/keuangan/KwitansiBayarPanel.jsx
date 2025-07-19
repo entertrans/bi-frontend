@@ -1,12 +1,74 @@
 import React, { useState, useEffect } from "react";
 import { formatTanggalLengkap } from "../../../utils/date";
 import { IoClose } from "react-icons/io5";
-
-const KwitansiBayarPanel = ({ isOpen, onClose, data }) => {
+import { tambahPembayaran, hapusPembayaranById } from "../../../api/siswaAPI";
+import { showToast, showAlert } from "../../../utils/toast";
+import Swal from "sweetalert2";
+const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
   const [pembayaranBaru, setPembayaranBaru] = useState({
     tanggal: "",
     nominal: "",
   });
+
+  const handleDeletePembayaran = async (idPembayaran) => {
+    const result = await Swal.fire({
+      title: "Hapus Pembayaran?",
+      text: "Data pembayaran akan dihapus secara permanen.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+      buttonsStyling: false,
+      customClass: {
+        confirmButton:
+          "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded",
+        cancelButton:
+          "bg-gray-300 hover:bg-gray-400 text-black font-semibold px-4 py-2 rounded",
+      },
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await hapusPembayaranById(idPembayaran); // dari siswaAPI
+        // await fetchPembayaran(); // <-- Refresh data tabel
+        showToast("Berhasil hapus pembayaran", "success");
+        if (onRefresh) onRefresh(); // untuk refresh data
+      } catch (error) {
+        console.error("Gagal hapus pembayaran:", error);
+        showToast("Gagal menghapus pembayaran", "error");
+      }
+    }
+  };
+
+  const handleTambahPembayaran = async () => {
+    if (!pembayaranBaru.tanggal || !pembayaranBaru.nominal) {
+      showToast("Tanggal dan nominal harus diisi", "warning");
+      return;
+    }
+
+    const nominalInt = parseInt(pembayaranBaru.nominal);
+    if (nominalInt > kurang) {
+      showToast("Nominal melebihi total yang harus dibayar!", "error");
+      return;
+    }
+
+    try {
+      await tambahPembayaran({
+        id_penerima: data.id,
+        tanggal: pembayaranBaru.tanggal,
+        nominal: nominalInt,
+        metode: null,
+        keterangan: null,
+      });
+
+      showToast("Pembayaran berhasil ditambahkan", "success");
+      setPembayaranBaru({ tanggal: "", nominal: "" });
+      if (onRefresh) onRefresh(); // refresh parent data
+    } catch (error) {
+      console.error("Gagal tambah pembayaran:", error);
+      showToast("Gagal menambah pembayaran", "error");
+    }
+  };
 
   const totalTagihan = data?.total_tagihan || 0;
   const totalBayar = Array.isArray(data?.pembayaran)
@@ -110,7 +172,7 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data }) => {
                   </tr>
                 </thead>
                 <tbody className="text-lg">
-                  {console.log(data.pembayaran)}
+                  {/* {console.log(data.pembayaran)} */}
                   {data.pembayaran.map((p, i) => (
                     <tr key={i} className="border-t">
                       <td className="p-2 px-2">
@@ -125,7 +187,10 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data }) => {
                           : "-"}
                       </td>
                       <td className="p-2 px-2 text-center">
-                        <button className="text-xs text-red-500 hover:underline">
+                        <button
+                          className="text-xs text-red-500 hover:underline"
+                          onClick={() => handleDeletePembayaran(p.ID)} // misalnya pakai p.id
+                        >
                           ❌
                         </button>
                       </td>
@@ -153,17 +218,30 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data }) => {
               />
               <input
                 type="number"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white"
                 placeholder="Masukkan nominal"
                 value={pembayaranBaru.nominal}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, "");
                   setPembayaranBaru({
                     ...pembayaranBaru,
-                    nominal: e.target.value,
-                  })
-                }
+                    nominal: val,
+                  });
+                }}
+                onKeyDown={(e) => {
+                  const invalidChars = ["e", "E", "+", "-"];
+                  if (invalidChars.includes(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
               />
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-lg">
+
+              <button
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded text-lg"
+                onClick={handleTambahPembayaran} // tambahkan ini!
+              >
                 Tambah Pembayaran
               </button>
             </div>
