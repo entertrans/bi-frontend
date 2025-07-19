@@ -1,4 +1,38 @@
 import axios from "./axios"; // ini mengarah ke file konfigurasi di atas
+
+// kwitansi
+export const getAllKwitansi = async () => {
+  const res = await fetch("http://localhost:8080/kwitansi");
+  const data = await res.json();
+  return data;
+};
+
+export const getPembayaranByNis = async (nis) => {
+  const response = await fetch(
+    `http://localhost:8080/pembayaran/by-nis?nis=${encodeURIComponent(nis)}`
+  );
+  const data = await response.json();
+  return data;
+};
+
+export const tambahPembayaran = async (payload) => {
+  const response = await fetch("http://localhost:8080/pembayaran", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error("Gagal menambah pembayaran");
+  return await response.json();
+};
+
+export const hapusPembayaranById = async (id) => {
+  const response = await fetch(`http://localhost:8080/pembayaran/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("Gagal menghapus pembayaran");
+  return await response.json();
+};
+
 //penerima invoice
 export const searchSiswa = async (q) => {
   const response = await fetch(`http://localhost:8080/siswa/search?q=${q}`);
@@ -75,6 +109,14 @@ export const getPenerimaInvoice = async (id_invoice) => {
     `http://localhost:8080/invoice/penerima?id=${encodeURIComponent(
       id_invoice
     )}`
+  );
+  const data = await response.json();
+  return data;
+};
+
+export const getKwitansiDetail = async (id_invoice) => {
+  const response = await fetch(
+    `http://localhost:8080/kwitansi/detail?id=${encodeURIComponent(id_invoice)}`
   );
   const data = await response.json();
   return data;

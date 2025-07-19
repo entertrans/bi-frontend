@@ -33,8 +33,15 @@ const TambahPenerimaPanel = ({
     if (query.trim().length < 2) return;
     try {
       const results = await searchSiswa(query);
-      setSearchResults(results);
-    } catch (error) {}
+      const data = Array.isArray(results)
+        ? results
+        : Array.isArray(results?.data)
+        ? results.data
+        : [];
+      setSearchResults(data);
+    } catch (error) {
+      setSearchResults([]);
+    }
   };
 
   const handleAddSiswa = (siswa) => {

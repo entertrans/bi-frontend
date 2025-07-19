@@ -7,12 +7,22 @@ import { formatTanggalLengkap, formatToInputDate } from "../../../utils/date";
 
 const Invoice = () => {
   const [invoices, setInvoices] = useState([]);
+  const [newInvoiceID, setNewInvoiceID] = useState("");
 
   const [showModal, setShowModal] = useState(false);
   const [daftarTagihan, setDaftarTagihan] = useState([]);
   const fetchData = async () => {
     const data = await getAllInvoice(); // misalnya ambil dari API
     setInvoices(data);
+  };
+  const generateInvoiceID = () => {
+    const tahun = new Date().getFullYear();
+    const lastId =
+      invoices.length > 0
+        ? Math.max(...invoices.map((inv) => parseInt(inv.id))) + 1
+        : 1;
+    const nomor = String(lastId).padStart(4, "0");
+    return `INV/${tahun}/${nomor}`;
   };
 
   useEffect(() => {
@@ -42,7 +52,11 @@ const Invoice = () => {
           Daftar Invoice
         </h2>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            setEditData(null);
+            setNewInvoiceID(generateInvoiceID()); // ← hanya generate saat buat baru
+            setShowModal(true);
+          }}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm shadow"
         >
           + Buat Invoice Baru
@@ -149,6 +163,7 @@ const Invoice = () => {
         initialData={editData}
         isEdit={!!editData}
         fetchData={fetchData}
+        initialInvoiceID={newInvoiceID}
       />
     </div>
   );

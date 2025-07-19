@@ -1,45 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatTanggalLengkap } from "../../../utils/date";
-// import { getAllInvoiceWithStatus } from "../../../api/siswaAPI"; // nanti kalau sudah ada API-nya
-
-// Dummy sementara
-const dummyInvoices = [
-  {
-    id_invoice: "UNBK/2025/001",
-    deskripsi: "UNBK 2025",
-    tgl_invoice: "2025-07-11",
-    tgl_jatuh_tempo: "2025-07-31",
-    status: {
-      belum: 3,
-      belum_lunas: 2,
-      lunas: 10,
-    },
-  },
-  {
-    id_invoice: "SPP/2025/002",
-    deskripsi: "SPP Juli 2025",
-    tgl_invoice: "2025-07-01",
-    tgl_jatuh_tempo: "2025-07-10",
-    status: {
-      belum: 1,
-      belum_lunas: 5,
-      lunas: 15,
-    },
-  },
-];
+import { getAllKwitansi } from "../../../api/siswaAPI"; // ⬅️ pastikan path & file ini bener
 
 const Kwitansi = () => {
   const [invoices, setInvoices] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Ganti dengan API call nanti
-    // getAllInvoiceWithStatus()
-    //   .then(setInvoices)
-    //   .catch(err => console.error(err));
-
-    setInvoices(dummyInvoices); // sementara dummy
+    getAllKwitansi()
+      .then(setInvoices)
+      .catch((err) => {
+        console.error("Gagal fetch kwitansi:", err);
+      });
   }, []);
 
   return (
@@ -86,15 +59,15 @@ const Kwitansi = () => {
                   <td className="px-6 py-4 flex items-center gap-3">
                     <div className="flex items-center text-red-500">
                       <div className="h-2.5 w-2.5 rounded-full bg-red-500 mr-1" />
-                      {inv.status.belum}
+                      {inv.status?.belum ?? 0}
                     </div>
                     <div className="flex items-center text-yellow-500">
                       <div className="h-2.5 w-2.5 rounded-full bg-yellow-400 mr-1" />
-                      {inv.status.belum_lunas}
+                      {inv.status?.belum_lunas ?? 0}
                     </div>
                     <div className="flex items-center text-green-600">
                       <div className="h-2.5 w-2.5 rounded-full bg-green-500 mr-1" />
-                      {inv.status.lunas}
+                      {inv.status?.lunas ?? 0}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-center">

@@ -1,81 +1,73 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
-// import { getInvoiceDetailById } from "../../../api/kwitansiAPI"; // nanti setelah ada API
+import { getInvoiceById, getPenerimaInvoice } from "../../../api/siswaAPI";
 import { formatTanggalLengkap } from "../../../utils/date";
-import KwitansiBayarPanel from "./KwitansiBayarPanel";
-
-const dummyDetail = {
-  id_invoice: "UNBK/2025/001",
-  tgl_invoice: "2025-07-11",
-  tgl_jatuh_tempo: "2025-07-31",
-  deskripsi: "UNBK 2025",
-  penerima: [
-    {
-      nis: "01234",
-      nama: "Budi",
-      kelas: "9A",
-      total_tagihan: 150000,
-      total_bayar: 100000,
-      pembayaran: [
-        { tanggal: "2025-07-12", nominal: 50000 },
-        { tanggal: "2025-07-14", nominal: 50000 },
-      ],
-    },
-    {
-      id: 2,
-      nis: "01235",
-      nama: "Budi2",
-      kelas: "9A",
-      total_tagihan: 150000,
-      total_bayar: 150000,
-    },
-    {
-      id: 3,
-      nis: "01236",
-      nama: "Budi3",
-      kelas: "9A",
-      total_tagihan: 150000,
-      total_bayar: 0,
-    },
-  ],
-};
+import KwitansiBayarPanel from "../keuangan/KwitansiBayarPanel";
 
 const KwitansiDetail = () => {
-  const { id_invoice } = useParams();
-  const [data, setData] = useState(null);
+  const handleRefresh = async () => {
+    await fetchData();
+    const refreshed = penerimaList.find((s) => s.id === selectedSiswa?.id);
+    setSelectedSiswa(refreshed); // ✅ Perbarui data yang dikirim ke panel
+  };
+  const hitungTotalTagihan = (siswa) => {
+    const tambahan =
+      siswa?.tambahan_tagihan?.reduce((a, b) => a + Number(b.nominal), 0) || 0;
+    const potongan = Number(siswa?.potongan || 0);
+    return totalTagihan + tambahan - potongan;
+  };
 
+  const { id_invoice } = useParams();
+  const decodedId = decodeURIComponent(id_invoice);
+  const [invoice, setInvoice] = useState(null);
+  const [penerimaList, setPenerimaList] = useState([]);
   const [showPanel, setShowPanel] = useState(false);
   const [selectedSiswa, setSelectedSiswa] = useState(null);
-  useEffect(() => {
-    // getInvoiceDetailById(id_invoice)
-    //   .then(setData)
-    //   .catch(err => console.error("Gagal ambil detail invoice", err));
 
-    setData(dummyDetail); // sementara dummy
-  }, [id_invoice]);
+  const fetchData = useCallback(async () => {
+    try {
+      const inv = await getInvoiceById(decodedId);
+      const penerima = await getPenerimaInvoice(decodedId);
+      setInvoice(inv);
+      setPenerimaList(penerima);
+    } catch (error) {
+      console.error("Gagal memuat data kwitansi:", error);
+    }
+  }, [decodedId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  if (!invoice) {
+    return (
+      <div className="p-4">
+        <h1 className="text-xl font-bold">Invoice Tidak Ditemukan</h1>
+        <p>ID: {decodedId}</p>
+      </div>
+    );
+  }
+
+  const totalTagihan = Array.isArray(invoice.tagihan)
+    ? invoice.tagihan.reduce((acc, curr) => acc + curr.nominal, 0)
+    : 0;
 
   return (
     <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
-      <h2 className="text-xl font-bold mb-4 text-gray-800 dark:text-white">
-        Detail Invoice #{data?.id_invoice}
-      </h2>
+      <h1 className="text-2xl font-bold mb-2">Invoice #{invoice.id_invoice}</h1>
+      <p className="text-gray-700 dark:text-gray-300 mb-1">
+        <strong>Tanggal Invoice:</strong>{" "}
+        {formatTanggalLengkap(invoice.tgl_invoice)}
+      </p>
+      <p className="text-gray-700 dark:text-gray-300 mb-1">
+        <strong>Jatuh Tempo:</strong>{" "}
+        {formatTanggalLengkap(invoice.tgl_jatuh_tempo)}
+      </p>
+      <p className="text-gray-700 dark:text-gray-300 mb-6">
+        <strong>Deskripsi:</strong> {invoice.deskripsi}
+      </p>
 
-      {data && (
-        <div className="mb-6 text-sm text-gray-700 dark:text-gray-300 space-y-1">
-          <p>
-            <strong>Tanggal Invoice:</strong>{" "}
-            {formatTanggalLengkap(data.tgl_invoice)}
-          </p>
-          <p>
-            <strong>Jatuh Tempo:</strong>{" "}
-            {formatTanggalLengkap(data.tgl_jatuh_tempo)}
-          </p>
-          <p>
-            <strong>Deskripsi:</strong> {data.deskripsi}
-          </p>
-        </div>
-      )}
-
+      {/* Tabel Penerima */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
           <thead className="bg-gray-100 dark:bg-gray-700">
@@ -91,53 +83,72 @@ const KwitansiDetail = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {data?.penerima.map((siswa) => {
-              const kurang = siswa.total_tagihan - siswa.total_bayar;
-              const status =
-                kurang <= 0
-                  ? "Lunas"
-                  : siswa.total_bayar > 0
-                  ? "Belum Lunas"
-                  : "Belum Bayar";
-              const warna =
-                status === "Lunas"
-                  ? "bg-green-500"
-                  : status === "Belum Lunas"
-                  ? "bg-yellow-400"
-                  : "bg-red-500";
+            {penerimaList.map((siswa) => {
+              const tambahan =
+                siswa?.tambahan_tagihan?.reduce(
+                  (acc, t) => acc + Number(t.nominal),
+                  0
+                ) || 0;
+
+              const totalBayar =
+                siswa?.pembayaran?.reduce(
+                  (acc, p) => acc + Number(p.Nominal),
+                  0
+                ) || 0;
+
+              const tagihanFinal =
+                totalTagihan + tambahan - Number(siswa.potongan || 0);
+              const sisa = tagihanFinal - totalBayar;
+
+              let status = "Belum Bayar";
+              let warna = "bg-red-500 text-white";
+
+              if (sisa <= 0) {
+                status = "Lunas";
+                warna = "bg-green-500 text-white";
+              } else if (totalBayar > 0) {
+                status = "Belum Lunas";
+                warna = "bg-yellow-400 text-black";
+              }
 
               return (
                 <tr key={siswa.id}>
-                  <td className="px-6 py-3">{siswa.nis}</td>
-                  <td className="px-6 py-3">{siswa.nama}</td>
-                  <td className="px-6 py-3">{siswa.kelas}</td>
-                  <td className="px-6 py-3 text-right">
-                    {siswa.total_tagihan.toLocaleString("id-ID", {
+                  <td className="px-6 py-4">{siswa.nis}</td>
+                  <td className="px-6 py-4">
+                    {siswa.siswa?.siswa_nama || "-"}
+                  </td>
+                  <td className="px-6 py-4">
+                    {siswa.siswa?.kelas?.kelas_nama?.replace(
+                      /^Kelas\s*/i,
+                      ""
+                    ) || "-"}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    {tagihanFinal.toLocaleString("id-ID", {
                       style: "currency",
                       currency: "IDR",
                     })}
                   </td>
-                  <td className="px-6 py-3 text-right">
-                    {siswa.total_bayar.toLocaleString("id-ID", {
+                  <td className="px-6 py-4 text-right">
+                    {totalBayar.toLocaleString("id-ID", {
                       style: "currency",
                       currency: "IDR",
                     })}
                   </td>
-                  <td className="px-6 py-3 text-right">
-                    {kurang.toLocaleString("id-ID", {
+                  <td className="px-6 py-4 text-right">
+                    {sisa.toLocaleString("id-ID", {
                       style: "currency",
                       currency: "IDR",
                     })}
                   </td>
-                  <td className="px-6 py-3">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`h-2.5 w-2.5 rounded-full ${warna}`}
-                      ></div>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-medium ${warna}`}
+                    >
                       {status}
-                    </div>
+                    </span>
                   </td>
-                  <td className="px-6 py-3 text-center">
+                  <td className="px-6 py-4 text-center">
                     <button
                       className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs rounded shadow"
                       onClick={() => {
@@ -154,13 +165,31 @@ const KwitansiDetail = () => {
           </tbody>
         </table>
       </div>
+
       <KwitansiBayarPanel
         isOpen={showPanel}
         onClose={() => setShowPanel(false)}
+        onRefresh={handleRefresh}
         data={{
           ...selectedSiswa,
-          id_invoice: data?.id_invoice,
-          pembayaran: selectedSiswa?.pembayaran || [], // 👈 tambahkan fallback kosong
+          id_invoice: invoice?.id_invoice,
+          nama: selectedSiswa?.siswa?.siswa_nama || "-",
+          kelas:
+            selectedSiswa?.siswa?.kelas?.kelas_nama?.replace(
+              /^Kelas\s*/i,
+              ""
+            ) || "-",
+          total_tagihan: hitungTotalTagihan(selectedSiswa),
+          total_bayar:
+            selectedSiswa?.pembayaran?.reduce(
+              (a, p) => a + Number(p.nominal ?? p.Nominal ?? 0),
+              0
+            ) || 0,
+          pembayaran:
+            selectedSiswa?.pembayaran?.map((p) => ({
+              ...p,
+              nominal: Number(p.nominal ?? p.Nominal ?? 0),
+            })) || [],
         }}
       />
     </div>

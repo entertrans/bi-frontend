@@ -16,6 +16,7 @@ const InvoiceSlidePanel = ({
   fetchData,
   initialData,
   isEdit = false,
+  initialInvoiceID, // ✅ tambahkan ini
 }) => {
   // ✅ Tambahkan state untuk animasi slide
   const [mounted, setMounted] = useState(false);
@@ -31,16 +32,16 @@ const InvoiceSlidePanel = ({
 
   // ✅ Efek reset saat close dan bukan edit
   useEffect(() => {
-    if (!isOpen && !initialData) {
+    if (isOpen && !initialData) {
       setFormData({
-        id_invoice: "",
+        id_invoice: initialInvoiceID || "",
         deskripsi: "",
         tgl_invoice: "",
         tgl_jatuh_tempo: "",
       });
       setTambahanTagihan([]);
     }
-  }, [isOpen, initialData]);
+  }, [isOpen, initialData, initialInvoiceID]);
 
   const [formData, setFormData] = useState({
     id_invoice: "",
@@ -94,7 +95,13 @@ const InvoiceSlidePanel = ({
   };
 
   const handleSimpan = async () => {
-    const { id_invoice, deskripsi, tgl_invoice, tgl_jatuh_tempo } = formData;
+    const {
+      id_invoice,
+      deskripsi,
+      tgl_invoice,
+      tgl_jatuh_tempo,
+      initialInvoiceID,
+    } = formData;
 
     if (!id_invoice || !deskripsi || !tgl_invoice || !tgl_jatuh_tempo) {
       showAlert(
@@ -182,14 +189,9 @@ const InvoiceSlidePanel = ({
             <label className="block text-sm font-medium text-gray-700 dark:text-white">
               ID Invoice
             </label>
-            <input
-              name="id_invoice"
-              type="text"
-              value={formData.id_invoice}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white"
-              placeholder="Contoh: UNBK/2025/0001"
-            />
+            <label className="block w-full px-3 py-2 border rounded-md bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white">
+              {formData.id_invoice || "ID invoice akan muncul di sini"}
+            </label>
 
             <label className="block text-sm font-medium text-gray-700 dark:text-white mt-2">
               Deskripsi
