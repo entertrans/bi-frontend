@@ -50,6 +50,7 @@ const Kwitansi = () => {
                     {inv.id_invoice}
                   </td>
                   <td className="px-6 py-4">{inv.deskripsi}</td>
+                  {console.log(inv)}
                   <td className="px-6 py-4">
                     {formatTanggalLengkap(inv.tgl_invoice)}
                   </td>
