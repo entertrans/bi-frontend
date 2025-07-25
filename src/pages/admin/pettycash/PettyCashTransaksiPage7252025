@@ -2,7 +2,7 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import {
   dummyPeriodePettyCash,
-  dummyTransaksiPettyCash as initialDummyTransaksi,
+  dummyTransaksiPettyCash,
 } from "./dummy/pettycash";
 import { formatRupiah, formatTanggalIndo } from "../../../utils/format";
 
@@ -15,59 +15,24 @@ const PettyCashTransaksiPage = () => {
     debet: "",
     kredit: "",
   });
-
-  const [transaksiData, setTransaksiData] = React.useState(
-    initialDummyTransaksi.filter((trx) => trx.periode_id === parseInt(id))
-  );
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setInput({ ...input, [name]: value });
   };
 
-  const handleTambahTransaksi = () => {
-    const { tanggal, keterangan, debet, kredit } = input;
-
-    if (!tanggal || !keterangan || (!debet && !kredit)) {
-      alert("Lengkapi semua isian dengan benar!");
-      return;
-    }
-
-    const tipe = debet ? "masuk" : "keluar";
-    const jumlah = parseInt(debet || kredit);
-
-    const newTransaksi = {
-      id: transaksiData.length + 1,
-      periode_id: parseInt(id),
-      tanggal,
-      keterangan,
-      tipe,
-      jumlah,
-    };
-
-    setTransaksiData((prev) => [...prev, newTransaksi]);
-
-    setInput({
-      tanggal: "",
-      keterangan: "",
-      debet: "",
-      kredit: "",
-    });
-  };
-
-  const transaksi = [...transaksiData].sort(
-    (a, b) => new Date(b.tanggal) - new Date(a.tanggal)
-  );
+  const transaksi = dummyTransaksiPettyCash
+    .filter((trx) => trx.periode_id === parseInt(id))
+    .sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal)); // DESC
 
   let saldo = 0;
   const dataWithSaldo = transaksi
-    .slice()
-    .reverse()
+    .slice() // clone
+    .reverse() // ASC untuk hitung
     .map((trx) => {
       saldo += trx.tipe === "masuk" ? trx.jumlah : -trx.jumlah;
       return { ...trx, saldo };
     })
-    .reverse();
+    .reverse(); // balik ke DESC
 
   return (
     <div className="p-4">
@@ -90,7 +55,6 @@ const PettyCashTransaksiPage = () => {
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-          {/* Form input transaksi */}
           <tr>
             <td className="px-6 py-4">
               <input
@@ -98,7 +62,7 @@ const PettyCashTransaksiPage = () => {
                 name="tanggal"
                 value={input.tanggal}
                 onChange={handleInputChange}
-                className="p-2 border rounded w-full md:w-44 dark:bg-gray-700 dark:text-white"
+                className="p-2 border rounded w-full md:w-72 dark:bg-gray-700 dark:text-white"
               />
             </td>
             <td className="px-6 py-4">
@@ -108,7 +72,7 @@ const PettyCashTransaksiPage = () => {
                 value={input.keterangan}
                 onChange={handleInputChange}
                 placeholder="Keterangan..."
-                className="p-2 border rounded w-full md:w-52 dark:bg-gray-700 dark:text-white"
+                className="p-2 border rounded w-full md:w-72 dark:bg-gray-700 dark:text-white"
               />
             </td>
             <td className="px-6 py-4 text-right">
@@ -117,7 +81,7 @@ const PettyCashTransaksiPage = () => {
                 name="debet"
                 value={input.debet}
                 onChange={handleInputChange}
-                className="p-2 border rounded w-full md:w-32 dark:bg-gray-700 dark:text-white"
+                className="p-2 border rounded w-full md:w-72 dark:bg-gray-700 dark:text-white"
               />
             </td>
             <td className="px-6 py-4 text-right">
@@ -126,13 +90,13 @@ const PettyCashTransaksiPage = () => {
                 name="kredit"
                 value={input.kredit}
                 onChange={handleInputChange}
-                className="p-2 border rounded w-full md:w-32 dark:bg-gray-700 dark:text-white"
+                className="p-2 border rounded w-full md:w-72 dark:bg-gray-700 dark:text-white"
               />
             </td>
             <td className="px-6 py-4 text-center text-gray-400">--</td>
             <td className="px-6 py-4 text-center">
               <button
-                onClick={handleTambahTransaksi}
+                onClick={() => alert("Tambah dummy transaksi")}
                 className="bg-green-600 hover:bg-green-700 text-white font-medium px-3 py-1 rounded shadow-sm"
               >
                 +
@@ -140,7 +104,6 @@ const PettyCashTransaksiPage = () => {
             </td>
           </tr>
 
-          {/* List transaksi */}
           {dataWithSaldo.map((trx, index) => (
             <tr key={index}>
               <td className="px-6 py-4">{formatTanggalIndo(trx.tanggal)}</td>

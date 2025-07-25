@@ -19,28 +19,30 @@ const PettyCashSerpongPage = () => {
         </button>
       </div>
 
-      <table className="w-full border border-gray-300 text-sm">
-        <thead className="bg-gray-100">
+      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
+        <thead className="bg-gray-100 dark:bg-gray-700">
           <tr>
-            <th className="p-2 border">ID</th>
-            <th className="p-2 border">Deskripsi</th>
-            <th className="p-2 border">Tanggal Mulai</th>
-            <th className="p-2 border">Status</th>
-            <th className="p-2 border">Sisa Saldo</th>
-            <th className="p-2 border">Aksi</th>
+            <th className="px-6 py-3 border">ID</th>
+            <th className="px-6 py-3 border">Deskripsi</th>
+            <th className="px-6 py-3 border">Tanggal Mulai</th>
+            <th className="px-6 py-3 border">Status</th>
+            <th className="px-6 py-3 border">Sisa Saldo</th>
+            <th className="px-6 py-3 border">Aksi</th>
           </tr>
         </thead>
         <tbody>
           {dummyPeriodePettyCash.map((periode) => (
             <tr key={periode.id}>
-              <td className="p-2 border">{periode.kode_periode}</td>
-              <td className="p-2 border">{periode.deskripsi}</td>
-              <td className="p-2 border">
+              <td className="px-6 py-4 border">{periode.kode_periode}</td>
+              <td className="px-6 py-4 border">{periode.deskripsi}</td>
+              <td className="px-6 py-4 border">
                 {formatTanggalIndo(periode.tanggal_mulai)}
               </td>
-              <td className="p-2 border capitalize">{periode.status}</td>
-              <td className="p-2 border">{formatRupiah(periode.saldo_awal)}</td>
-              <td className="p-2 border space-x-2 text-center">
+              <td className="px-6 py-4 border capitalize">{periode.status}</td>
+              <td className="px-6 py-4 border">
+                {formatRupiah(periode.saldo_awal)}
+              </td>
+              <td className="px-6 py-4 border space-x-2 text-center">
                 <button
                   onClick={() => handleTransaksiClick(periode.id)}
                   className="text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded"
