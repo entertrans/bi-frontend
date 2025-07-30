@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import {
   dummyPeriodePettyCash,
   dummyTransaksiPettyCash,
-} from "./dummy/pettycash";
+} from "../pettycash/dummy/pettycash";
 import { formatRupiah, formatTanggalIndo } from "../../../utils/format";
 
 const PettyCashTransaksiPage = () => {

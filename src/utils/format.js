@@ -21,3 +21,12 @@ export const formatTanggalIndo = (isoDate) => {
     year: "numeric",
   });
 };
+export const formatTanggalLengkap = (isoDate) => {
+  if (!isoDate) return "-";
+  return new Date(isoDate).toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};

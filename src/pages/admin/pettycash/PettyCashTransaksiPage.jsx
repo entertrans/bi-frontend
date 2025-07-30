@@ -7,7 +7,8 @@ import {
   addTransaksi,
   deleteTransaksi,
 } from "../../../api/siswaAPI";
-import { formatRupiah, formatTanggalIndo } from "../../../utils/format";
+import { formatRupiah, formatTanggalLengkap } from "../../../utils/format";
+import NumberInput from "../../../utils/val_form";
 
 const PettyCashTransaksiPage = () => {
   const { id } = useParams();
@@ -45,7 +46,8 @@ const PettyCashTransaksiPage = () => {
     const { tanggal, keterangan, debet, kredit } = input;
 
     if (!tanggal || !keterangan || (!debet && !kredit)) {
-      alert("Lengkapi semua isian dengan benar!");
+      // alert("Lengkapi semua isian dengan benar!");
+      showAlert("Lengkapi semua isian dengan benar!", "error");
       return;
     }
 
@@ -120,20 +122,20 @@ const PettyCashTransaksiPage = () => {
       <h2 className="text-xl font-bold mb-2">
         {periode?.deskripsi || "Loading..."}
       </h2>
-      <div className="mb-4 text-sm text-gray-700">
+      <div className="mb-4 text-sm text-white-700">
         🏢 Lokasi: {periode?.lokasi?.toUpperCase()} | 📅 Mulai:{" "}
-        {formatTanggalIndo(periode?.tanggal_mulai)} | 💼 Saldo Saat Ini:{" "}
+        {formatTanggalLengkap(periode?.tanggal_mulai)} | 💼 Saldo Saat Ini:{" "}
         <strong>{formatRupiah(dataWithSaldo[0]?.saldo || 0)}</strong>
       </div>
 
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
         <thead className="bg-gray-100 dark:bg-gray-700">
           <tr>
-            <th className="px-6 py-3 text-left">Tanggal</th>
+            <th className="px-6 py-3 text-center">Tanggal</th>
             <th className="px-6 py-3 text-left">Keterangan</th>
-            <th className="px-6 py-3 text-left">Debet</th>
-            <th className="px-6 py-3 text-left">Kredit</th>
-            <th className="px-6 py-3 text-left">Saldo</th>
+            <th className="px-6 py-3 text-center">Debet</th>
+            <th className="px-6 py-3 text-center">Kredit</th>
+            <th className="px-6 py-3 text-center">Saldo</th>
             <th className="px-6 py-3 text-center">Aksi</th>
           </tr>
         </thead>
@@ -160,20 +162,20 @@ const PettyCashTransaksiPage = () => {
               />
             </td>
             <td className="px-6 py-4 text-right">
-              <input
-                type="number"
+              <NumberInput
                 name="debet"
                 value={input.debet}
+                placeholder="Masuk..."
                 onChange={handleInputChange}
                 className="p-2 border rounded w-full md:w-32 dark:bg-gray-700 dark:text-white"
               />
             </td>
             <td className="px-6 py-4 text-right">
-              <input
-                type="number"
+              <NumberInput
                 name="kredit"
                 value={input.kredit}
                 onChange={handleInputChange}
+                placeholder="Keluar..."
                 className="p-2 border rounded w-full md:w-32 dark:bg-gray-700 dark:text-white"
               />
             </td>
@@ -181,7 +183,7 @@ const PettyCashTransaksiPage = () => {
             <td className="px-6 py-4 text-center">
               <button
                 onClick={handleTambahTransaksi}
-                className="bg-green-600 hover:bg-green-700 text-white font-medium px-3 py-1 rounded shadow-sm"
+                className="bg-green-600 hover:bg-green-700  text-white font-medium px-3 py-1 rounded shadow-sm"
               >
                 +
               </button>
@@ -191,7 +193,7 @@ const PettyCashTransaksiPage = () => {
           {/* List transaksi */}
           {dataWithSaldo.map((trx, index) => (
             <tr key={index}>
-              <td className="px-6 py-4">{formatTanggalIndo(trx.tanggal)}</td>
+              <td className="px-6 py-4">{formatTanggalLengkap(trx.tanggal)}</td>
               <td className="px-6 py-4">{trx.keterangan}</td>
               <td className="px-6 py-4 text-right">
                 {trx.jenis === "masuk" ? formatRupiah(trx.nominal) : "-"}

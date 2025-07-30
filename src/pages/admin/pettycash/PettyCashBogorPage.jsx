@@ -4,12 +4,12 @@ import { getPettyCashByLokasi } from "../../../api/siswaAPI";
 import { formatRupiah, formatTanggalIndo } from "../../../utils/format";
 import PettyCashPeriodeModal from "./PettyCashPeriodeModal";
 
-const PettyCashSerpongPage = () => {
-  const [showModal, setShowModal] = useState(false);
-  const [selectedPeriode, setSelectedPeriode] = useState(null);
-  const handleModalOpen = () => setShowModal(true);
-  const handleModalClose = () => setShowModal(false);
-  const handlePeriodeSelect = (periode) => setSelectedPeriode(periode);
+const PettyCashBogorPage = () => {
+   const [showModal, setShowModal] = useState(false);
+    const [selectedPeriode, setSelectedPeriode] = useState(null);
+    const handleModalOpen = () => setShowModal(true);
+    const handleModalClose = () => setShowModal(false);
+    const handlePeriodeSelect = (periode) => setSelectedPeriode(periode);
   const navigate = useNavigate();
   const [periodeList, setPeriodeList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +17,7 @@ const PettyCashSerpongPage = () => {
   useEffect(() => {
     const fetchPettyCash = async () => {
       try {
-        const data = await getPettyCashByLokasi("serpong");
+        const data = await getPettyCashByLokasi("bogor");
         setPeriodeList(data);
       } catch (err) {
         console.error("Gagal fetch data petty cash:", err);
@@ -30,18 +30,14 @@ const PettyCashSerpongPage = () => {
   }, []);
 
   const handleTransaksiClick = (id) => {
-    navigate(`/pettycash/serpong/${id}/transaksi`);
+    navigate(`/pettycash/bogor/${id}/transaksi`);
   };
-
-  //tambah periode
-
-  //end of
 
   return (
     <div className="p-4">
       <div className="flex justify-between mb-4">
-        <h1 className="text-2xl font-bold">Petty Cash Anak Panah Serpong</h1>
-        <button
+        <h1 className="text-2xl font-bold">Petty Cash Anak Panah bogor</h1>
+       <button
           onClick={handleModalOpen}
           className="bg-blue-500 px-4 py-2 text-white rounded"
         >
@@ -93,19 +89,13 @@ const PettyCashSerpongPage = () => {
           </tbody>
         </table>
       )}
-      {selectedPeriode && (
-        <p className="mt-2 text-green-600">
-          Periode dipilih: {selectedPeriode}
-        </p>
-      )}
-
       <PettyCashPeriodeModal
         isOpen={showModal}
         onClose={handleModalClose}
         onSubmit={(newPeriode) => {
           setPeriodeList((prev) => [...prev, newPeriode]);
         }}
-        lokasiAktif="Serpong"
+        lokasiAktif="Bogor"
         lastKodePeriode={(() => {
           const prefix = "SPG-";
           const kodeList = periodeList
@@ -120,4 +110,4 @@ const PettyCashSerpongPage = () => {
   );
 };
 
-export default PettyCashSerpongPage;
+export default PettyCashBogorPage;
