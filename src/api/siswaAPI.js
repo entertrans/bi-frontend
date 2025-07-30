@@ -44,6 +44,61 @@ export const hapusPembayaranById = async (id) => {
   }
 };
 
+//petycash
+// GET semua data periode petty cash
+export const getPettyCashPeriode = async () => {
+  const res = await axios.get(`http://localhost:8080/petty-cash`);
+  return res.data;
+};
+
+// GET petty cash berdasarkan ID
+export const getPettyCashPeriodeByID = async (id) => {
+  const res = await axios.get(`http://localhost:8080/petty-cash/${id}`);
+  return res.data;
+};
+
+// GET petty cash berdasarkan lokasi (hati-hati ini tabrakan sama getByID)
+export const getPettyCashByLokasi = async (lokasi) => {
+  const res = await axios.get(
+    `http://localhost:8080/petty-cash/by-lokasi/${lokasi}`
+  );
+  return res.data;
+};
+
+// POST tambah periode petty cash
+export const createPettyCashPeriode = async (data) => {
+  const res = await axios.post(`http://localhost:8080/petty-cash`, data);
+  return res.data;
+};
+
+// PUT update periode petty cash
+export const updatePettyCashPeriode = async (data) => {
+  const res = await axios.put(`http://localhost:8080/petty-cash`, data);
+  return res.data;
+};
+
+// DELETE petty cash berdasarkan ID
+export const deletePettyCashPeriode = async (id) => {
+  const res = await axios.delete(`http://localhost:8080/petty-cash/${id}`);
+  return res.data;
+};
+
+export const getTransaksiByPeriode = async (periodeId) => {
+  const res = await axios.get(`http://localhost:8080/transaksi/${periodeId}`);
+  return res.data; // expect { periode, transaksis, saldo }
+};
+
+export const addTransaksi = async (data) => {
+  const res = await axios.post("http://localhost:8080/transaksi", data);
+  return res.data;
+};
+export const deleteTransaksi = async (id) => {
+  const res = await axios.delete(`http://localhost:8080/transaksi/${id}`);
+  return res.data;
+};
+
+//petcashend
+
 //penerima invoice
 export const searchSiswa = async (q) => {
   const response = await fetch(`http://localhost:8080/siswa/search?q=${q}`);

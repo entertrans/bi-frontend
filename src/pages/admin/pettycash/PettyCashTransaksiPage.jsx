@@ -1,31 +1,47 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { showToast, showAlert } from "../../../utils/toast";
+import Swal from "sweetalert2";
 import {
-  dummyPeriodePettyCash,
-  dummyTransaksiPettyCash as initialDummyTransaksi,
-} from "./dummy/pettycash";
+  getTransaksiByPeriode,
+  addTransaksi,
+  deleteTransaksi,
+} from "../../../api/siswaAPI";
 import { formatRupiah, formatTanggalIndo } from "../../../utils/format";
 
 const PettyCashTransaksiPage = () => {
   const { id } = useParams();
-  const periode = dummyPeriodePettyCash.find((p) => p.id === parseInt(id));
-  const [input, setInput] = React.useState({
+  const [periode, setPeriode] = useState(null);
+  const [transaksiData, setTransaksiData] = useState([]);
+  const [input, setInput] = useState({
     tanggal: "",
     keterangan: "",
     debet: "",
     kredit: "",
   });
 
-  const [transaksiData, setTransaksiData] = React.useState(
-    initialDummyTransaksi.filter((trx) => trx.periode_id === parseInt(id))
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await getTransaksiByPeriode(id);
+
+        setPeriode(res.periode);
+        setTransaksiData(res.transaksis);
+        // Optional: setSaldoAkhir(res.saldo);
+      } catch (error) {
+        console.error("Gagal load transaksi:", error);
+      }
+    };
+
+    fetchData();
+  }, [id]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setInput({ ...input, [name]: value });
   };
 
-  const handleTambahTransaksi = () => {
+  const handleTambahTransaksi = async () => {
     const { tanggal, keterangan, debet, kredit } = input;
 
     if (!tanggal || !keterangan || (!debet && !kredit)) {
@@ -33,26 +49,56 @@ const PettyCashTransaksiPage = () => {
       return;
     }
 
-    const tipe = debet ? "masuk" : "keluar";
-    const jumlah = parseInt(debet || kredit);
+    const jenis = debet ? "masuk" : "keluar";
+    const nominal = parseInt(debet || kredit);
 
-    const newTransaksi = {
-      id: transaksiData.length + 1,
-      periode_id: parseInt(id),
-      tanggal,
+    const newData = {
+      id_periode: parseInt(id),
+      tanggal: new Date(tanggal),
       keterangan,
-      tipe,
-      jumlah,
+      jenis,
+      nominal,
     };
 
-    setTransaksiData((prev) => [...prev, newTransaksi]);
+    try {
+      const created = await addTransaksi(newData);
+      setTransaksiData((prev) => [...prev, created]);
+      setInput({ tanggal: "", keterangan: "", debet: "", kredit: "" });
+      showToast("Berhasil Tambah Transaksi", "success");
+    } catch (error) {
+      console.error("Gagal tambah transaksi:", error);
+    }
+  };
 
-    setInput({
-      tanggal: "",
-      keterangan: "",
-      debet: "",
-      kredit: "",
+  const handleHapusTransaksi = async (trxId) => {
+    const result = await Swal.fire({
+      title: "Hapus Transaksi?",
+      text: "Apakah kamu yakin ingin menghapus transaksi ini?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#e3342f",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+      buttonsStyling: false,
+      customClass: {
+        confirmButton:
+          "bg-red-600 hover:bg-red-700 text-white font-semibold mr-4 px-4 py-2 rounded",
+        cancelButton:
+          "bg-gray-300 hover:bg-gray-400 text-black font-semibold px-4 py-2 rounded",
+      },
     });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await deleteTransaksi(trxId);
+      setTransaksiData((prev) => prev.filter((trx) => trx.id !== trxId));
+      showToast("Transaksi telah dihapus.", "success");
+    } catch (error) {
+      console.error("Gagal hapus transaksi:", error);
+      showToast("Terjadi kesalahan saat menghapus transaksi.", "error");
+    }
   };
 
   const transaksi = [...transaksiData].sort(
@@ -64,17 +110,19 @@ const PettyCashTransaksiPage = () => {
     .slice()
     .reverse()
     .map((trx) => {
-      saldo += trx.tipe === "masuk" ? trx.jumlah : -trx.jumlah;
+      saldo += trx.jenis === "masuk" ? trx.nominal : -trx.nominal;
       return { ...trx, saldo };
     })
     .reverse();
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-2">{periode.deskripsi}</h2>
+      <h2 className="text-xl font-bold mb-2">
+        {periode?.deskripsi || "Loading..."}
+      </h2>
       <div className="mb-4 text-sm text-gray-700">
-        🏢 Lokasi: {periode.lokasi.toUpperCase()} | 📅 Mulai:{" "}
-        {formatTanggalIndo(periode.tanggal_mulai)} | 💼 Saldo Saat Ini:{" "}
+        🏢 Lokasi: {periode?.lokasi?.toUpperCase()} | 📅 Mulai:{" "}
+        {formatTanggalIndo(periode?.tanggal_mulai)} | 💼 Saldo Saat Ini:{" "}
         <strong>{formatRupiah(dataWithSaldo[0]?.saldo || 0)}</strong>
       </div>
 
@@ -146,15 +194,25 @@ const PettyCashTransaksiPage = () => {
               <td className="px-6 py-4">{formatTanggalIndo(trx.tanggal)}</td>
               <td className="px-6 py-4">{trx.keterangan}</td>
               <td className="px-6 py-4 text-right">
-                {trx.tipe === "masuk" ? formatRupiah(trx.jumlah) : "-"}
+                {trx.jenis === "masuk" ? formatRupiah(trx.nominal) : "-"}
               </td>
               <td className="px-6 py-4 text-right">
-                {trx.tipe === "keluar" ? formatRupiah(trx.jumlah) : "-"}
+                {trx.jenis === "keluar" ? formatRupiah(trx.nominal) : "-"}
               </td>
               <td className="px-6 py-4 text-right">
                 {formatRupiah(trx.saldo)}
               </td>
-              <td className="px-6 py-4 text-center text-red-500">x</td>
+              <td className="px-6 py-4 text-center text-red-500">
+                <td className="px-6 py-4 text-center">
+                  <button
+                    onClick={() => handleHapusTransaksi(trx.id)}
+                    className="text-red-500 hover:text-red-700"
+                    title="Hapus transaksi"
+                  >
+                    ❌
+                  </button>
+                </td>
+              </td>
             </tr>
           ))}
         </tbody>
