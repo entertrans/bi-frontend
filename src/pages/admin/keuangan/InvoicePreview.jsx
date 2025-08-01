@@ -2,24 +2,28 @@ import React from "react";
 
 const InvoicePreview = () => {
   const data = {
-    clientName: "John Smith",
-    companyName: "ABC Corporation",
+    Nama: "Amazing Grace Danielle Prakoso",
+    Kelas: "XII IPS",
     address: "123 Elm Street Green Valley",
-    phone: "(555) 555-5555",
-    email: "john.smith@email.com",
-    invoiceNumber: "SI2023-001",
-    invoiceDate: "September 26, 2030",
+    phone: "0817777673",
+    email: "anakpanah200@gmail.com",
+    invoiceNumber: "#UNBK/2025/0003",
+    invoiceDate: "Kamis, 31 Juli 2025",
     items: [
-      { desc: "Logo Design", qty: "1 project", rate: 500, total: 500 },
-      { desc: "Brochure Design", qty: "2 projects", rate: 750, total: 1500 },
-      { desc: "Website Redesign", qty: "1 project", rate: 800, total: 800 },
-      { desc: "Social Media Graphics", qty: "5 hours", rate: 50, total: 250 },
+      {
+        namaTagihan: "PENDAFTARAN SMA TH AJARAN 2024/2025",
+        Nominal: 3250000,
+      },
+      {
+        namaTagihan: "DAFTAR ULANG SMA TH AJARAN 2024/2025",
+        Nominal: 1200000,
+      },
     ],
   };
 
-  const subtotal = data.items.reduce((sum, item) => sum + item.total, 0);
-  const tax = subtotal * 0.08;
-  const total = subtotal + tax;
+  const subtotal = data.items.reduce((sum, item) => sum + item.Nominal, 0);
+  const potongan = 100000; // bisa diganti jika ada potongan
+  const total = subtotal - potongan;
 
   return (
     <div
@@ -27,61 +31,62 @@ const InvoicePreview = () => {
       className="max-w-3xl mx-auto p-8 bg-white text-black"
     >
       {/* Header */}
-      <div className="flex justify-between items-center border-b pb-4">
-        <div>
-          <h1 className="text-3xl font-bold">INVOICE</h1>
-          <p className="mt-2">
-            <strong>Client Name:</strong> {data.clientName}
-          </p>
-          <p>
-            <strong>Company Name:</strong> {data.companyName}
-          </p>
-          <p>
-            <strong>Billing Address:</strong> {data.address}
-          </p>
-          <p>
-            <strong>Phone:</strong> {data.phone}
-          </p>
-          <p>
-            <strong>Email:</strong> {data.email}
-          </p>
+      <div className="flex justify-between items-start border-b pb-4 gap-4">
+        <div className="grid grid-cols-1 gap-1 text-sm">
+          <div>
+            <span className="font-semibold">Penerima :</span>
+            <div>{data.Nama}</div>
+          </div>
+          <div>
+            <span className="font-semibold">Kelas :</span>
+            <div>{data.Kelas}</div>
+          </div>
+          <div>
+            <span className="font-semibold">Phone:</span>
+            <div>{data.phone}</div>
+          </div>
+          <div>
+            <span className="font-semibold">Email:</span>
+            <div>{data.email}</div>
+          </div>
         </div>
-        <div className="text-right">
+
+        <div className="flex flex-col items-end text-right text-sm">
           <img
-            src="https://via.placeholder.com/80x80.png?text=Logo"
+            src="/assets/img/logo-anak-panah-yang-png.png"
             alt="Logo"
-            className="mb-2"
+            className="w-24 h-auto mb-2"
           />
-          <p>
-            <strong>Invoice Number:</strong> {data.invoiceNumber}
-          </p>
-          <p>
-            <strong>Invoice Date:</strong> {data.invoiceDate}
-          </p>
+          <div>
+            <span className="font-semibold">Referensi :</span>{" "}
+            {data.invoiceNumber}
+          </div>
+          <div>
+            <span className="font-semibold">Tgl Jatuh Tempo :</span>{" "}
+            {data.invoiceDate}
+          </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="mt-6">
-        <h2 className="text-lg font-semibold mb-2">Service Details:</h2>
+      <div className="mt-5">
+        <h2 className="text-lg font-semibold mb-2">Detail Tagihan:</h2>
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-yellow-300 text-left">
               <th className="p-2 border">No</th>
-              <th className="p-2 border">Description of Service</th>
-              <th className="p-2 border">Quantity</th>
-              <th className="p-2 border">Rate per Hour ($)</th>
-              <th className="p-2 border">Total ($)</th>
+              <th className="p-2 border">Nama Tagihan</th>
+              <th className="p-2 border">Nominal</th>
             </tr>
           </thead>
           <tbody>
             {data.items.map((item, i) => (
               <tr key={i} className="bg-gray-100">
                 <td className="p-2 border">{i + 1}</td>
-                <td className="p-2 border">{item.desc}</td>
-                <td className="p-2 border">{item.qty}</td>
-                <td className="p-2 border">${item.rate.toFixed(2)}</td>
-                <td className="p-2 border">${item.total.toFixed(2)}</td>
+                <td className="p-2 border">{item.namaTagihan}</td>
+                <td className="p-2 border">
+                  Rp {item.Nominal.toLocaleString("id-ID")}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -90,30 +95,49 @@ const InvoicePreview = () => {
 
       {/* Summary */}
       <div className="mt-6 flex justify-end">
-        <div className="w-1/3">
+        <div className="w-1/3 text-sm">
           <div className="flex justify-between">
             <span>Subtotal</span>
-            <span>${subtotal.toFixed(2)}</span>
+            <span>Rp {subtotal.toLocaleString("id-ID")}</span>
           </div>
           <div className="flex justify-between">
-            <span>Tax (8%)</span>
-            <span>${tax.toFixed(2)}</span>
+            <span>Potongan</span>
+            <span>Rp {potongan.toLocaleString("id-ID")}</span>
           </div>
           <div className="flex justify-between font-bold border-t mt-2 pt-2">
-            <span>Total Amount Due</span>
-            <span>${total.toFixed(2)}</span>
+            <span>Total</span>
+            <span>Rp {total.toLocaleString("id-ID")}</span>
           </div>
         </div>
       </div>
 
-      {/* Terms */}
-      <div className="mt-8">
-        <h3 className="font-semibold">Terms and Conditions:</h3>
-        <ul className="list-disc ml-6 mt-2 text-sm">
-          <li>Payment is due upon receipt of this invoice.</li>
-          <li>Late payments may incur additional charges.</li>
-          <li>Please make checks payable to Your Graphic Design Studio.</li>
-        </ul>
+      {/* Footer */}
+      <div className="mt-12 border-t pt-4 text-sm text-gray-700">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <h3 className="font-semibold text-black">
+              Anak Panah Cyberschool:
+            </h3>
+            <p>Jl. Raya Danau Poso Blok AA1. No. 27 - 29</p>
+            <p>Cluster Catalina, Gading Serpong</p>
+            <p>Medang, Pagedangan, Kab. Tangerang</p>
+            <p>Banten, 15331 Indonesia</p>
+          </div>
+          <div>
+            <p>
+              <strong>Telp:</strong> 0818777673
+            </p>
+            <p>
+              <strong>Email:</strong> finance@anakpanah.sch.id
+            </p>
+            <p>
+              <strong>No Rekening: </strong> 8831177756 <div className="text-xs text-gray-500 italic">( BCA a/n Yayasan Anak Panah Bangsa )</div>
+            </p>
+            <p className="mt-2 text-xs text-gray-500 italic">
+              * Mohon simpan bukti invoice ini sebagai arsip Anda.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
