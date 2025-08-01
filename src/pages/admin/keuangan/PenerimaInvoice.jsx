@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import html2pdf from "html2pdf.js";
 import { useParams } from "react-router-dom";
 import {
   getInvoiceById,
@@ -13,6 +14,7 @@ import { FaTrash, FaEdit } from "react-icons/fa";
 import { formatTanggalLengkap } from "../../../utils/date";
 import { showToast, showAlert } from "../../../utils/toast";
 import Swal from "sweetalert2";
+import InvoicePreview from "./InvoicePreview"; // pastikan path-nya benar
 
 const PenerimaInvoice = () => {
   const { id } = useParams();
@@ -22,9 +24,24 @@ const PenerimaInvoice = () => {
   const [invoice, setInvoice] = useState(null);
   const [penerimaList, setPenerimaList] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedSiswa, setSelectedSiswa] = useState(null);
+  const [selectedSiswa, setSelectedSiswa] = useState(null); // untuk tampilan slide
+  const [siswaCetak, setSiswaCetak] = useState(null); // untuk PDF tersembunyi
+
   const [isTambahOpen, setIsTambahOpen] = useState(false);
-  
+  const handleCetakLangsung = () => {
+    const element = document.getElementById("kwitansi-cetak");
+    html2pdf()
+      .set({
+        margin: 0.5,
+        filename: "kwitansi.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "in", format: "A4", orientation: "portrait" },
+      })
+      .from(element)
+      .save();
+    setTimeout(() => setSiswaCetak(null), 1000);
+  };
 
   const fetchInvoiceData = async () => {
     try {
@@ -43,13 +60,13 @@ const PenerimaInvoice = () => {
   };
 
   const fetchPenerima = async () => {
-  const data = await getPenerimaInvoice(decodedId); // API call kamu
-  setPenerimaList(data);
-};
+    const data = await getPenerimaInvoice(decodedId); // API call kamu
+    setPenerimaList(data);
+  };
 
-useEffect(() => {
-  fetchPenerima(); // load awal
-}, []);
+  useEffect(() => {
+    fetchPenerima(); // load awal
+  }, []);
 
   useEffect(() => {
     fetchInvoiceData();
@@ -113,7 +130,6 @@ useEffect(() => {
     setIsOpen(false);
     setTimeout(() => setSelectedSiswa(null), 0);
   };
-  
 
   if (!invoice) {
     return (
@@ -268,6 +284,19 @@ useEffect(() => {
                         <FaTrash />
                       </button>
                       <button
+                        onClick={async () => {
+                          const data = await fetchInvoicePenerima(siswa.nis); // ambil data
+                          setSiswaCetak(data); // hanya render versi PDF
+                          setTimeout(() => {
+                            handleCetakLangsung(); // tunggu render
+                          }, 100);
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs rounded shadow"
+                      >
+                        Cetak
+                      </button>
+
+                      <button
                         onClick={() => handleLihatInvoice(siswa)}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs rounded shadow"
                       >
@@ -300,11 +329,9 @@ useEffect(() => {
             fetchPenerima();
             fetchInvoiceData(); // <--- sudah bisa dipanggil sekarang
             setIsTambahOpen(false);
-            
           }}
           penerimaList={penerimaList}
         />
-
       )}
       {/* edit potongan */}
       {editPotonganSiswa && (
@@ -335,6 +362,14 @@ useEffect(() => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* cetak */}
+      {/* Render tersembunyi untuk cetak langsung */}
+      {siswaCetak && (
+        <div style={{ display: "none" }}>
+          <InvoicePreview siswa={siswaCetak} />
         </div>
       )}
     </div>
