@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { formatTanggalLengkap } from "../../../utils/date";
+import { formatTanggalIndonesia } from "../../../utils/date";
 import { tambahPembayaran, hapusPembayaranById } from "../../../api/siswaAPI";
 import { showToast } from "../../../utils/toast";
 import CetakKwitansi from "./CetakKwitansi";
@@ -10,7 +10,10 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
   const [pembayaranBaru, setPembayaranBaru] = useState({
     tanggal: "",
     nominal: "",
+    keterangan: "",
+    tujuan: "Yayasan Anak Panah Bangsa", // default
   });
+
   useEffect(() => {
     if (isOpen) {
       setMounted(true);
@@ -73,8 +76,8 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
         id_penerima: data.id,
         tanggal: pembayaranBaru.tanggal,
         nominal: nominalInt,
-        metode: null,
-        keterangan: null,
+        keterangan: pembayaranBaru.keterangan,
+        tujuan: pembayaranBaru.tujuan,
       });
 
       showToast("Pembayaran berhasil ditambahkan", "success");
@@ -150,6 +153,8 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
                     {totalTagihan.toLocaleString("id-ID", {
                       style: "currency",
                       currency: "IDR",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
                     })}
                   </td>
                 </tr>
@@ -159,6 +164,8 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
                     {totalBayar.toLocaleString("id-ID", {
                       style: "currency",
                       currency: "IDR",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
                     })}
                   </td>
                 </tr>
@@ -168,6 +175,8 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
                     {kurang.toLocaleString("id-ID", {
                       style: "currency",
                       currency: "IDR",
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
                     })}
                   </td>
                 </tr>
@@ -186,49 +195,58 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
                   <tr className="bg-gray-100 dark:bg-gray-700">
                     <th className="p-2 px-2 text-left">Tanggal</th>
                     <th className="p-2 px-2 text-right">Nominal</th>
+                    <th className="p-2 px-2">Keterangan</th>
                     <th className="p-2 px-2">Aksi</th>
                   </tr>
                 </thead>
-                <tbody className="text-lg">
-                  {data.pembayaran.map((p, i) => (
-                    <tr key={i} className="border-t">
-                      <td className="p-2 px-2">
-                        {p.Tanggal ? formatTanggalLengkap(p.Tanggal) : "-"}
-                      </td>
-                      <td className="p-2 px-2 text-right">
-                        {typeof p.nominal === "number"
-                          ? p.nominal.toLocaleString("id-ID", {
-                              style: "currency",
-                              currency: "IDR",
-                            })
-                          : "-"}
-                      </td>
-                      <td className="p-2 px-2 text-center">
-                        <div className="flex gap-2 items-center">
-                          <button
-                            onClick={() =>
-                              CetakKwitansi(data, {
-                                ...p,
-                                keterangan: data?.invoice_deskripsi,
-                              })
-                            }
-                            className="text-blue-600 hover:text-blue-800"
-                            title="Cetak Kwitansi"
-                          >
-                            🖨️
-                          </button>
 
-                          <button
-                            onClick={() => handleDeletePembayaran(p.ID)} // ← UBAH INI
-                            className="text-red-600 hover:text-red-800"
-                            title="Hapus pembayaran"
-                          >
-                            ❌
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                <tbody className="text-lg">
+                  {data.pembayaran.map((p, i) => {
+                    console.log(`Pembayaran ke-${i + 1}:`, p); // <=== Tambahkan baris ini
+
+                    return (
+                      <tr key={i} className="border-t">
+                        <td className="p-2 px-2">
+                          {p.Tanggal ? formatTanggalIndonesia(p.Tanggal) : "-"}
+                        </td>
+                        <td className="p-2 px-2 text-right">
+                          {typeof p.nominal === "number"
+                            ? p.nominal.toLocaleString("id-ID", {
+                                style: "currency",
+                                currency: "IDR",
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 0,
+                              })
+                            : "-"}
+                        </td>
+                        <td className="p-2 px-2">{p.Keterangan || "-"}</td>
+                        <td className="p-2 px-2 text-center">
+                          <div className="flex gap-2 items-center">
+                            <button
+                              onClick={() =>
+                                CetakKwitansi(data, {
+                                  ...p,
+                                  keterangan: p.Keterangan,
+                                })
+                              }
+                              className="text-blue-600 hover:text-blue-800"
+                              title="Cetak Kwitansi"
+                            >
+                              🖨️
+                            </button>
+
+                            <button
+                              onClick={() => handleDeletePembayaran(p.ID)}
+                              className="text-red-600 hover:text-red-800"
+                              title="Hapus pembayaran"
+                            >
+                              ❌
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}
@@ -269,6 +287,35 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
                     e.preventDefault();
                   }
                 }}
+              />
+              <div className="space-y-1">
+                <label className="font-medium">Tujuan Pembayaran</label>
+                <select
+                  className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white"
+                  value={pembayaranBaru.tujuan}
+                  onChange={(e) =>
+                    setPembayaranBaru((prev) => ({
+                      ...prev,
+                      tujuan: e.target.value,
+                    }))
+                  }
+                >
+                  <option value="Yayasan Anak Panah Bangsa">
+                    A/N Yayasan Anak Panah Bangsa
+                  </option>
+                  <option value="Bambang Eko P">A/N Bambang Eko P</option>
+                </select>
+              </div>
+              <textarea
+                className="w-full px-3 py-2 border rounded-md dark:bg-gray-700 dark:text-white"
+                placeholder="Keterangan (opsional)"
+                value={pembayaranBaru.keterangan}
+                onChange={(e) =>
+                  setPembayaranBaru({
+                    ...pembayaranBaru,
+                    keterangan: e.target.value,
+                  })
+                }
               />
 
               <button
