@@ -1,29 +1,35 @@
 import React from "react";
+import { formatTanggalLengkap } from "../../../utils/date";
 
-const InvoicePreview = () => {
+const InvoicePreview = ({ siswa }) => {
+  if (!siswa) return null;
+
   const data = {
-    Nama: "Amazing Grace Danielle Prakoso",
-    Kelas: "XII IPS",
-    address: "123 Elm Street Green Valley",
-    phone: "0817777673",
-    email: "anakpanah200@gmail.com",
-    invoiceNumber: "#UNBK/2025/0003",
-    invoiceDate: "Kamis, 31 Juli 2025",
+    Nama: siswa.siswa?.siswa_nama || siswa.nis,
+    Kelas: siswa.siswa?.kelas?.kelas_nama || "-",
+    phone: siswa.siswa?.siswa_no_telp || "-",
+    email: siswa.siswa?.siswa_email || "-",
+    invoiceNumber: siswa.invoice_id || "-",
+    invoiceDate: formatTanggalLengkap(siswa.invoice_jatuh_tempo),
     items: [
-      {
-        namaTagihan: "PENDAFTARAN SMA TH AJARAN 2024/2025",
-        Nominal: 3250000,
-      },
-      {
-        namaTagihan: "DAFTAR ULANG SMA TH AJARAN 2024/2025",
-        Nominal: 1200000,
-      },
+      ...(siswa.invoice?.tagihan || []).map((item) => ({
+        namaTagihan: item.nama,
+        Nominal: item.nominal,
+      })),
+      ...(siswa.tambahan_tagihan || []).map((item) => ({
+        namaTagihan: item.nama,
+        Nominal: item.nominal,
+      })),
     ],
+    potongan: siswa.potongan || 0,
+    totalBayar: siswa.totalBayar || 0,
   };
 
   const subtotal = data.items.reduce((sum, item) => sum + item.Nominal, 0);
-  const potongan = 100000; // bisa diganti jika ada potongan
-  const total = subtotal - potongan;
+  const potongan = siswa.potongan; // bisa diganti jika ada potongan
+  const totalBayar = siswa.totalBayar; // bisa diganti jika ada potongan
+
+  const total = subtotal - potongan - totalBayar;
 
   return (
     <div
@@ -58,7 +64,8 @@ const InvoicePreview = () => {
             className="w-24 h-auto mb-2"
           />
           <div>
-            <span className="font-semibold">Referensi :</span>{" "}
+            <span className="font-semibold">Referensi :</span>
+            {" #"}
             {data.invoiceNumber}
           </div>
           <div>
@@ -69,22 +76,32 @@ const InvoicePreview = () => {
       </div>
 
       {/* Table */}
-      <div className="mt-5">
+      <div className="mt-5 text-sm">
         <h2 className="text-lg font-semibold mb-2">Detail Tagihan:</h2>
-        <table className="w-full border-collapse">
+        <table className="w-full border border-gray-300 text-xs">
           <thead>
-            <tr className="bg-yellow-300 text-left">
-              <th className="p-2 border">No</th>
-              <th className="p-2 border">Nama Tagihan</th>
-              <th className="p-2 border">Nominal</th>
+            <tr className="bg-yellow-300 text-gray-800">
+              <th className="border px-6 pb-3 text-center align-middle w-12 leading-tight">
+                No
+              </th>
+              <th className="border px-6 pb-3 align-middle leading-tight">
+                Nama Tagihan
+              </th>
+              <th className="border px-6 pb-3 text-center align-middle w-40 leading-tight">
+                Nominal
+              </th>
             </tr>
           </thead>
           <tbody>
             {data.items.map((item, i) => (
-              <tr key={i} className="bg-gray-100">
-                <td className="p-2 border">{i + 1}</td>
-                <td className="p-2 border">{item.namaTagihan}</td>
-                <td className="p-2 border">
+              <tr key={i} className="bg-gray-50 hover:bg-gray-100">
+                <td className="border px-6 pb-3 text-center align-middle leading-tight">
+                  {i + 1}
+                </td>
+                <td className="border px-6 pb-3 align-middle leading-tight">
+                  {item.namaTagihan}
+                </td>
+                <td className="border px-6 pb-3 text-center align-middle leading-tight">
                   Rp {item.Nominal.toLocaleString("id-ID")}
                 </td>
               </tr>
@@ -95,7 +112,7 @@ const InvoicePreview = () => {
 
       {/* Summary */}
       <div className="mt-6 flex justify-end">
-        <div className="w-1/3 text-sm">
+        <div className="w-1/3 text-xs">
           <div className="flex justify-between">
             <span>Subtotal</span>
             <span>Rp {subtotal.toLocaleString("id-ID")}</span>
@@ -104,8 +121,13 @@ const InvoicePreview = () => {
             <span>Potongan</span>
             <span>Rp {potongan.toLocaleString("id-ID")}</span>
           </div>
+          <div className="flex justify-between">
+            <span>Terbayar</span>
+            <span>Rp {totalBayar.toLocaleString("id-ID")}</span>
+          </div>
+
           <div className="flex justify-between font-bold border-t mt-2 pt-2">
-            <span>Total</span>
+            <span>Sisa Tagihan</span>
             <span>Rp {total.toLocaleString("id-ID")}</span>
           </div>
         </div>
@@ -131,7 +153,10 @@ const InvoicePreview = () => {
               <strong>Email:</strong> finance@anakpanah.sch.id
             </p>
             <p>
-              <strong>No Rekening: </strong> 8831177756 <div className="text-xs text-gray-500 italic">( BCA a/n Yayasan Anak Panah Bangsa )</div>
+              <strong>No Rekening: </strong> 8831177756{" "}
+              <div className="text-xs text-gray-500 italic">
+                ( BCA a/n Yayasan Anak Panah Bangsa )
+              </div>
             </p>
             <p className="mt-2 text-xs text-gray-500 italic">
               * Mohon simpan bukti invoice ini sebagai arsip Anda.

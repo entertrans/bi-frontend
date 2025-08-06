@@ -1,14 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { formatTanggalLengkap } from "../../../utils/date";
-import { IoClose } from "react-icons/io5";
 import { tambahPembayaran, hapusPembayaranById } from "../../../api/siswaAPI";
-import { showToast, showAlert } from "../../../utils/toast";
+import { showToast } from "../../../utils/toast";
+import CetakKwitansi from "./CetakKwitansi";
 import Swal from "sweetalert2";
 const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
+  const [mounted, setMounted] = useState(false);
+  const [showPanel, setShowPanel] = useState(false);
   const [pembayaranBaru, setPembayaranBaru] = useState({
     tanggal: "",
     nominal: "",
   });
+  useEffect(() => {
+    if (isOpen) {
+      setMounted(true);
+      setTimeout(() => setShowPanel(true), 10);
+    }
+  }, [isOpen]);
+  const handleClose = () => {
+    setShowPanel(false);
+    setTimeout(() => {
+      setMounted(false);
+      onClose();
+    }, 300); // match durasi transisi
+  };
 
   const handleDeletePembayaran = async (idPembayaran) => {
     const result = await Swal.fire({
@@ -30,9 +45,10 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
     if (result.isConfirmed) {
       try {
         await hapusPembayaranById(idPembayaran); // dari siswaAPI
-        // await fetchPembayaran(); // <-- Refresh data tabel
         showToast("Berhasil hapus pembayaran", "success");
-        if (onRefresh) onRefresh(); // untuk refresh data
+        if (onRefresh) {
+          await onRefresh();
+        }
       } catch (error) {
         console.error("Gagal hapus pembayaran:", error);
         showToast("Gagal menghapus pembayaran", "error");
@@ -63,7 +79,9 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
 
       showToast("Pembayaran berhasil ditambahkan", "success");
       setPembayaranBaru({ tanggal: "", nominal: "" });
-      if (onRefresh) onRefresh(); // refresh parent data
+      if (onRefresh) {
+        await onRefresh();
+      }
     } catch (error) {
       console.error("Gagal tambah pembayaran:", error);
       showToast("Gagal menambah pembayaran", "error");
@@ -79,11 +97,11 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
   return (
     <>
       {/* ✅ Overlay */}
-      {isOpen && (
+      {mounted && (
         <div
-          onClick={onClose}
-          className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ${
-            isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          onClick={handleClose}
+          className={`fixed inset-0 z-40 bg-black transition-opacity duration-300 ${
+            showPanel ? "opacity-50" : "opacity-0 pointer-events-none"
           }`}
         />
       )}
@@ -91,14 +109,14 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
       {/* ✅ Panel */}
       <div
         className={`text-lg fixed top-0 right-0 w-full max-w-2xl h-full bg-white dark:bg-gray-800 shadow-lg z-50 overflow-y-auto transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "translate-x-full"
+          showPanel ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* 🧾 Panel konten */}
         <div className="p-4 border-b flex justify-between items-center">
           <h2 className="text-lg font-bold">Detail Pembayaran Siswa</h2>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-500 hover:text-gray-800"
           >
             ❌
@@ -172,7 +190,6 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
                   </tr>
                 </thead>
                 <tbody className="text-lg">
-                  {/* {console.log(data.pembayaran)} */}
                   {data.pembayaran.map((p, i) => (
                     <tr key={i} className="border-t">
                       <td className="p-2 px-2">
@@ -187,12 +204,28 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
                           : "-"}
                       </td>
                       <td className="p-2 px-2 text-center">
-                        <button
-                          className="text-xs text-red-500 hover:underline"
-                          onClick={() => handleDeletePembayaran(p.ID)} // misalnya pakai p.id
-                        >
-                          ❌
-                        </button>
+                        <div className="flex gap-2 items-center">
+                          <button
+                            onClick={() =>
+                              CetakKwitansi(data, {
+                                ...p,
+                                keterangan: data?.invoice_deskripsi,
+                              })
+                            }
+                            className="text-blue-600 hover:text-blue-800"
+                            title="Cetak Kwitansi"
+                          >
+                            🖨️
+                          </button>
+
+                          <button
+                            onClick={() => handleDeletePembayaran(p.ID)} // ← UBAH INI
+                            className="text-red-600 hover:text-red-800"
+                            title="Hapus pembayaran"
+                          >
+                            ❌
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

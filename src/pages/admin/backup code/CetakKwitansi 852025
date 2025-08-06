@@ -1,0 +1,82 @@
+import html2pdf from "html2pdf.js";
+import {
+  terbilang,
+  formatRupiah,
+  formatTanggalLengkap,
+} from "../../../utils/format";
+
+const CetakKwitansi = (data, pembayaran) => {
+  const nominal = pembayaran?.nominal || 0;
+  const tanggal = pembayaran?.Tanggal || "-";
+  const tglPembayaran = formatTanggalLengkap(tanggal);
+  const nominalStr = formatRupiah(nominal);
+  const terbilangStr =
+    terbilang(nominal).charAt(0).toUpperCase() +
+    terbilang(nominal).slice(1) +
+    " Rupiah";
+
+  const htmlContent = `
+    <div style="font-family: 'Arial', sans-serif; padding: 40px; width: 700px; color: #000 !important;">
+
+      <h2 style="text-align: center; text-transform: uppercase; font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px; color: #000 !important;">
+        KWITANSI
+      </h2>
+
+      <div style="margin-bottom: 30px;">
+        <table style="width: 100%; font-size: 14px; color: #000 !important;">
+          <tr>
+            <td style="width: 30%;">Sudah Terima Dari</td>
+            <td style="width: 5%;">:</td>
+            <td style="width: 65%; font-weight: bold;">${data?.nama || "-"}</td>
+          </tr>
+          <tr>
+            <td>Jumlah Uang</td>
+            <td>:</td>
+            <td style="background-color: #f0f0f0; font-weight: bold;">${nominalStr}</td>
+          </tr>
+          <tr>
+            <td>Terbilang</td>
+            <td>:</td>
+            <td style="background-color: #f0f0f0; font-style: italic;">${terbilangStr}</td>
+          </tr>
+          <tr>
+            <td>Untuk Pembayaran</td>
+            <td>:</td>
+            <td>${pembayaran?.keterangan || "-"}</td>
+          </tr>
+        </table>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; font-size: 14px; margin-top: 40px; color: #000 !important;">
+        <div>
+
+          <div><strong>No. Invoice:</strong> ${data?.id_invoice || "-"}</div>
+        </div>
+        <div style="text-align: center;">
+          ${tglPembayaran}<br><br><br><br>
+          <strong>Bilqis Khaerunnisa, S.Ak</strong><br>
+          <span style="font-size: 12px;">(Cap dan Tanda Tangan)</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 50px; font-size: 12px; border-top: 1px dashed #aaa; padding-top: 10px; color: #000 !important;">
+        <strong>PKBM Anak Panah</strong><br>
+        Alamat: Jl. Raya Danau Poso Blok AA1. No. 27 - 29, Cluster Catalina, Gading Serpong. Medang, Pagedangan, Tangerang, Banten 15331.<br>
+        Telp: 021-5959-9252 | Email: finance@anakpanah.sch.id
+      </div>
+    </div>
+  `;
+
+  html2pdf()
+    .from(htmlContent)
+    .set({
+      margin: 10,
+      filename: `kwitansi-${data?.nama || "siswa"}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 3, useCORS: true },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+    })
+    .save();
+};
+
+export default CetakKwitansi;

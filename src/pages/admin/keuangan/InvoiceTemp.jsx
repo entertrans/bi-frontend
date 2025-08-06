@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { getAllInvoice, fetchAllTagihan } from "../../../api/siswaAPI";
+import {
+  getAllInvoice,
+  fetchAllTagihan,
+  getAllKwitansi,
+} from "../../../api/siswaAPI";
 import { useNavigate } from "react-router-dom";
 import { FaPlus, FaTrash } from "react-icons/fa";
 import InvoiceSlidePanel from "./InvoiceSlidePanel";
@@ -12,9 +16,35 @@ const Invoice = () => {
   const [showModal, setShowModal] = useState(false);
   const [daftarTagihan, setDaftarTagihan] = useState([]);
   const fetchData = async () => {
-    const data = await getAllInvoice(); // misalnya ambil dari API
-    setInvoices(data);
+    try {
+      const [invoiceData, kwitansiData] = await Promise.all([
+        getAllInvoice(),
+        getAllKwitansi(),
+      ]);
+
+      const dataGabungan = invoiceData.map((inv) => {
+        const kwitansiMatch = kwitansiData.find(
+          (kw) => kw.id_invoice === inv.id_invoice
+        );
+        return {
+          ...inv,
+          status: kwitansiMatch?.status ?? {
+            belum: 0,
+            belum_lunas: 0,
+            lunas: 0,
+          },
+        };
+      });
+
+      setInvoices(dataGabungan);
+    } catch (err) {
+      console.error("Gagal mengambil data invoice + kwitansi:", err);
+    }
   };
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   const generateInvoiceID = () => {
     const tahun = new Date().getFullYear();
     const lastId =
@@ -39,11 +69,6 @@ const Invoice = () => {
 
   const navigate = useNavigate();
   const [editData, setEditData] = useState(null);
-  useEffect(() => {
-    getAllInvoice()
-      .then(setInvoices)
-      .catch((err) => console.error("Gagal mengambil invoice:", err));
-  }, []);
 
   return (
     <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
@@ -72,6 +97,7 @@ const Invoice = () => {
               <th className="px-6 py-3 text-left">Tgl. Invoice</th>
               <th className="px-6 py-3 text-left">Tgl. Jatuh Tempo</th>
               <th className="px-6 py-3 text-left">Jumlah Tagihan</th>
+              <th className="px-6 py-3 text-left">Status</th>
               <th className="px-6 py-3 text-center">Aksi</th>
             </tr>
           </thead>
@@ -106,6 +132,21 @@ const Invoice = () => {
                         currency: "IDR",
                       })}
                   </td>
+                  <td className="px-6 py-4 flex items-center gap-3">
+                    <div className="flex items-center text-red-500">
+                      <div className="h-2.5 w-2.5 rounded-full bg-red-500 mr-1" />
+                      {inv.status?.belum ?? 0}
+                    </div>
+                    <div className="flex items-center text-yellow-500">
+                      <div className="h-2.5 w-2.5 rounded-full bg-yellow-400 mr-1" />
+                      {inv.status?.belum_lunas ?? 0}
+                    </div>
+                    <div className="flex items-center text-green-600">
+                      <div className="h-2.5 w-2.5 rounded-full bg-green-500 mr-1" />
+                      {inv.status?.lunas ?? 0}
+                    </div>
+                  </td>
+
                   <td className="px-6 py-4 text-center space-x-2">
                     {inv.sudahAdaPenerima ? (
                       <button

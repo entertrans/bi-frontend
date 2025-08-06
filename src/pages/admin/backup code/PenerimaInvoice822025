@@ -10,13 +10,12 @@ import {
 } from "../../../api/siswaAPI"; // gunakan path sesuai strukturmu
 import InvoiceSiswaPanel from "./InvoiceSiswaPanel";
 import TambahPenerimaPanel from "./TambahPenerimaPanel";
-
+import { FaTrash, FaEdit } from "react-icons/fa";
 import { formatTanggalLengkap } from "../../../utils/date";
 import { showToast, showAlert } from "../../../utils/toast";
 import Swal from "sweetalert2";
 import InvoicePreview from "./InvoicePreview"; // pastikan path-nya benar
-import KwitansiBayarPanel from "./KwitansiBayarPanel";
-import AksiDropdown from "./AksiDropdown";
+import KwitansiBayarPanel from "../keuangan/KwitansiBayarPanel";
 
 const PenerimaInvoice = () => {
   const { id } = useParams();
@@ -28,9 +27,7 @@ const PenerimaInvoice = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedSiswa, setSelectedSiswa] = useState(null); // untuk tampilan slide
   const [siswaCetak, setSiswaCetak] = useState(null); // untuk PDF tersembunyi
-  const [showPanel, setShowPanel] = useState(false);
-  const [bayarSiswa, setBayarSiswa] = useState(null);
-  const [lihatSiswa, setLihatSiswa] = useState(null);
+
   const [isTambahOpen, setIsTambahOpen] = useState(false);
   const handleCetakLangsung = () => {
     const element = document.getElementById("kwitansi-cetak");
@@ -46,38 +43,32 @@ const PenerimaInvoice = () => {
       .save();
     setTimeout(() => setSiswaCetak(null), 1000);
   };
-  const handleRefresh = async () => {
-    try {
-      await fetchInvoiceData(); // refresh semua data
-
-      const updatedList = await getPenerimaInvoice(decodedId); // ambil data siswa terbaru
-      setPenerimaList(updatedList);
-
-      // Re-assign ulang bayarSiswa supaya prop "data" ke KwitansiBayarPanel update
-      const updatedSiswa = updatedList.find(
-        (siswa) => siswa.id === bayarSiswa?.id
-      );
-
-      if (updatedSiswa) {
-        setBayarSiswa(updatedSiswa); // ⬅️ ⬅️ ⬅️ ini krusial
-      }
-    } catch (error) {
-      console.error("Gagal refresh data:", error);
-    }
-  };
 
   const fetchInvoiceData = async () => {
     try {
-      const [dataInvoice, dataPenerima] = await Promise.all([
-        getInvoiceById(decodedId),
-        getPenerimaInvoice(decodedId),
-      ]);
+      const dataInvoice = await getInvoiceById(decodedId);
+      // console.log(dataInvoice);
       setInvoice(dataInvoice);
+    } catch (error) {
+      console.error("Gagal memuat invoice:", error);
+    }
+
+    try {
+      const dataPenerima = await getPenerimaInvoice(decodedId);
       setPenerimaList(dataPenerima);
     } catch (error) {
-      console.error("Gagal memuat data:", error);
+      console.error("Gagal memuat penerima:", error);
     }
   };
+
+  const fetchPenerima = async () => {
+    const data = await getPenerimaInvoice(decodedId); // API call kamu
+    setPenerimaList(data);
+  };
+
+  useEffect(() => {
+    fetchPenerima(); // load awal
+  }, []);
 
   useEffect(() => {
     fetchInvoiceData();
@@ -86,7 +77,7 @@ const PenerimaInvoice = () => {
   const handleLihatInvoice = async (siswa) => {
     try {
       const data = await fetchInvoicePenerima(siswa.nis);
-      setLihatSiswa(data);
+      setSelectedSiswa(data);
       setIsOpen(true);
     } catch (error) {
       console.error("Gagal mengambil invoice:", error);
@@ -222,17 +213,15 @@ const PenerimaInvoice = () => {
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
           <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
+              <th className="px-6 py-3 text-left">NIS</th>
               <th className="px-6 py-3 text-left">Nama</th>
+              <th className="px-6 py-3 text-left">Kelas</th>
               <th className="px-6 py-3 text-right">Potongan</th>
               <th className="px-6 py-3 text-right">Tagihan Dll.</th>
               <th className="px-6 py-3 text-right">Total Tagihan</th>
-              <th className="px-6 py-3 text-right">Total Bayar</th>
-              <th className="px-6 py-3 text-right">Kurang</th>
-              <th className="px-6 py-3 text-center">Status</th>
               <th className="px-6 py-3 text-center">Aksi</th>
             </tr>
           </thead>
-
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {penerimaList.length === 0 ? (
               <tr>
@@ -251,30 +240,21 @@ const PenerimaInvoice = () => {
                     0
                   ) || 0;
 
-                const totalTagihan = total + totalTambahan - siswa.potongan;
-
-                const totalBayar =
-                  siswa?.pembayaran?.reduce(
-                    (acc, p) => acc + Number(p.nominal ?? p.Nominal ?? 0),
-                    0
-                  ) || 0;
-
-                const kurang = totalTagihan - totalBayar;
-
-                let status = "Belum Bayar";
-                let warna = "bg-red-500 text-white";
-
-                if (kurang <= 0) {
-                  status = "Lunas";
-                  warna = "bg-green-500 text-white";
-                } else if (totalBayar > 0) {
-                  status = "Belum Lunas";
-                  warna = "bg-yellow-400 text-black";
-                }
+                const totalTagihan = Math.max(
+                  0,
+                  total + totalTambahan - siswa.potongan
+                );
 
                 return (
                   <tr key={siswa.nis}>
+                    <td className="px-6 py-4">{siswa.nis}</td>
                     <td className="px-6 py-4">{siswa.siswa?.siswa_nama}</td>
+                    <td className="px-6 py-4">
+                      {siswa.siswa?.kelas?.kelas_nama?.replace(
+                        /^Kelas\s*/i,
+                        ""
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-right">
                       {siswa.potongan.toLocaleString("id-ID", {
                         style: "currency",
@@ -293,39 +273,51 @@ const PenerimaInvoice = () => {
                         currency: "IDR",
                       })}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      {totalBayar.toLocaleString("id-ID", {
-                        style: "currency",
-                        currency: "IDR",
-                      })}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      {kurang.toLocaleString("id-ID", {
-                        style: "currency",
-                        currency: "IDR",
-                      })}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${warna}`}
+                    <td className="px-6 py-4 text-center space-x-2">
+                      <button
+                        onClick={() => handleEditPotongan(siswa)}
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 text-xs rounded shadow"
+                        title="Edit Potongan"
                       >
-                        {status}
-                      </span>
-                    </td>
+                        <FaEdit />
+                      </button>
+                      <button
+                        onClick={() => handleHapusPenerima(siswa)}
+                        className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-xs rounded shadow"
+                        title="Hapus Penerima"
+                      >
+                        <FaTrash />
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const siswaData = await fetchInvoicePenerima(
+                            siswa.nis
+                          );
 
-                    <td className="px-6 py-4 text-center">
-                      <AksiDropdown
-                        siswa={siswa}
-                        invoice={invoice}
-                        totalBayar={totalBayar}
-                        setSiswaCetak={setSiswaCetak}
-                        handleCetakLangsung={handleCetakLangsung}
-                        setBayarSiswa={setBayarSiswa}
-                        setShowPanel={setShowPanel}
-                        handleEditPotongan={handleEditPotongan}
-                        handleHapusPenerima={handleHapusPenerima}
-                        handleLihatInvoice={handleLihatInvoice}
-                      />
+                          const gabungan = {
+                            ...siswaData,
+                            invoice_id: invoice.id_invoice,
+                            invoice_deskripsi: invoice.deskripsi,
+                            invoice_tgl: invoice.tgl_invoice,
+                            invoice_jatuh_tempo: invoice.tgl_jatuh_tempo,
+                          };
+
+                          setSiswaCetak(gabungan);
+                          setTimeout(() => {
+                            handleCetakLangsung();
+                          }, 100);
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs rounded shadow"
+                      >
+                        Cetak
+                      </button>
+
+                      <button
+                        onClick={() => handleLihatInvoice(siswa)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-xs rounded shadow"
+                      >
+                        Lihat Invoice
+                      </button>
                     </td>
                   </tr>
                 );
@@ -343,29 +335,14 @@ const PenerimaInvoice = () => {
         />
       )}
 
-      {/* Panel Lihat invoice */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-40"
-          onClick={() => {
-            setIsOpen(false);
-            setLihatSiswa(null);
-          }}
-        />
-      )}
-      <InvoiceSiswaPanel
-        siswa={lihatSiswa}
-        onClose={() => {
-          setIsOpen(false);
-          setLihatSiswa(null);
-        }}
-      />
+      <InvoiceSiswaPanel siswa={selectedSiswa} onClose={closePanel} />
 
       {isTambahOpen && (
         <TambahPenerimaPanel
           invoiceId={invoice.id_invoice}
           onClose={() => setIsTambahOpen(false)}
           onSubmit={() => {
+            fetchPenerima();
             fetchInvoiceData(); // <--- sudah bisa dipanggil sekarang
             setIsTambahOpen(false);
           }}
@@ -410,42 +387,6 @@ const PenerimaInvoice = () => {
         <div style={{ display: "none" }}>
           <InvoicePreview siswa={siswaCetak} />
         </div>
-      )}
-      {/* bayar panel */}
-      {showPanel && bayarSiswa && (
-        <KwitansiBayarPanel
-          isOpen={showPanel}
-          onClose={() => {
-            setShowPanel(false);
-            setBayarSiswa(null);
-          }}
-          onRefresh={handleRefresh}
-          data={{
-            ...bayarSiswa,
-            id_invoice: invoice?.id_invoice,
-            nama: bayarSiswa?.siswa?.siswa_nama || "-",
-            kelas:
-              bayarSiswa?.siswa?.kelas?.kelas_nama?.replace(/^Kelas\s*/i, "") ||
-              "-",
-            total_tagihan:
-              total +
-              (bayarSiswa?.tambahan_tagihan?.reduce(
-                (a, b) => a + Number(b.nominal),
-                0
-              ) || 0) -
-              (bayarSiswa?.potongan || 0),
-            total_bayar:
-              bayarSiswa?.pembayaran?.reduce(
-                (a, p) => a + Number(p.nominal ?? p.Nominal ?? 0),
-                0
-              ) || 0,
-            pembayaran:
-              bayarSiswa?.pembayaran?.map((p) => ({
-                ...p,
-                nominal: Number(p.nominal ?? p.Nominal ?? 0),
-              })) || [],
-          }}
-        />
       )}
     </div>
   );
