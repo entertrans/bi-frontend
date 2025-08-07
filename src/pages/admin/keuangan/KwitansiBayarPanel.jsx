@@ -81,7 +81,7 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
       });
 
       showToast("Pembayaran berhasil ditambahkan", "success");
-      setPembayaranBaru({ tanggal: "", nominal: "" });
+      setPembayaranBaru({ tanggal: "", nominal: "", keterangan: "" });
       if (onRefresh) {
         await onRefresh();
       }
