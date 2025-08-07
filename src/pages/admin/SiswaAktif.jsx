@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   fetchAllSiswa,
   fetchAllkelas,
@@ -7,11 +7,23 @@ import {
   toggleKelasOffline,
 } from "../../api/siswaAPI";
 import SiswaDetailPanel from "../../pages/admin/siswa/SiswaDetailPanel"; // sesuaikan path-nya
+import KeuanganSlidePanel from "../../pages/admin/siswa/KeuanganSlidePanel";
+
+import {
+  HiDotsVertical,
+  HiEye, // lihat
+  HiCalendar, // absensi
+  HiWifi, // online
+  HiBan, // offline
+  HiTrash, // keluarkan
+  HiDocumentReport,
+} from "react-icons/hi";
 import { showAlert } from "../../utils/toast";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 const MySwal = withReactContent(Swal);
 const SiswaAktifTable = () => {
+  const [openDropdownId, setOpenDropdownId] = useState(null);
   const [dataSiswa, setDataSiswa] = useState([]);
   const [kelasOptions, setKelasOptions] = useState([]);
   const [selectedKelas, setSelectedKelas] = useState("");
@@ -28,6 +40,25 @@ const SiswaAktifTable = () => {
     setIsDetailOpen(false);
     setTimeout(() => setSelectedSiswa(null), 300);
   };
+
+  //drodown handle
+  const dropdownRef = useRef();
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdownId(null);
+      }
+    }
+
+    if (openDropdownId !== null) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openDropdownId]);
 
   // Pindahkan ke luar useEffect
   const fetchData = async () => {
@@ -132,36 +163,6 @@ const SiswaAktifTable = () => {
     }
   };
 
-  // const handleKeluarkan = async (nis) => {
-  //   const result = await Swal.fire({
-  //     title: "Keluarkan Siswa?",
-  //     text: "Apakah kamu yakin ingin mengeluarkan siswa ini?",
-  //     icon: "warning",
-  //     showCancelButton: true,
-  //     confirmButtonText: "Ya, keluarkan!",
-  //     cancelButtonText: "Batal",
-  //     buttonsStyling: false,
-  //     customClass: {
-  //       actions: "flex justify-center",
-  //       confirmButton:
-  //         "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
-  //       cancelButton:
-  //         "bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 ml-2 rounded",
-  //     },
-  //   });
-
-  //   if (!result.isConfirmed) return;
-
-  //   try {
-  //     await keluarkanSiswa(nis);
-  //     showAlert("Siswa berhasil dikeluarkan.", "success");
-  //     fetchData(); // refresh data siswa
-  //   } catch (error) {
-  //     console.error("Gagal mengeluarkan siswa:", error);
-  //     showAlert("Gagal mengeluarkan siswa.", "error");
-  //   }
-  // };
-
   const handleKeluarkan = async (nis, nama) => {
     const { isConfirmed, value: tanggalKeluar } = await Swal.fire({
       title: `Keluarkan ${nama}?`,
@@ -242,6 +243,9 @@ const SiswaAktifTable = () => {
       showAlert("Gagal mengubah status kelas offline.", "error");
     }
   };
+
+  const [slidePanel, setSlidePanel] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const getPaginationButtons = () => {
     const range = [];
@@ -394,54 +398,101 @@ const SiswaAktifTable = () => {
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-center space-y-1">
-                  <div className="flex flex-wrap justify-center gap-1">
+                <td className="px-4 py-3 text-center relative">
+                  <div className="inline-block text-left">
                     <button
-                      onClick={() => {
-                        setSelectedSiswa(siswa);
-                        setIsDetailOpen(true);
-                      }}
-                      className="px-2 w-32 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                      onClick={() =>
+                        setOpenDropdownId(
+                          openDropdownId === siswa.siswa_id
+                            ? null
+                            : siswa.siswa_id
+                        )
+                      }
+                      className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
                     >
-                      Lihat
+                      <HiDotsVertical className="h-5 w-5" />
                     </button>
 
-                    <button
-                      onClick={() =>
-                        handleKeluarkan(siswa.siswa_nis, siswa.siswa_nama)
-                      }
-                      className="px-2 w-32 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700"
-                    >
-                      Keluarkan
-                    </button>
-                    <button className="px-2 w-32 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">
-                      Absensi
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleToggleOnline(siswa.siswa_nis, siswa.oc)
-                      }
-                      className={`px-2 py-1 w-32 text-xs rounded transition ${
-                        siswa.oc === 1
-                          ? "bg-green-100 text-green-700 hover:bg-green-200"
-                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                      }`}
-                    >
-                      Online
-                    </button>
+                    {openDropdownId === siswa.siswa_id && (
+                      <div
+                        ref={dropdownRef}
+                        className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-50"
+                      >
+                        <div className="py-1 text-sm text-gray-700 dark:text-white">
+                          {/* Lihat */}
+                          <button
+                            onClick={() => {
+                              setSelectedSiswa(siswa);
+                              setIsDetailOpen(true);
+                              setOpenDropdownId(null);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <HiEye className="w-4 h-4 text-gray-500" />
+                            Lihat
+                          </button>
 
-                    <button
-                      onClick={() =>
-                        handleToggleOffline(siswa.siswa_nis, siswa.kc)
-                      }
-                      className={`px-2 py-1 w-32 text-xs rounded ${
-                        siswa.kc === 1
-                          ? "bg-red-100 text-red-700 hover:bg-red-200"
-                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                      }`}
-                    >
-                      Offline
-                    </button>
+                          {/* Keuangan */}
+                          <button
+                            onClick={() => {
+                              setSelectedSiswa(siswa); // user mana yang diklik
+                              setSlidePanel("keuangan"); // buka panel keuangan
+                              setOpenDropdownId(null); // tutup dropdown
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <HiDocumentReport className="w-4 h-4 text-gray-500" />
+                            Keuangan
+                          </button>
+
+                          {/* Online */}
+                          <button
+                            onClick={() => {
+                              handleToggleOnline(siswa.siswa_nis, siswa.oc);
+                              setOpenDropdownId(null);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <HiWifi className="w-4 h-4 text-gray-500" />
+                            {siswa.oc === 1
+                              ? "Nonaktifkan Online"
+                              : "Aktifkan Online"}
+                          </button>
+
+                          {/* Offline */}
+                          <button
+                            onClick={() => {
+                              handleToggleOffline(siswa.siswa_nis, siswa.kc);
+                              setOpenDropdownId(null);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <HiBan className="w-4 h-4 text-gray-500" />
+                            {siswa.kc === 1
+                              ? "Nonaktifkan Offline"
+                              : "Aktifkan Offline"}
+                          </button>
+
+                          {/* Divider */}
+                          <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+
+                          {/* Keluarkan */}
+                          <button
+                            onClick={() => {
+                              handleKeluarkan(
+                                siswa.siswa_nis,
+                                siswa.siswa_nama
+                              );
+                              setOpenDropdownId(null);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 w-full text-left text-red-600 hover:bg-red-50 dark:hover:bg-gray-700"
+                          >
+                            <HiTrash className="w-4 h-4 text-red-600" />
+                            Keluarkan
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -479,6 +530,14 @@ const SiswaAktifTable = () => {
         isOpen={isDetailOpen}
         onClose={handleClosePanel}
       />
+
+      {/* keuanganpanel */}
+      {slidePanel === "keuangan" && (
+        <KeuanganSlidePanel
+          siswa={selectedSiswa}
+          onClose={() => setSlidePanel(null)}
+        />
+      )}
     </div>
   );
 };

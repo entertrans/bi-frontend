@@ -1,12 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  FaEllipsisV,
-  FaEdit,
-  FaTrash,
-  FaPrint,
-  FaMoneyBill,
-  FaEye,
-} from "react-icons/fa";
+import {HiPencil,HiTrash,HiPrinter,HiCurrencyDollar,HiEye,HiDotsVertical}
+from "react-icons/hi";
 import { fetchInvoicePenerima } from "../../../api/siswaAPI";
 
 const AksiDropdown = ({
@@ -81,7 +75,7 @@ const AksiDropdown = ({
         className="inline-flex items-center p-2 text-sm font-medium text-gray-900 bg-white rounded-lg hover:bg-gray-100 focus:ring-4 focus:outline-none dark:text-white focus:ring-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
         title="Aksi"
       >
-        <FaEllipsisV className="w-5 h-5" />
+        <HiDotsVertical className="w-5 h-5" />
       </button>
 
       {/* Dropdown */}
@@ -93,12 +87,12 @@ const AksiDropdown = ({
                 handleEditPotongan(siswa);
                 closeDropdown();
               }}
-              icon={<FaEdit />}
+              icon={<HiPencil />}
             >
               Edit
             </DropdownItem>
 
-            <DropdownItem onClick={handleCetak} icon={<FaPrint />}>
+            <DropdownItem onClick={handleCetak} icon={<HiPrinter />}>
               Cetak
             </DropdownItem>
 
@@ -111,7 +105,7 @@ const AksiDropdown = ({
                 setShowPanel(true);
                 closeDropdown();
               }}
-              icon={<FaMoneyBill />}
+              icon={<HiCurrencyDollar />}
             >
               Bayar
             </DropdownItem>
@@ -121,7 +115,7 @@ const AksiDropdown = ({
                 handleLihatInvoice(siswa);
                 closeDropdown();
               }}
-              icon={<FaEye />}
+              icon={<HiEye />}
             >
               Lihat
             </DropdownItem>
@@ -134,7 +128,7 @@ const AksiDropdown = ({
                 handleHapusPenerima(siswa);
                 closeDropdown();
               }}
-              icon={<FaTrash />}
+              icon={<HiTrash />}
               textColor="text-red-500 dark:text-red-400"
               hoverDanger
             >
