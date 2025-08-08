@@ -24,12 +24,14 @@ import withReactContent from "sweetalert2-react-content";
 const MySwal = withReactContent(Swal);
 const SiswaAktifTable = () => {
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [nisKeuangan, setNisKeuangan] = useState(null);
   const [dataSiswa, setDataSiswa] = useState([]);
   const [kelasOptions, setKelasOptions] = useState([]);
   const [selectedKelas, setSelectedKelas] = useState("");
   const [selectedProgram, setSelectedProgram] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [showKeuangan, setShowKeuangan] = useState(false);
   const [sortField, setSortField] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const siswaPerPage = 10;
@@ -245,7 +247,6 @@ const SiswaAktifTable = () => {
   };
 
   const [slidePanel, setSlidePanel] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
 
   const getPaginationButtons = () => {
     const range = [];
@@ -435,9 +436,10 @@ const SiswaAktifTable = () => {
                           {/* Keuangan */}
                           <button
                             onClick={() => {
-                              setSelectedSiswa(siswa); // user mana yang diklik
-                              setSlidePanel("keuangan"); // buka panel keuangan
-                              setOpenDropdownId(null); // tutup dropdown
+                              setNisKeuangan(siswa.siswa_nis); // Simpan NIS yang diklik
+                              setShowKeuangan(true); // Tampilkan panel
+                              setSlidePanel("keuangan"); // Tipe panel
+                              setOpenDropdownId(null); // Tutup dropdown
                             }}
                             className="flex items-center gap-2 px-4 py-2 w-full text-left hover:bg-gray-100 dark:hover:bg-gray-700"
                           >
@@ -534,8 +536,9 @@ const SiswaAktifTable = () => {
       {/* keuanganpanel */}
       {slidePanel === "keuangan" && (
         <KeuanganSlidePanel
-          siswa={selectedSiswa}
-          onClose={() => setSlidePanel(null)}
+          isOpen={showKeuangan}
+          onClose={() => setShowKeuangan(false)}
+          user={{ nis: nisKeuangan }}
         />
       )}
     </div>

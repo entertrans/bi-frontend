@@ -1,6 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import {HiPencil,HiTrash,HiPrinter,HiCurrencyDollar,HiEye,HiDotsVertical}
-from "react-icons/hi";
+import {
+  HiPencil,
+  HiTrash,
+  HiPrinter,
+  HiCurrencyDollar,
+  HiEye,
+  HiDotsVertical,
+} from "react-icons/hi";
 import { fetchInvoicePenerima } from "../../../api/siswaAPI";
 
 const AksiDropdown = ({
@@ -52,7 +58,7 @@ const AksiDropdown = ({
         totalBayar: totalBayar, // Pastikan ini masuk
       };
 
-      // console.log("🧾 Gabungan siswaCetak:", gabungan); // ⬅️ CEK DI SINI
+      console.log("🧾 Gabungan siswaCetak:", gabungan); // ⬅️ CEK DI SINI
 
       setSiswaCetak(gabungan);
 

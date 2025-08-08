@@ -140,6 +140,11 @@ export const fetchInvoicePenerima = async (nis) => {
   if (!res.ok) throw new Error("Gagal mengambil data invoice");
   return await res.json();
 };
+export const fetchHistoryInvoice = async (nis) => {
+  const res = await fetch(`http://localhost:8080/invoice/history/${nis}`);
+  if (!res.ok) throw new Error("Gagal mengambil data invoice");
+  return await res.json();
+};
 
 export async function updateTambahanTagihan(penerimaId, tambahanTagihan) {
   const res = await fetch(
