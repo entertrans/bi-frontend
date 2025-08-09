@@ -4,7 +4,13 @@ import { tambahPembayaran, hapusPembayaranById } from "../../../api/siswaAPI";
 import { showToast } from "../../../utils/toast";
 import CetakKwitansi from "./CetakKwitansi";
 import Swal from "sweetalert2";
-const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
+const KwitansiBayarPanel = ({
+  isOpen,
+  onClose,
+  data,
+  onRefresh,
+  variant = "right",
+}) => {
   const [mounted, setMounted] = useState(false);
   const [showPanel, setShowPanel] = useState(false);
   const [pembayaranBaru, setPembayaranBaru] = useState({
@@ -111,9 +117,16 @@ const KwitansiBayarPanel = ({ isOpen, onClose, data, onRefresh }) => {
 
       {/* ✅ Panel */}
       <div
-        className={`text-lg fixed top-0 right-0 w-full max-w-2xl h-full bg-white dark:bg-gray-800 shadow-lg z-50 overflow-y-auto transition-transform duration-300 ease-in-out ${
-          showPanel ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`text-lg fixed bg-white dark:bg-gray-800 shadow-lg z-50 overflow-y-auto transition-transform duration-300 ease-in-out
+    ${
+      variant === "right"
+        ? `top-0 right-0 w-full max-w-2xl h-full ${
+            showPanel ? "translate-x-0" : "translate-x-full"
+          }`
+        : `top-0 left-0 w-full max-h-[90vh] ${
+            showPanel ? "translate-y-0" : "-translate-y-full"
+          }`
+    }`}
       >
         {/* 🧾 Panel konten */}
         <div className="p-4 border-b flex justify-between items-center">

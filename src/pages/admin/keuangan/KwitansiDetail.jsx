@@ -200,6 +200,7 @@ const KwitansiDetail = () => {
               nominal: Number(p.nominal ?? p.Nominal ?? 0),
             })) || [],
         }}
+        variant="top"
       />
     </div>
   );

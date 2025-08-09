@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { HiEye, HiPrinter, HiDotsVertical } from "react-icons/hi";
 import { fetchHistoryInvoice } from "../../../api/siswaAPI";
+import { formatTanggalLengkap } from "../../../utils/date";
 import InvoicePreview from "../keuangan/InvoicePreview";
 import html2pdf from "html2pdf.js";
 
@@ -47,6 +48,8 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
       setLoading(true);
       fetchHistoryInvoice(user.nis)
         .then((data) => {
+          // console.log(data);
+
           setInvoiceData(data);
         })
         .catch((err) => {
@@ -82,7 +85,7 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
       {/* Slide Panel */}
       <div
         ref={panelRef}
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white dark:bg-gray-800 z-50 shadow-lg transform transition-transform duration-300 ${
+        className={`fixed top-0 right-0 h-full w-full max-w-xl bg-white dark:bg-gray-800 z-50 shadow-lg transform transition-transform duration-300 ${
           showPanel ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -115,7 +118,7 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
               <p className="text-gray-600 dark:text-white">Memuat data...</p>
             ) : invoiceData?.history?.length > 0 ? (
               invoiceData.history.map((item, index) => {
-                // console.log();
+                // console.log(item);
 
                 const sisa = item.totalTagihan - item.totalBayar;
                 let status = "";
@@ -180,7 +183,7 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
                                 },
                               };
 
-                              console.log(gabungan);
+                              // console.log(gabungan);
 
                               setSiswaCetak(gabungan);
 
@@ -197,13 +200,14 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
 
                     {/* Konten Invoice */}
                     <p className="font-semibold text-gray-800 dark:text-white">
-                      Invoice: {item.invoiceDeskripsi}
+                      Invoice: {item.invoice_id}
                     </p>
                     <p className="text-gray-600 dark:text-gray-300">
-                      Tanggal: {item.invoiceTgl}
+                      Tanggal: {formatTanggalLengkap(item.invoice_tgl)}
                     </p>
                     <p className="text-gray-600 dark:text-gray-300">
-                      Jatuh Tempo: {item.invoiceJatuhTempo}
+                      Jatuh Tempo:{" "}
+                      {formatTanggalLengkap(item.invoice_jatuh_tempo)}
                     </p>
                     <p className="text-gray-600 dark:text-gray-300">
                       Diterima: Rp {item.totalBayar.toLocaleString("id-ID")}
