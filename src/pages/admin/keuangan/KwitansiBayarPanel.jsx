@@ -21,6 +21,9 @@ const KwitansiBayarPanel = ({
   });
 
   useEffect(() => {
+    console.log(data?.total_tagihan);
+    console.log(data);
+
     if (isOpen) {
       setMounted(true);
       setTimeout(() => setShowPanel(true), 10);
@@ -215,7 +218,7 @@ const KwitansiBayarPanel = ({
 
                 <tbody className="text-lg">
                   {data.pembayaran.map((p, i) => {
-                    console.log(`Pembayaran ke-${i + 1}:`, p); // <=== Tambahkan baris ini
+                    // console.log(`Pembayaran ke-${i + 1}:`, p); // <=== Tambahkan baris ini
 
                     return (
                       <tr key={i} className="border-t">

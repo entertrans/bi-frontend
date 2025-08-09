@@ -1,11 +1,17 @@
 import React, { useEffect, useState, useRef } from "react";
-import { HiEye, HiPrinter, HiDotsVertical } from "react-icons/hi";
+import {
+  HiEye,
+  HiPrinter,
+  HiDotsVertical,
+  HiCurrencyDollar,
+} from "react-icons/hi";
 import { fetchHistoryInvoice } from "../../../api/siswaAPI";
 import { formatTanggalLengkap } from "../../../utils/date";
 import InvoicePreview from "../keuangan/InvoicePreview";
+import KwitansiBayarPanel from "../keuangan/KwitansiBayarPanel";
 import html2pdf from "html2pdf.js";
 
-const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
+const KeuanganSlidePanel = ({ onClose, user, isOpen, setBayarSiswa }) => {
   const [mounted, setMounted] = useState(false);
   const [showPanel, setShowPanel] = useState(false);
   const [invoiceData, setInvoiceData] = useState(null);
@@ -13,6 +19,9 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
   const [siswaCetak, setSiswaCetak] = useState(null);
   const [menuOpenIndex, setMenuOpenIndex] = useState(null); // ✅ kontrol dropdown aktif
   const panelRef = useRef(null);
+  // const dropdownRef = useRef(null);
+  const [showBayarPanel, setShowBayarPanel] = useState(false);
+  const [bayarSiswa, setBayarSiswaState] = useState(null);
 
   const handleCetakLangsung = () => {
     const element = document.getElementById("kwitansi-cetak");
@@ -33,13 +42,22 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (panelRef.current && !panelRef.current.contains(event.target)) {
-        setMenuOpenIndex(null); // tutup semua dropdown
+        setMenuOpenIndex(null);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleRefresh = () => {
+    if (user?.nis) {
+      setLoading(true);
+      fetchHistoryInvoice(user.nis)
+        .then((data) => setInvoiceData(data))
+        .finally(() => setLoading(false));
+    }
+  };
 
   useEffect(() => {
     if (isOpen && user) {
@@ -63,6 +81,7 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
 
   const handleClose = () => {
     setShowPanel(false);
+    setMenuOpenIndex(null);
     setTimeout(() => {
       setMounted(false);
       onClose();
@@ -76,7 +95,10 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
     <>
       {/* Backdrop */}
       <div
-        onClick={handleClose}
+        onClick={() => {
+          handleClose();
+          setMenuOpenIndex(null);
+        }}
         className={`fixed inset-0 z-40 bg-black transition-opacity duration-300 ${
           showPanel ? "opacity-50" : "opacity-0 pointer-events-none"
         }`}
@@ -85,7 +107,7 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
       {/* Slide Panel */}
       <div
         ref={panelRef}
-        className={`fixed top-0 right-0 h-full w-full max-w-xl bg-white dark:bg-gray-800 z-50 shadow-lg transform transition-transform duration-300 ${
+        className={`fixed top-0 right-0 h-full w-full max-w-2xl bg-white dark:bg-gray-800 z-50 shadow-lg transform transition-transform duration-300 ${
           showPanel ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -118,7 +140,23 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
               <p className="text-gray-600 dark:text-white">Memuat data...</p>
             ) : invoiceData?.history?.length > 0 ? (
               invoiceData.history.map((item, index) => {
-                // console.log(item);
+                // console.log(item.totalTagihan);
+                // console.log(invoiceData?.siswa?.kelas?.kelas_nama);
+
+                const handleBayarClick = (item) => {
+                  setBayarSiswaState({
+                    ...invoiceData?.siswa,
+                    id_invoice: item.invoice_id,
+                    nis: invoiceData?.siswa?.nis || user?.nis,
+                    siswa: invoiceData?.siswa,
+                    potongan: item.potongan || 0,
+                    tambahan_tagihan: item.tambahan_tagihan || [],
+                    pembayaran: item.pembayaran || [],
+                    totalTagihan: item.totalTagihan || 0, // <== pastikan ini ada
+                  });
+
+                  setShowBayarPanel(true);
+                };
 
                 const sisa = item.totalTagihan - item.totalBayar;
                 let status = "";
@@ -139,15 +177,19 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
                   <div
                     key={index}
                     className="relative p-4 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm bg-white dark:bg-gray-800"
+                    onClick={() => {
+                      setMenuOpenIndex(null); // selalu tutup dropdown saat klik di mana saja dalam invoice item
+                    }}
                   >
                     {/* Tombol 3 titik */}
                     <div className="absolute top-2 right-2">
                       <button
-                        onClick={() =>
+                        onClick={(e) => {
+                          e.stopPropagation(); // cegah event naik ke container
                           setMenuOpenIndex(
                             menuOpenIndex === index ? null : index
-                          )
-                        }
+                          );
+                        }}
                         className="text-gray-500 hover:text-gray-700 dark:hover:text-white focus:outline-none"
                       >
                         <HiDotsVertical className="w-5 h-5" />
@@ -155,6 +197,14 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
 
                       {menuOpenIndex === index && (
                         <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-50">
+                          <button
+                            onClick={() => handleBayarClick(item)}
+                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
+                          >
+                            <HiCurrencyDollar className="w-4 h-4" />
+                            Bayar
+                          </button>
+
                           <button
                             onClick={() => {
                               setMenuOpenIndex(null);
@@ -234,6 +284,39 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen }) => {
           <div className="hidden">
             <InvoicePreview siswa={siswaCetak} />
           </div>
+        )}
+
+        {/* bayar panel */}
+        {showBayarPanel && bayarSiswa && (
+          <KwitansiBayarPanel
+            isOpen={showBayarPanel}
+            onClose={() => {
+              setShowBayarPanel(false);
+              setBayarSiswaState(null);
+            }}
+            onRefresh={handleRefresh}
+            data={{
+              ...bayarSiswa,
+              id_invoice: bayarSiswa.id_invoice,
+              nama: bayarSiswa?.siswa?.siswa_nama || "-",
+              kelas:
+                bayarSiswa?.siswa?.kelas?.kelas_nama?.replace(
+                  /^Kelas\s*/i,
+                  ""
+                ) || "-",
+              total_tagihan: bayarSiswa?.totalTagihan || 0,
+              total_bayar:
+                bayarSiswa?.pembayaran?.reduce(
+                  (a, p) => a + Number(p.nominal ?? p.Nominal ?? 0),
+                  0
+                ) || 0,
+              pembayaran:
+                bayarSiswa?.pembayaran?.map((p) => ({
+                  ...p,
+                  nominal: Number(p.nominal ?? p.Nominal ?? 0),
+                })) || [],
+            }}
+          />
         )}
       </div>
     </>
