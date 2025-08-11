@@ -1,0 +1,374 @@
+import React, { useState, useEffect } from "react";
+import { fetchAllMapel, fetchAllkelas } from "../../../api/siswaAPI";
+
+const tipeSoalOptions = [
+  { value: "pg", label: "Pilihan Ganda" },
+  { value: "uraian", label: "Uraian" },
+  { value: "bs", label: "Benar / Salah" },
+  { value: "matching", label: "Mencocokkan" },
+  { value: "short_answer", label: "Isian Singkat" },
+];
+
+const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
+  const [mounted, setMounted] = useState(false);
+  const [showPanel, setShowPanel] = useState(false);
+
+  const [mapels, setMapels] = useState([]);
+  const [kelasList, setKelasList] = useState([]);
+
+  const [mapel, setMapel] = useState("");
+  const [tipeSoal, setTipeSoal] = useState("");
+  const [kelasID, setKelasID] = useState("");
+  const [pertanyaan, setPertanyaan] = useState("");
+  const [bobot, setBobot] = useState(1);
+
+  // Pilihan jawaban khusus Pilihan Ganda: simpan array [{key: "a", text: ""}, ...]
+  const [pgOptions, setPgOptions] = useState([
+    { key: "a", text: "" },
+    { key: "b", text: "" },
+    { key: "c", text: "" },
+    { key: "d", text: "" },
+    { key: "e", text: "" },
+  ]);
+
+  // Jawaban benar untuk tipe pg dan bs
+  const [jawabanBenar, setJawabanBenar] = useState("");
+
+  // Pasangan mencocokkan: [{left: "", right: ""}]
+  const [matchingPairs, setMatchingPairs] = useState([{ left: "", right: "" }]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setMounted(true);
+      setTimeout(() => setShowPanel(true), 10);
+    } else {
+      setShowPanel(false);
+      setTimeout(() => setMounted(false), 300);
+      resetForm();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (mounted) {
+      async function fetchData() {
+        try {
+          const mapelData = await fetchAllMapel();
+          setMapels(mapelData);
+
+          const kelasData = await fetchAllkelas();
+          setKelasList(kelasData.aktif || []);
+        } catch (err) {
+          console.error("Gagal fetch mapel atau kelas:", err);
+        }
+      }
+      fetchData();
+    }
+  }, [mounted]);
+
+  // Reset form fields
+  const resetForm = () => {
+    setMapel("");
+    setTipeSoal("");
+    setKelasID("");
+    setPertanyaan("");
+    setBobot(1);
+    setPgOptions([
+      { key: "a", text: "" },
+      { key: "b", text: "" },
+      { key: "c", text: "" },
+      { key: "d", text: "" },
+      { key: "e", text: "" },
+    ]);
+    setJawabanBenar("");
+    setMatchingPairs([{ left: "", right: "" }]);
+  };
+
+  // Handler untuk update opsi PG
+  const handlePgOptionChange = (index, value) => {
+    const newOptions = [...pgOptions];
+    newOptions[index].text = value;
+    setPgOptions(newOptions);
+  };
+
+  // Add dan remove pasangan matching
+  const addMatchingPair = () => {
+    setMatchingPairs([...matchingPairs, { left: "", right: "" }]);
+  };
+  const removeMatchingPair = (index) => {
+    const newPairs = matchingPairs.filter((_, i) => i !== index);
+    setMatchingPairs(newPairs);
+  };
+  const handleMatchingChange = (index, side, value) => {
+    const newPairs = [...matchingPairs];
+    newPairs[index][side] = value;
+    setMatchingPairs(newPairs);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Persiapkan data sesuai tipe soal
+    let pilihan_jawaban = "";
+    let jawaban_benar = jawabanBenar;
+
+    if (tipeSoal === "pg") {
+      // serialize pgOptions ke JSON string (array of texts)
+      pilihan_jawaban = JSON.stringify(pgOptions.map((opt) => opt.text));
+      // jawaban_benar bisa "a" / "b" / "c" / dst, sesuai value
+    } else if (tipeSoal === "matching") {
+      // serialize matchingPairs ke JSON string [{left, right}]
+      pilihan_jawaban = JSON.stringify(matchingPairs);
+      jawaban_benar = ""; // bisa kosong atau dipakai nanti sesuai logika backend
+    } else if (tipeSoal === "bs") {
+      // jawabanBenar "benar" atau "salah"
+      pilihan_jawaban = "";
+    } else {
+      // uraian, short_answer dll, kosongkan pilihan jawaban
+      pilihan_jawaban = "";
+      jawaban_benar = "";
+    }
+
+    onSubmit({
+      mapel,
+      tipe_soal: tipeSoal,
+      kelas_id: kelasID,
+      pertanyaan,
+      bobot,
+      pilihan_jawaban,
+      jawaban_benar,
+    });
+  };
+
+  if (!mounted) return null;
+
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        onClick={onClose}
+        className={`fixed inset-0 bg-black z-40 transition-opacity duration-300 ${
+          showPanel ? "opacity-50" : "opacity-0 pointer-events-none"
+        }`}
+      />
+
+      {/* Slide panel */}
+      <div
+        className={`fixed top-0 right-0 w-full max-w-lg h-full bg-white dark:bg-gray-900 z-50 shadow-lg overflow-auto transition-transform duration-300 ease-in-out ${
+          showPanel ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="p-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+            Tambah Bank Soal Baru
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-2xl font-bold leading-none"
+            aria-label="Tutup"
+          >
+            ×
+          </button>
+        </div>
+
+        <form className="p-4 space-y-4" onSubmit={handleSubmit}>
+          {/* Dropdown Mapel */}
+          <div>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              Mapel
+            </label>
+            <select
+              value={mapel}
+              onChange={(e) => setMapel(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">-- Pilih Mapel --</option>
+              {mapels.map((m) => (
+                <option key={m.kd_mapel} value={m.kd_mapel}>
+                  {m.nm_mapel}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Dropdown Kelas */}
+          <div>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              Kelas
+            </label>
+            <select
+              value={kelasID}
+              onChange={(e) => setKelasID(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">-- Pilih Kelas --</option>
+              {kelasList.map((k) => (
+                <option key={k.kelas_id} value={k.kelas_id}>
+                  {k.kelas_nama}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tipe Soal */}
+          <div>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              Tipe Soal
+            </label>
+            <select
+              value={tipeSoal}
+              onChange={(e) => setTipeSoal(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">-- Pilih Tipe Soal --</option>
+              {tipeSoalOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Pertanyaan */}
+          <div>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              Pertanyaan
+            </label>
+            <textarea
+              value={pertanyaan}
+              onChange={(e) => setPertanyaan(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+              rows={4}
+            />
+          </div>
+
+          {/* Dynamic fields berdasarkan tipe soal */}
+          {tipeSoal === "pg" && (
+            <div>
+              <label className="block mb-1 text-gray-700 dark:text-gray-300">
+                Pilihan Jawaban
+              </label>
+              {pgOptions.map((opt, idx) => (
+                <input
+                  key={opt.key}
+                  type="text"
+                  placeholder={`Pilihan ${opt.key.toUpperCase()}`}
+                  value={opt.text}
+                  onChange={(e) => handlePgOptionChange(idx, e.target.value)}
+                  className="w-full mb-2 p-2 border border-gray-300 rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              ))}
+              <label className="block mt-2 mb-1 text-gray-700 dark:text-gray-300">
+                Jawaban Benar (isi a/b/c/d/e)
+              </label>
+              <input
+                type="text"
+                maxLength={1}
+                value={jawabanBenar}
+                onChange={(e) => setJawabanBenar(e.target.value.toLowerCase())}
+                className="w-20 p-2 border border-gray-300 rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              />
+            </div>
+          )}
+
+          {tipeSoal === "bs" && (
+            <div>
+              <label className="block mb-1 text-gray-700 dark:text-gray-300">
+                Jawaban Benar
+              </label>
+              <select
+                value={jawabanBenar}
+                onChange={(e) => setJawabanBenar(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                required
+              >
+                <option value="">-- Pilih Jawaban --</option>
+                <option value="benar">Benar</option>
+                <option value="salah">Salah</option>
+              </select>
+            </div>
+          )}
+
+          {tipeSoal === "matching" && (
+            <div>
+              <label className="block mb-1 text-gray-700 dark:text-gray-300">
+                Pasangan Mencocokkan
+              </label>
+              {matchingPairs.map((pair, idx) => (
+                <div key={idx} className="flex space-x-2 mb-2">
+                  <input
+                    type="text"
+                    placeholder="Kiri"
+                    value={pair.left}
+                    onChange={(e) =>
+                      handleMatchingChange(idx, "left", e.target.value)
+                    }
+                    className="flex-1 p-2 border border-gray-300 rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Kanan"
+                    value={pair.right}
+                    onChange={(e) =>
+                      handleMatchingChange(idx, "right", e.target.value)
+                    }
+                    className="flex-1 p-2 border border-gray-300 rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                  {matchingPairs.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeMatchingPair(idx)}
+                      className="text-red-600 font-bold px-2"
+                      aria-label="Hapus pasangan"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addMatchingPair}
+                className="text-blue-600 font-semibold"
+              >
+                + Tambah Pasangan
+              </button>
+            </div>
+          )}
+
+          {/* Bobot */}
+          <div>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              Bobot
+            </label>
+            <input
+              type="number"
+              value={bobot}
+              onChange={(e) => setBobot(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              min={1}
+              max={10}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Simpan
+          </button>
+        </form>
+      </div>
+    </>
+  );
+};
+
+export default SlideTambahBankSoal;

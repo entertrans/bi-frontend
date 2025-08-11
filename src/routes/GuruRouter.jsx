@@ -2,7 +2,7 @@ import Home from "../pages/guru/Home";
 import Course from "../pages/guru/Course";
 import Nilai from "../pages/guru/Nilai";
 import KisiKisi from "../pages/guru/KisiKisi";
-import TestOnline from "../pages/guru/TestOnline";
+import TestOnline from "../pages/guru/testonline/TestOnline";
 import Ulangan from "../pages/guru/Ulangan";
 import Logout from "../pages/guru/Logout";
 

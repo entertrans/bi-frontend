@@ -34,3 +34,4 @@ export const getAllBankSoalTO = async () => {
   const res = await axios.get(`http://localhost:8080/guru/banksoal`);
   return res.data;
 };
+

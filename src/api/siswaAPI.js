@@ -330,6 +330,11 @@ export async function fetchAllTa() {
   return await response.json();
 }
 
+export const fetchAllMapel = async () => {
+  const res = await axios.get(`http://localhost:8080/lookup/mapel`);
+  return res.data;
+};
+
 export async function fetchAllPPDB() {
   const response = await fetch("http://localhost:8080/siswappdb");
   if (!response.ok) {

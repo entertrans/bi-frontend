@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { getAllBankSoalTO } from "../../api/testOnlineAPI";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { getAllBankSoalTO } from "../../../api/testOnlineAPI";
+import { HiPencil, HiTrash, HiPlus } from "react-icons/hi";
+import SlideTambahBankSoal from "./SlideTambahBankSoal";
 import Swal from "sweetalert2";
-import { showAlert } from "../../utils/toast";
+import { showAlert } from "../../../utils/toast";
 
 const TestOnline = () => {
   const [dataSoal, setDataSoal] = useState([]);
@@ -65,16 +66,54 @@ const TestOnline = () => {
     .filter(
       (soal) =>
         soal.pertanyaan.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        soal.mapel.toLowerCase().includes(searchTerm.toLowerCase())
+        soal.mapel.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (soal?.kelas?.kelas_nama || "")
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
     )
     .sort((a, b) => {
       if (!sortField) return 0;
-      const aVal = a[sortField] || "";
-      const bVal = b[sortField] || "";
+
+      let aVal = "";
+      let bVal = "";
+
+      if (sortField === "kelas_id") {
+        aVal = a.kelas_id || 0;
+        bVal = b.kelas_id || 0;
+        // sorting numerik
+        return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
+      }
+
+      if (sortField === "kelas_nama") {
+        aVal = a?.kelas?.kelas_nama || "";
+        bVal = b?.kelas?.kelas_nama || "";
+        return sortOrder === "asc"
+          ? aVal.toString().localeCompare(bVal.toString())
+          : bVal.toString().localeCompare(aVal.toString());
+      }
+
+      aVal = a[sortField] || "";
+      bVal = b[sortField] || "";
+
       return sortOrder === "asc"
         ? aVal.toString().localeCompare(bVal.toString())
         : bVal.toString().localeCompare(aVal.toString());
     });
+
+  const [showTambahSoal, setShowTambahSoal] = useState(false);
+  const handleTambahSoal = async (newSoal) => {
+    try {
+      // Contoh: panggil API simpan soal baru (buat sendiri di api/testOnlineAPI.js)
+      // await addBankSoal(newSoal);
+      // Refresh data soal
+      await fetchData();
+      setShowTambahSoal(false);
+      showAlert("Soal berhasil ditambahkan", "success");
+    } catch (err) {
+      console.error(err);
+      showAlert("Gagal menambahkan soal", "error");
+    }
+  };
 
   const totalPages = Math.ceil(filteredData.length / soalPerPage);
   const paginatedData = filteredData.slice(
@@ -127,9 +166,17 @@ const TestOnline = () => {
 
   return (
     <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
-      <h1 className="text-2xl font-bold mb-4 text-blue-600 dark:text-blue-400">
-        Daftar Bank Soal Test Online
-      </h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+          Daftar Bank Soal Test Online
+        </h1>
+        <button
+          onClick={() => setShowTambahSoal(true)}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+        >
+          + Tambah Bank Soal
+        </button>
+      </div>
 
       <input
         type="text"
@@ -145,10 +192,10 @@ const TestOnline = () => {
             <tr>
               <th
                 className="px-6 py-3 text-left"
-                onClick={() => handleSort("soal_id")}
+                onClick={() => handleSort("kelas_id")}
               >
-                No{" "}
-                {sortField === "soal_id"
+                Kelas{" "}
+                {sortField === "kelas_id"
                   ? sortOrder === "asc"
                     ? "▲"
                     : "▼"
@@ -161,6 +208,7 @@ const TestOnline = () => {
                 Mapel{" "}
                 {sortField === "mapel" ? (sortOrder === "asc" ? "▲" : "▼") : ""}
               </th>
+              <th className="px-6 py-3 text-left">Pembuat</th>
               <th className="px-6 py-3 text-left">Tipe Soal</th>
               <th className="px-6 py-3 text-left">Pertanyaan</th>
               <th className="px-6 py-3 text-left">Bobot</th>
@@ -178,25 +226,25 @@ const TestOnline = () => {
 
             {paginatedData.map((soal, idx) => (
               <tr key={soal.soal_id}>
-                <td className="px-6 py-4">{soal.soal_id}</td>
+                <td className="px-6 py-4">
+                  {soal?.kelas?.kelas_nama.replace(/^Kelas\s*/i, "")}
+                </td>
                 <td className="px-6 py-4">{soal.mapel}</td>
+                <td className="px-6 py-4">{soal?.guru?.guru_nama}</td>
                 <td className="px-6 py-4">{soal.tipe_soal}</td>
                 <td className="px-6 py-4 truncate max-w-xs">
                   {soal.pertanyaan}
                 </td>
                 <td className="px-6 py-4">{soal.bobot}</td>
-                <td className="px-6 py-4 space-x-2 text-gray-500 dark:text-gray-300">
-                  <FaEdit
-                    title="Edit Soal"
-                    className="inline-block cursor-pointer hover:text-blue-600"
-                    // onClick={() => handleEdit(soal.soal_id)}
-                  />
-                  <FaTrash
-                    title="Hapus Soal"
-                    className="inline-block cursor-pointer hover:text-red-600"
-                    onClick={() => handleDelete(soal.soal_id)}
-                  />
-                </td>
+                <HiPencil
+                  title="Edit Soal"
+                  className="inline-block cursor-pointer hover:text-blue-600"
+                />
+                <HiTrash
+                  title="Hapus Soal"
+                  className="inline-block cursor-pointer hover:text-red-600"
+                  onClick={() => handleDelete(soal.soal_id)}
+                />
               </tr>
             ))}
           </tbody>
@@ -224,6 +272,11 @@ const TestOnline = () => {
           )
         )}
       </div>
+      <SlideTambahBankSoal
+        isOpen={showTambahSoal}
+        onClose={() => setShowTambahSoal(false)}
+        onSubmit={handleTambahSoal}
+      />
     </div>
   );
 };
