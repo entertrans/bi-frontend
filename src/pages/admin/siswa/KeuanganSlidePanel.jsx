@@ -204,17 +204,6 @@ const KeuanganSlidePanel = ({ onClose, user, isOpen, setBayarSiswa }) => {
                             <HiCurrencyDollar className="w-4 h-4" />
                             Bayar
                           </button>
-
-                          <button
-                            onClick={() => {
-                              setMenuOpenIndex(null);
-                              console.log("Lihat detail clicked");
-                            }}
-                            className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
-                          >
-                            <HiEye className="w-4 h-4" />
-                            Lihat Detail
-                          </button>
                           <button
                             onClick={() => {
                               setMenuOpenIndex(null);
