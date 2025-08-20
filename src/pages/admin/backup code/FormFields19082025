@@ -1,11 +1,6 @@
 import React from "react";
-import TinyMCEWrapper from "./TinyMCEWrapper";
 
 const FormFields = ({ mapels, kelasList, form, onChange, tipeSoalOptions }) => {
-  const handleEditorChange = (data) => {
-    onChange("pertanyaan", data);
-  };
-
   return (
     <div className="space-y-4">
       {/* Dropdown Mapel */}
@@ -77,18 +72,22 @@ const FormFields = ({ mapels, kelasList, form, onChange, tipeSoalOptions }) => {
         </select>
       </div>
 
-      {/* Editor TinyMCE */}
+      {/* Pertanyaan pakai textarea biasa */}
       <div>
         <label className="block mb-1 text-gray-700 dark:text-gray-300">
           Pertanyaan
         </label>
-        <TinyMCEWrapper
-          value={form.pertanyaan || ""}
-          onChange={handleEditorChange}
+        <textarea
+          value={form.pertanyaan}
+          onChange={(e) => onChange("pertanyaan", e.target.value)}
+          rows={6}
+          className="w-full p-2 border border-gray-300 rounded bg-white 
+                     text-gray-900 dark:bg-gray-800 dark:text-white 
+                     dark:border-gray-600 focus:outline-none 
+                     focus:ring-2 focus:ring-blue-500"
+          placeholder="Tulis pertanyaan di sini..."
+          required
         />
-        <p className="text-sm text-gray-500 mt-1">
-          Bisa copy-paste langsung dari Word. Untuk rumus matematika, gunakan format seperti: x², √4, ¼, atau tulis manual.
-        </p>
       </div>
     </div>
   );

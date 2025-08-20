@@ -1,0 +1,52 @@
+.math-formula {
+  display: inline-block;
+  padding: 2px 4px;
+  margin: 0 2px;
+  background-color: #f0f8ff;
+  border-radius: 3px;
+  border: 1px dashed #a0c5e8;
+}
+
+.MathJax {
+  outline: none;
+  margin: 0 2px !important;
+}
+
+/* Style untuk editor */
+[contenteditable] {
+  line-height: 1.6;
+}
+
+[contenteditable]:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+/* Tombol toolbar */
+.toolbar-btn {
+  padding: 4px 8px;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.toolbar-btn:hover {
+  background-color: #e5e7eb;
+}
+
+/* Dark mode support */
+.dark .math-formula {
+  background-color: #1e3a8a;
+  border-color: #3b82f6;
+}
+
+.dark .toolbar-btn {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: white;
+}
+
+.dark .toolbar-btn:hover {
+  background-color: #4b5563;
+}
