@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import FormFields from "./FormFields";
+import SlideGaleryLampiran from "./SlideGaleryLampiran";
 import FormPilihanGanda from "./tipeSoal/FormPilihanGanda";
 import FormBenarSalah from "./tipeSoal/FormBenarSalah";
 import FormMatching from "./tipeSoal/FormMatching";
 import FormUraian from "./tipeSoal/FormUraian";
-import { fetchAllMapel, fetchAllkelas } from "../../../api/siswaAPI";
+import { fetchAllkelas, fetchAllMapelByKelas } from "../../../api/siswaAPI";
 
 const tipeSoalOptions = [
   { value: "pg", label: "Pilihan Ganda" },
@@ -17,11 +18,10 @@ const tipeSoalOptions = [
 const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
   const [mounted, setMounted] = useState(false);
   const [showPanel, setShowPanel] = useState(false);
-
+  const [openLampiran, setOpenLampiran] = useState(false);
   const [mapels, setMapels] = useState([]);
   const [kelasList, setKelasList] = useState([]);
 
-  // Form utama state
   const [form, setForm] = useState({
     mapel: "",
     tipeSoal: "",
@@ -30,7 +30,7 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
     bobot: 1,
   });
 
-  // State untuk tipe soal yang berbeda
+  // State tipe soal
   const [pgOptions, setPgOptions] = useState([
     { key: "a", text: "" },
     { key: "b", text: "" },
@@ -54,20 +54,38 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
 
   useEffect(() => {
     if (mounted) {
-      async function fetchData() {
+      async function fetchKelas() {
         try {
-          const mapelData = await fetchAllMapel();
-          setMapels(mapelData);
-
           const kelasData = await fetchAllkelas();
           setKelasList(kelasData.aktif || []);
         } catch (err) {
-          console.error("Gagal fetch mapel atau kelas:", err);
+          console.error("Gagal fetch kelas:", err);
         }
       }
-      fetchData();
+      fetchKelas();
     }
   }, [mounted]);
+
+  // Fetch mapel saat kelas berubah
+  // Dalam SlideTambahBankSoal.js
+  useEffect(() => {
+    if (form.kelasID) {
+      async function fetchMapel() {
+        try {
+          console.log("Fetching mapel for kelas:", form.kelasID);
+          const mapelData = await fetchAllMapelByKelas(form.kelasID);
+          console.log("Mapel data received:", mapelData);
+          setMapels(mapelData);
+        } catch (err) {
+          console.error("Gagal fetch mapel by kelas:", err);
+          setMapels([]);
+        }
+      }
+      fetchMapel();
+    } else {
+      setMapels([]);
+    }
+  }, [form.kelasID]); // HANYA depend on form.kelasID
 
   const resetForm = () => {
     setForm({
@@ -86,10 +104,17 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
     ]);
     setJawabanBenar("");
     setMatchingPairs([{ left: "", right: "" }]);
+    setMapels([]);
   };
 
   const handleChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    if (field === "openLampiran") {
+      setOpenLampiran(true);
+    } else {
+      setForm((prev) => ({ ...prev, [field]: value }));
+      // Reset mapel kalau kelas diganti
+      if (field === "kelasID") setForm((prev) => ({ ...prev, mapel: "" }));
+    }
   };
 
   const handleSubmit = (e) => {
@@ -110,7 +135,7 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
       jawaban_benar = "";
     }
 
-    onSubmit({
+    const payload = {
       mapel: form.mapel,
       tipe_soal: form.tipeSoal,
       kelas_id: form.kelasID,
@@ -118,7 +143,11 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
       bobot: form.bobot,
       pilihan_jawaban,
       jawaban_benar,
-    });
+      lampiran_id: form.lampiran ? form.lampiran.id : null,
+    };
+
+    console.log("Data yang dikirim ke backend:", payload);
+    onSubmit(payload);
   };
 
   if (!mounted) return null;
@@ -154,11 +183,20 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
 
         <form className="p-4 space-y-4" onSubmit={handleSubmit}>
           <FormFields
-            mapels={mapels}
-            kelasList={kelasList}
-            form={form}
-            onChange={handleChange}
+            mapels={mapels} // Array of mapel untuk kelas terpilih
+            kelasList={kelasList} // Array of semua kelas
+            form={form} // State form
+            onChange={handleChange} // Function untuk update form
             tipeSoalOptions={tipeSoalOptions}
+          />
+
+          <SlideGaleryLampiran
+            isOpen={openLampiran}
+            onClose={() => setOpenLampiran(false)}
+            onSelectLampiran={(lampiran) => {
+              setForm((prev) => ({ ...prev, lampiran }));
+              setOpenLampiran(false);
+            }}
           />
 
           {form.tipeSoal === "pg" && (
@@ -178,10 +216,7 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
           )}
 
           {form.tipeSoal === "matching" && (
-            <FormMatching
-              pairs={matchingPairs}
-              setPairs={setMatchingPairs}
-            />
+            <FormMatching pairs={matchingPairs} setPairs={setMatchingPairs} />
           )}
 
           {(form.tipeSoal === "uraian" || form.tipeSoal === "short_answer") && (

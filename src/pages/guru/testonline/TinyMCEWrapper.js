@@ -39,7 +39,7 @@ const TinyMCEWrapper = ({ value, onChange }) => {
           toolbar: 'undo redo | formatselect | ' +
             'bold italic underline strikethrough | alignleft aligncenter ' +
             'alignright alignjustify | bullist numlist outdent indent | ' +
-            'removeformat | help',
+            'removeformat ',
           content_style: `
             body { 
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;

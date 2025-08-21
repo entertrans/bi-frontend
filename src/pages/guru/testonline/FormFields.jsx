@@ -1,48 +1,72 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import TinyMCEWrapper from "./TinyMCEWrapper";
 
 const FormFields = ({ mapels, kelasList, form, onChange, tipeSoalOptions }) => {
+  const [isMapelDisabled, setIsMapelDisabled] = useState(true);
+  const [mapelPlaceholder, setMapelPlaceholder] = useState("-- Pilih Mapel --");
+  const previousKelasID = useRef(form.kelasID);
+
   const handleEditorChange = (data) => {
     onChange("pertanyaan", data);
   };
 
+  // Effect untuk mengupdate status dropdown mapel
+  useEffect(() => {
+    console.log("Mapels changed:", mapels.length, "items");
+
+    if (form.kelasID) {
+      if (mapels.length === 0) {
+        setIsMapelDisabled(true);
+        setMapelPlaceholder("Loading mapel...");
+      } else {
+        setIsMapelDisabled(false);
+        setMapelPlaceholder("-- Pilih Mapel --");
+      }
+    } else {
+      setIsMapelDisabled(true);
+      setMapelPlaceholder("Pilih kelas terlebih dahulu");
+    }
+  }, [mapels, form.kelasID]);
+
+  // Reset mapel ketika kelas berubah - HANYA jika kelas benar-benar berubah
+  useEffect(() => {
+    if (form.kelasID && form.kelasID !== previousKelasID.current) {
+      console.log(
+        "Kelas changed from",
+        previousKelasID.current,
+        "to",
+        form.kelasID
+      );
+      previousKelasID.current = form.kelasID;
+
+      // Reset pilihan mapel hanya jika kelas berubah
+      if (form.mapel) {
+        onChange("mapel", "");
+      }
+    }
+  }, [form.kelasID, form.mapel, onChange]);
+
+  const handleKelasChange = (kelasId) => {
+    console.log("Kelas selected:", kelasId);
+    onChange("kelasID", kelasId);
+  };
+
+  const handleMapelChange = (mapelId) => {
+    console.log("Mapel selected:", mapelId);
+    onChange("mapel", mapelId);
+  };
+
   return (
     <div className="space-y-4">
-      {/* Dropdown Mapel */}
-      <div>
-        <label className="block mb-1 text-gray-700 dark:text-gray-300">
-          Mapel
-        </label>
-        <select
-          value={form.mapel}
-          onChange={(e) => onChange("mapel", e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded bg-white 
-                     text-gray-900 dark:bg-gray-800 dark:text-white 
-                     dark:border-gray-600 focus:outline-none 
-                     focus:ring-2 focus:ring-blue-500"
-          required
-        >
-          <option value="">-- Pilih Mapel --</option>
-          {mapels.map((m) => (
-            <option key={m.kd_mapel} value={m.kd_mapel}>
-              {m.nm_mapel}
-            </option>
-          ))}
-        </select>
-      </div>
-
       {/* Dropdown Kelas */}
       <div>
         <label className="block mb-1 text-gray-700 dark:text-gray-300">
-          Kelas
+          Kelas *
         </label>
         <select
           value={form.kelasID}
-          onChange={(e) => onChange("kelasID", e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded bg-white 
-                     text-gray-900 dark:bg-gray-800 dark:text-white 
-                     dark:border-gray-600 focus:outline-none 
-                     focus:ring-2 focus:ring-blue-500"
+          onChange={(e) => handleKelasChange(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         >
           <option value="">-- Pilih Kelas --</option>
@@ -54,18 +78,53 @@ const FormFields = ({ mapels, kelasList, form, onChange, tipeSoalOptions }) => {
         </select>
       </div>
 
-      {/* Tipe Soal */}
+      {/* Dropdown Mapel */}
       <div>
         <label className="block mb-1 text-gray-700 dark:text-gray-300">
-          Tipe Soal
+          Mapel *
+        </label>
+        <select
+          value={form.mapel}
+          onChange={(e) => handleMapelChange(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          required
+          disabled={isMapelDisabled}
+        >
+          <option value="">{mapelPlaceholder}</option>
+          {mapels.map((m) => (
+            <option key={m.kd_mapel} value={m.kd_mapel}>
+              {m.nm_mapel}
+            </option>
+          ))}
+        </select>
+
+        {/* Status message */}
+        {form.kelasID && mapels.length === 0 && (
+          <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+            Sedang memuat mapel untuk kelas ini...
+          </p>
+        )}
+        {!form.kelasID && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Pilih kelas terlebih dahulu untuk melihat mapel
+          </p>
+        )}
+        {form.kelasID && mapels.length > 0 && (
+          <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+            {mapels.length} mapel tersedia
+          </p>
+        )}
+      </div>
+
+      {/* Dropdown Tipe Soal */}
+      <div>
+        <label className="block mb-1 text-gray-700 dark:text-gray-300">
+          Tipe Soal *
         </label>
         <select
           value={form.tipeSoal}
           onChange={(e) => onChange("tipeSoal", e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded bg-white 
-                     text-gray-900 dark:bg-gray-800 dark:text-white 
-                     dark:border-gray-600 focus:outline-none 
-                     focus:ring-2 focus:ring-blue-500"
+          className="w-full p-2 border border-gray-300 rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         >
           <option value="">-- Pilih Tipe Soal --</option>
@@ -77,17 +136,59 @@ const FormFields = ({ mapels, kelasList, form, onChange, tipeSoalOptions }) => {
         </select>
       </div>
 
-      {/* Editor TinyMCE */}
+      {/* Lampiran */}
       <div>
         <label className="block mb-1 text-gray-700 dark:text-gray-300">
-          Pertanyaan
+          Lampiran
+        </label>
+        {form.lampiran ? (
+          <div className="flex items-center space-x-3">
+            {form.lampiran.tipe_file === "image" ? (
+              <img
+                src={`http://localhost:8080/${form.lampiran.path_file}`}
+                alt={form.lampiran.nama_file}
+                className="w-16 h-16 object-cover rounded border"
+              />
+            ) : (
+              <div className="w-16 h-16 flex items-center justify-center rounded bg-gray-200 dark:bg-gray-700">
+                <span className="text-sm text-gray-600 dark:text-gray-300">
+                  {form.lampiran.tipe_file.toUpperCase()}
+                </span>
+              </div>
+            )}
+            <span className="text-gray-900 dark:text-gray-200">
+              {form.lampiran.nama_file}
+            </span>
+            <button
+              type="button"
+              onClick={() => onChange("lampiran", null)}
+              className="text-red-500 hover:underline"
+            >
+              Hapus
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onChange("openLampiran", true)}
+            className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded text-gray-800 dark:text-white"
+          >
+            Pilih Lampiran
+          </button>
+        )}
+      </div>
+
+      {/* Editor Pertanyaan */}
+      <div>
+        <label className="block mb-1 text-gray-700 dark:text-gray-300">
+          Pertanyaan *
         </label>
         <TinyMCEWrapper
           value={form.pertanyaan || ""}
           onChange={handleEditorChange}
         />
-        <p className="text-sm text-gray-500 mt-1">
-          Bisa copy-paste langsung dari Word. Untuk rumus matematika, gunakan format seperti: x², √4, ¼, atau tulis manual.
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Bisa copy-paste langsung dari Word. Gunakan toolbar untuk formatting.
         </p>
       </div>
     </div>

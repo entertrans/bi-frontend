@@ -45,6 +45,7 @@ export const hapusPembayaranById = async (id) => {
 };
 
 //petycash
+
 // GET semua data periode petty cash
 export const getPettyCashPeriode = async () => {
   const res = await axios.get(`http://localhost:8080/petty-cash`);
@@ -239,6 +240,7 @@ export const toggleKelasOnline = async (nis) => {
   const res = await axios.patch(`http://localhost:8080/siswa/${nis}/online`);
   return res.data;
 };
+
 export const toggleKelasOffline = async (nis) => {
   const res = await axios.patch(`http://localhost:8080/siswa/${nis}/offline`);
   return res.data;
@@ -307,6 +309,25 @@ export async function fetchAllkelas() {
   }
   return await response.json();
 }
+
+// Dalam file api/siswaAPI.js
+export const fetchAllMapelByKelas = async (id) => {
+  try {
+    const res = await axios.get(`http://localhost:8080/lookup/mapel-by-kelas/${id}`);
+    
+    // Transform data dari response API
+    const transformedData = res.data.map(item => ({
+      kd_mapel: item.Mapel.kd_mapel,
+      nm_mapel: item.Mapel.nm_mapel
+    }));
+    
+    return transformedData;
+  } catch (error) {
+    console.error("Error fetching mapel by kelas:", error);
+    throw error;
+  }
+};
+
 export async function fetchAllSatelit() {
   const response = await fetch("http://localhost:8080/lookup/satelit");
   if (!response.ok) {
