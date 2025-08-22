@@ -218,7 +218,7 @@ const TestOnline = () => {
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {paginatedData.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center py-4 text-gray-500">
+                <td colSpan={7} className="text-center py-4 text-gray-500">
                   Tidak ada data soal.
                 </td>
               </tr>
@@ -236,15 +236,19 @@ const TestOnline = () => {
                   {soal.pertanyaan}
                 </td>
                 <td className="px-6 py-4">{soal.bobot}</td>
-                <HiPencil
-                  title="Edit Soal"
-                  className="inline-block cursor-pointer hover:text-blue-600"
-                />
-                <HiTrash
-                  title="Hapus Soal"
-                  className="inline-block cursor-pointer hover:text-red-600"
-                  onClick={() => handleDelete(soal.soal_id)}
-                />
+                <td className="px-6 py-4">
+                  <div className="flex space-x-2">
+                    <HiPencil
+                      title="Edit Soal"
+                      className="inline-block cursor-pointer hover:text-blue-600 text-lg"
+                    />
+                    <HiTrash
+                      title="Hapus Soal"
+                      className="inline-block cursor-pointer hover:text-red-600 text-lg"
+                      onClick={() => handleDelete(soal.soal_id)}
+                    />
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

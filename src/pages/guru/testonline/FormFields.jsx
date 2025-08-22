@@ -12,8 +12,6 @@ const FormFields = ({ mapels, kelasList, form, onChange, tipeSoalOptions }) => {
 
   // Effect untuk mengupdate status dropdown mapel
   useEffect(() => {
-    console.log("Mapels changed:", mapels.length, "items");
-
     if (form.kelasID) {
       if (mapels.length === 0) {
         setIsMapelDisabled(true);
@@ -31,12 +29,6 @@ const FormFields = ({ mapels, kelasList, form, onChange, tipeSoalOptions }) => {
   // Reset mapel ketika kelas berubah - HANYA jika kelas benar-benar berubah
   useEffect(() => {
     if (form.kelasID && form.kelasID !== previousKelasID.current) {
-      console.log(
-        "Kelas changed from",
-        previousKelasID.current,
-        "to",
-        form.kelasID
-      );
       previousKelasID.current = form.kelasID;
 
       // Reset pilihan mapel hanya jika kelas berubah
@@ -47,12 +39,10 @@ const FormFields = ({ mapels, kelasList, form, onChange, tipeSoalOptions }) => {
   }, [form.kelasID, form.mapel, onChange]);
 
   const handleKelasChange = (kelasId) => {
-    console.log("Kelas selected:", kelasId);
     onChange("kelasID", kelasId);
   };
 
   const handleMapelChange = (mapelId) => {
-    console.log("Mapel selected:", mapelId);
     onChange("mapel", mapelId);
   };
 
@@ -186,6 +176,9 @@ const FormFields = ({ mapels, kelasList, form, onChange, tipeSoalOptions }) => {
         <TinyMCEWrapper
           value={form.pertanyaan || ""}
           onChange={handleEditorChange}
+          height={200}
+          placeholder={`tulis pertanyaan disini...`}
+          toolbar="bold italic underline | bullist numlist | removeformat"
         />
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           Bisa copy-paste langsung dari Word. Gunakan toolbar untuk formatting.

@@ -19,6 +19,7 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
   const [mounted, setMounted] = useState(false);
   const [showPanel, setShowPanel] = useState(false);
   const [openLampiran, setOpenLampiran] = useState(false);
+  const [openMatchingGallery, setOpenMatchingGallery] = useState({ index: null, side: null });
   const [mapels, setMapels] = useState([]);
   const [kelasList, setKelasList] = useState([]);
 
@@ -40,6 +41,20 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
   ]);
   const [jawabanBenar, setJawabanBenar] = useState("");
   const [matchingPairs, setMatchingPairs] = useState([{ left: "", right: "" }]);
+
+  // Function untuk handle matching lampiran
+  const handleSelectMatchingLampiran = (lampiran) => {
+    if (openMatchingGallery.index !== null && openMatchingGallery.side) {
+      const newPairs = [...matchingPairs];
+      const side = openMatchingGallery.side;
+      
+      newPairs[openMatchingGallery.index][`${side}Lampiran`] = lampiran;
+      newPairs[openMatchingGallery.index][side] = "";
+      
+      setMatchingPairs(newPairs);
+      setOpenMatchingGallery({ index: null, side: null });
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -67,17 +82,13 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
   }, [mounted]);
 
   // Fetch mapel saat kelas berubah
-  // Dalam SlideTambahBankSoal.js
   useEffect(() => {
     if (form.kelasID) {
       async function fetchMapel() {
         try {
-          console.log("Fetching mapel for kelas:", form.kelasID);
           const mapelData = await fetchAllMapelByKelas(form.kelasID);
-          console.log("Mapel data received:", mapelData);
           setMapels(mapelData);
         } catch (err) {
-          console.error("Gagal fetch mapel by kelas:", err);
           setMapels([]);
         }
       }
@@ -85,7 +96,7 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
     } else {
       setMapels([]);
     }
-  }, [form.kelasID]); // HANYA depend on form.kelasID
+  }, [form.kelasID]);
 
   const resetForm = () => {
     setForm({
@@ -105,6 +116,7 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
     setJawabanBenar("");
     setMatchingPairs([{ left: "", right: "" }]);
     setMapels([]);
+    setOpenMatchingGallery({ index: null, side: null });
   };
 
   const handleChange = (field, value) => {
@@ -126,7 +138,12 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
     if (form.tipeSoal === "pg") {
       pilihan_jawaban = JSON.stringify(pgOptions.map((opt) => opt.text));
     } else if (form.tipeSoal === "matching") {
-      pilihan_jawaban = JSON.stringify(matchingPairs);
+      pilihan_jawaban = JSON.stringify(matchingPairs.map(pair => ({
+        left: pair.left,
+        right: pair.right,
+        leftLampiran: pair.leftLampiran || null,
+        rightLampiran: pair.rightLampiran || null
+      })));
       jawaban_benar = "";
     } else if (form.tipeSoal === "bs") {
       pilihan_jawaban = "";
@@ -181,22 +198,14 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
           </button>
         </div>
 
+        {/* FORM - Ini yang utama */}
         <form className="p-4 space-y-4" onSubmit={handleSubmit}>
           <FormFields
-            mapels={mapels} // Array of mapel untuk kelas terpilih
-            kelasList={kelasList} // Array of semua kelas
-            form={form} // State form
-            onChange={handleChange} // Function untuk update form
+            mapels={mapels}
+            kelasList={kelasList}
+            form={form}
+            onChange={handleChange}
             tipeSoalOptions={tipeSoalOptions}
-          />
-
-          <SlideGaleryLampiran
-            isOpen={openLampiran}
-            onClose={() => setOpenLampiran(false)}
-            onSelectLampiran={(lampiran) => {
-              setForm((prev) => ({ ...prev, lampiran }));
-              setOpenLampiran(false);
-            }}
           />
 
           {form.tipeSoal === "pg" && (
@@ -216,7 +225,11 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
           )}
 
           {form.tipeSoal === "matching" && (
-            <FormMatching pairs={matchingPairs} setPairs={setMatchingPairs} />
+            <FormMatching 
+              pairs={matchingPairs} 
+              setPairs={setMatchingPairs}
+              onOpenGallery={setOpenMatchingGallery}  // PASS PROPS DI SINI
+            />
           )}
 
           {(form.tipeSoal === "uraian" || form.tipeSoal === "short_answer") && (
@@ -247,6 +260,23 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
           </button>
         </form>
       </div>
+      
+      {/* SlideGaleryLampiran untuk form utama */}
+      <SlideGaleryLampiran
+        isOpen={openLampiran}
+        onClose={() => setOpenLampiran(false)}
+        onSelectLampiran={(lampiran) => {
+          setForm((prev) => ({ ...prev, lampiran }));
+          setOpenLampiran(false);
+        }}
+      />
+
+      {/* SlideGaleryLampiran untuk matching */}
+      <SlideGaleryLampiran
+        isOpen={openMatchingGallery.index !== null}
+        onClose={() => setOpenMatchingGallery({ index: null, side: null })}
+        onSelectLampiran={handleSelectMatchingLampiran}
+      />
     </>
   );
 };

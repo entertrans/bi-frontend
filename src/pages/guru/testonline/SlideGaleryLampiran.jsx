@@ -37,7 +37,8 @@ const SlideGaleryLampiran = ({ isOpen, onClose, onSelectLampiran }) => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id, e) => {
+    e.stopPropagation(); // TAMBAH INI
     if (!window.confirm("Yakin hapus lampiran ini?")) return;
     try {
       await deleteLampiran(id);
@@ -47,12 +48,14 @@ const SlideGaleryLampiran = ({ isOpen, onClose, onSelectLampiran }) => {
     }
   };
 
-  const handleSelect = (lampiran) => {
+  const handleSelect = (lampiran, e) => {
+    e.stopPropagation(); // TAMBAH INI
     onSelectLampiran(lampiran);
     onClose();
   };
 
   const handleUpload = async (e) => {
+    e.stopPropagation(); // TAMBAH INI
     const file = e.target.files[0];
     if (!file) return;
 
@@ -70,6 +73,11 @@ const SlideGaleryLampiran = ({ isOpen, onClose, onSelectLampiran }) => {
       setUploading(false);
       e.target.value = null;
     }
+  };
+
+  // TAMBAH FUNGSI INI: Handle click pada panel untuk stop propagation
+  const handlePanelClick = (e) => {
+    e.stopPropagation();
   };
 
   const renderPreview = (lampiran) => {
@@ -105,8 +113,9 @@ const SlideGaleryLampiran = ({ isOpen, onClose, onSelectLampiran }) => {
         }`}
       />
 
-      {/* Slide panel */}
+      {/* Slide panel - TAMBAH onClick HANDLER */}
       <div
+        onClick={handlePanelClick} // TAMBAH INI
         className={`fixed top-0 right-0 w-full max-w-3xl h-full bg-white dark:bg-gray-900 z-50 shadow-lg overflow-auto transition-transform duration-300 ease-in-out ${
           showPanel ? "translate-x-0" : "translate-x-full"
         }`}
@@ -116,7 +125,10 @@ const SlideGaleryLampiran = ({ isOpen, onClose, onSelectLampiran }) => {
             Pilih Lampiran
           </h2>
           <button
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation(); // TAMBAH INI
+              onClose();
+            }}
             className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-2xl font-bold leading-none"
           >
             ×
@@ -149,13 +161,13 @@ const SlideGaleryLampiran = ({ isOpen, onClose, onSelectLampiran }) => {
                     <td className="p-2 border">{lampiran.nama_file}</td>
                     <td className="p-2 border space-x-2 text-center">
                       <button
-                        onClick={() => handleSelect(lampiran)}
+                        onClick={(e) => handleSelect(lampiran, e)} // UPDATE INI
                         className="px-3 py-1 rounded bg-blue-600 text-white"
                       >
                         Tambahkan
                       </button>
                       <button
-                        onClick={() => handleDelete(lampiran.lampiran_id)}
+                        onClick={(e) => handleDelete(lampiran.lampiran_id, e)} // UPDATE INI
                         className="px-3 py-1 rounded bg-red-500 text-white"
                       >
                         Hapus
@@ -168,9 +180,9 @@ const SlideGaleryLampiran = ({ isOpen, onClose, onSelectLampiran }) => {
           </table>
         </div>
 
-        {/* Upload Form */}
+        {/* Upload Section */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <form className="max-w-lg mx-auto">
+          <div className="max-w-lg mx-auto">
             <label
               htmlFor="lampiran_upload"
               className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
@@ -184,13 +196,14 @@ const SlideGaleryLampiran = ({ isOpen, onClose, onSelectLampiran }) => {
               disabled={uploading}
               className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 
                          dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+              onClick={(e) => e.stopPropagation()} // TAMBAH INI
             />
             <div className="mt-1 text-sm text-gray-500 dark:text-gray-300">
               {uploading
                 ? "Mengupload file..."
                 : "Pilih file untuk ditambahkan ke lampiran"}
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </>
