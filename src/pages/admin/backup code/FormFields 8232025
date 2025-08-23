@@ -82,7 +82,7 @@ const FormFields = ({ mapels, kelasList, form, onChange, tipeSoalOptions }) => {
         >
           <option value="">{mapelPlaceholder}</option>
           {mapels.map((m) => (
-            <option key={m.kd_mapel} value={m.kd_mapel}>
+            <option key={m.kd_mapel} value={m.nm_mapel}>
               {m.nm_mapel}
             </option>
           ))}
@@ -142,7 +142,7 @@ const FormFields = ({ mapels, kelasList, form, onChange, tipeSoalOptions }) => {
             ) : (
               <div className="w-16 h-16 flex items-center justify-center rounded bg-gray-200 dark:bg-gray-700">
                 <span className="text-sm text-gray-600 dark:text-gray-300">
-                  {form.lampiran.tipe_file.toUpperCase()}
+                  {form.lampiran.tipe_file?.toUpperCase()}
                 </span>
               </div>
             )}

@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
-import FormFields from "./FormFields";
+import FormFields from "../banksoal/FormFields";
 import SlideGaleryLampiran from "./SlideGaleryLampiran";
-import FormPilihanGanda from "./tipeSoal/FormPilihanGanda";
-import FormBenarSalah from "./tipeSoal/FormBenarSalah";
-import FormMatching from "./tipeSoal/FormMatching";
-import FormUraian from "./tipeSoal/FormUraian";
+import FormPilihanGanda from "../banksoal/tipeSoal/FormPilihanGanda";
+import FormBenarSalah from "../banksoal/tipeSoal/FormBenarSalah";
+import FormMatching from "../banksoal/tipeSoal/FormMatching";
+import FormUraian from "../banksoal/tipeSoal/FormUraian";
 import { fetchAllkelas, fetchAllMapelByKelas } from "../../../api/siswaAPI";
+import { createSoal } from "../../../api/bankSoalAPI";
+import { showToast } from "../../../utils/toast";
 
 const tipeSoalOptions = [
   { value: "pg", label: "Pilihan Ganda" },
+  { value: "pg_kompleks", label: "Pilihan Ganda Kompleks" },
   { value: "uraian", label: "Uraian" },
   { value: "bs", label: "Benar / Salah" },
   { value: "matching", label: "Mencocokkan" },
@@ -19,7 +22,10 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
   const [mounted, setMounted] = useState(false);
   const [showPanel, setShowPanel] = useState(false);
   const [openLampiran, setOpenLampiran] = useState(false);
-  const [openMatchingGallery, setOpenMatchingGallery] = useState({ index: null, side: null });
+  const [openMatchingGallery, setOpenMatchingGallery] = useState({
+    index: null,
+    side: null,
+  });
   const [mapels, setMapels] = useState([]);
   const [kelasList, setKelasList] = useState([]);
 
@@ -39,7 +45,9 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
     { key: "d", text: "" },
     { key: "e", text: "" },
   ]);
-  const [jawabanBenar, setJawabanBenar] = useState("");
+
+  // default jawabanBenar diset array, bisa dipakai pg (string) & pg_kompleks (array)
+  const [jawabanBenar, setJawabanBenar] = useState([]); // default array
   const [matchingPairs, setMatchingPairs] = useState([{ left: "", right: "" }]);
 
   // Function untuk handle matching lampiran
@@ -47,10 +55,10 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
     if (openMatchingGallery.index !== null && openMatchingGallery.side) {
       const newPairs = [...matchingPairs];
       const side = openMatchingGallery.side;
-      
+
       newPairs[openMatchingGallery.index][`${side}Lampiran`] = lampiran;
       newPairs[openMatchingGallery.index][side] = "";
-      
+
       setMatchingPairs(newPairs);
       setOpenMatchingGallery({ index: null, side: null });
     }
@@ -129,42 +137,57 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    let pilihan_jawaban = "";
-    let jawaban_benar = jawabanBenar;
+    let pilihan_jawaban = "[]";
+    let jawaban_benar = "[]";
 
     if (form.tipeSoal === "pg") {
       pilihan_jawaban = JSON.stringify(pgOptions.map((opt) => opt.text));
+      jawaban_benar = JSON.stringify([jawabanBenar]);
+    } else if (form.tipeSoal === "pg_kompleks") {
+      pilihan_jawaban = JSON.stringify(pgOptions.map((opt) => opt.text));
+      jawaban_benar = JSON.stringify(jawabanBenar);
     } else if (form.tipeSoal === "matching") {
-      pilihan_jawaban = JSON.stringify(matchingPairs.map(pair => ({
-        left: pair.left,
-        right: pair.right,
-        leftLampiran: pair.leftLampiran || null,
-        rightLampiran: pair.rightLampiran || null
-      })));
-      jawaban_benar = "";
+      pilihan_jawaban = JSON.stringify(
+        matchingPairs.map((pair) => ({
+          left: pair.left,
+          right: pair.right,
+          leftLampiran: pair.leftLampiran || null,
+          rightLampiran: pair.rightLampiran || null,
+        }))
+      );
     } else if (form.tipeSoal === "bs") {
-      pilihan_jawaban = "";
-    } else {
-      pilihan_jawaban = "";
-      jawaban_benar = "";
+      jawaban_benar = JSON.stringify([jawabanBenar]);
+    } else if (form.tipeSoal === "uraian" || form.tipeSoal === "short_answer") {
+      jawaban_benar = JSON.stringify([jawabanBenar || ""]);
     }
 
     const payload = {
+      guru_id: 1,
       mapel: form.mapel,
       tipe_soal: form.tipeSoal,
-      kelas_id: form.kelasID,
+      kelas_id: Number(form.kelasID), // pastikan number
       pertanyaan: form.pertanyaan,
-      bobot: form.bobot,
+      bobot: Number(form.bobot), // pastikan number
       pilihan_jawaban,
       jawaban_benar,
-      lampiran_id: form.lampiran ? form.lampiran.id : null,
+      lampiran_id: form.lampiran?.lampiran_id
+        ? Number(form.lampiran.lampiran_id)
+        : null,
     };
 
     console.log("Data yang dikirim ke backend:", payload);
-    onSubmit(payload);
+
+    try {
+      await createSoal(payload);
+      showToast("Soal berhasil ditambahkan", "success");
+      onClose();
+    } catch (error) {
+      showToast("Gagal menambahkan soal", "error");
+      console.error("Error creating soal:", error);
+    }
   };
 
   if (!mounted) return null;
@@ -208,12 +231,13 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
             tipeSoalOptions={tipeSoalOptions}
           />
 
-          {form.tipeSoal === "pg" && (
+          {(form.tipeSoal === "pg" || form.tipeSoal === "pg_kompleks") && (
             <FormPilihanGanda
               options={pgOptions}
               setOptions={setPgOptions}
               jawabanBenar={jawabanBenar}
               setJawabanBenar={setJawabanBenar}
+              isKompleks={form.tipeSoal === "pg_kompleks"}
             />
           )}
 
@@ -225,10 +249,10 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
           )}
 
           {form.tipeSoal === "matching" && (
-            <FormMatching 
-              pairs={matchingPairs} 
+            <FormMatching
+              pairs={matchingPairs}
               setPairs={setMatchingPairs}
-              onOpenGallery={setOpenMatchingGallery}  // PASS PROPS DI SINI
+              onOpenGallery={setOpenMatchingGallery} // PASS PROPS DI SINI
             />
           )}
 
@@ -260,7 +284,7 @@ const SlideTambahBankSoal = ({ isOpen, onClose, onSubmit }) => {
           </button>
         </form>
       </div>
-      
+
       {/* SlideGaleryLampiran untuk form utama */}
       <SlideGaleryLampiran
         isOpen={openLampiran}

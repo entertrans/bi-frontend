@@ -3,7 +3,7 @@ import {
   getActiveLampiran,
   deleteLampiran,
   uploadLampiran,
-} from "../../../api/testOnlineAPI";
+} from "../../../api/bankSoalAPI";
 import {
   HiDocumentText,
   HiMusicNote,

@@ -145,11 +145,11 @@ export const menuConfig = {
       path: "/guru/ulangan",
     },
     {
-      label: "Absensi",
-      icon: <FaUsers className="mr-3" />,
+      label: "Bank Soal",
+      icon: <FaLaptopCode className="mr-3" />,
       children: [
-        { label: "Input Absensi", path: "/guru/absensi/input" },
-        { label: "Rekap Absensi", path: "/guru/absensi/rekap" },
+        { label: "Aktif", path: "/guru/banksoal/rekap" },
+        { label: "Trash", path: "/guru/bank-soal-inaktif" },
       ],
     },
     {

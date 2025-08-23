@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getAllBankSoalTO } from "../../../api/testOnlineAPI";
 import { HiPencil, HiTrash, HiPlus } from "react-icons/hi";
-import SlideTambahBankSoal from "../banksoal/SlideTambahBankSoal";
+import SlideTambahBankSoal from "./SlideTambahBankSoal";
 import Swal from "sweetalert2";
 import { showAlert } from "../../../utils/toast";
 

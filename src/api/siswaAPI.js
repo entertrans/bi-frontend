@@ -313,14 +313,16 @@ export async function fetchAllkelas() {
 // Dalam file api/siswaAPI.js
 export const fetchAllMapelByKelas = async (id) => {
   try {
-    const res = await axios.get(`http://localhost:8080/lookup/mapel-by-kelas/${id}`);
-    
+    const res = await axios.get(
+      `http://localhost:8080/lookup/mapel-by-kelas/${id}`
+    );
+
     // Transform data dari response API
-    const transformedData = res.data.map(item => ({
+    const transformedData = res.data.map((item) => ({
       kd_mapel: item.Mapel.kd_mapel,
-      nm_mapel: item.Mapel.nm_mapel
+      nm_mapel: item.Mapel.nm_mapel,
     }));
-    
+
     return transformedData;
   } catch (error) {
     console.error("Error fetching mapel by kelas:", error);
@@ -353,6 +355,12 @@ export async function fetchAllTa() {
 
 export const fetchAllMapel = async () => {
   const res = await axios.get(`http://localhost:8080/lookup/mapel`);
+  return res.data;
+};
+export const fetchDetailKelasMapel = async (kelasId, mapelId) => {
+  const res = await axios.get(
+    `http://localhost:8080/lookup/detail/${kelasId}/${mapelId}`
+  );
   return res.data;
 };
 
