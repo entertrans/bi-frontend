@@ -310,6 +310,11 @@ export async function fetchAllkelas() {
   return await response.json();
 }
 
+export const fetchAllSiswaByKelas = async (kelasID) => {
+  const res = await axios.get(`http://localhost:8080/lookup/kelas/${kelasID}`);
+  return res.data;
+};
+
 // Dalam file api/siswaAPI.js
 export const fetchAllMapelByKelas = async (id) => {
   try {
