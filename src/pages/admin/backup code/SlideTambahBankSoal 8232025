@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import FormFields from "../banksoal/FormFields";
-import SlideGaleryLampiran from "./SlideGaleryLampiran";
-import FormPilihanGanda from "../banksoal/tipeSoal/FormPilihanGanda";
-import FormBenarSalah from "../banksoal/tipeSoal/FormBenarSalah";
-import FormMatching from "../banksoal/tipeSoal/FormMatching";
-import FormUraian from "../banksoal/tipeSoal/FormUraian";
+import FormFields from "../../guru/banksoal/FormFields";
+import SlideGaleryLampiran from "../../guru/banksoal/SlideGaleryLampiran";
+import FormPilihanGanda from "../../guru/banksoal/tipeSoal/FormPilihanGanda";
+import FormBenarSalah from "../../guru/banksoal/tipeSoal/FormBenarSalah";
+import FormMatching from "../../guru/banksoal/tipeSoal/FormMatching";
+import FormUraian from "../../guru/banksoal/tipeSoal/FormUraian";
 import { fetchAllkelas, fetchAllMapelByKelas } from "../../../api/siswaAPI";
 import { createSoal } from "../../../api/bankSoalAPI";
 import { showToast } from "../../../utils/toast";

@@ -134,22 +134,31 @@ export const menuConfig = {
       icon: <FaClipboardList className="mr-3" />,
       path: "/guru/kisi-kisi",
     },
-    {
-      label: "Test Online",
-      icon: <FaLaptopCode className="mr-3" />,
-      path: "/guru/test-online",
-    },
-    {
-      label: "Ulangan",
-      icon: <FaPenAlt className="mr-3" />,
-      path: "/guru/ulangan",
-    },
+
+    // {
+    //   label: "Test Online",
+    //   icon: <FaLaptopCode className="mr-3" />,
+    //   path: "/guru/test-online",
+    // },
+    // {
+    //   label: "Ulangan",
+    //   icon: <FaPenAlt className="mr-3" />,
+    //   path: "/guru/ulangan",
+    // },
     {
       label: "Bank Soal",
       icon: <FaLaptopCode className="mr-3" />,
       children: [
         { label: "Aktif", path: "/guru/banksoal/rekap" },
-        { label: "Trash", path: "/guru/bank-soal-inaktif" },
+        { label: "Trash", path: "/guru/banksoal/trash" },
+      ],
+    },
+    {
+      label: "Test Online",
+      icon: <FaLaptopCode className="mr-3" />,
+      children: [
+        { label: "Ulangan Bulanan", path: "/guru/test-online/UB" },
+        { label: "Test / Quis", path: "/guru/test-online/quis" },
       ],
     },
     {

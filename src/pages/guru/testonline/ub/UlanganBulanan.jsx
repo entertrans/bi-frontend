@@ -1,0 +1,238 @@
+import React, { useEffect, useState } from "react";
+import {
+  getTestsByType,
+  deleteTest,
+  createTest,
+} from "../../../../api/testOnlineAPI";
+import { fetchAllkelas, fetchAllMapelByKelas } from "../../../../api/siswaAPI";
+import { HiPencil, HiTrash } from "react-icons/hi";
+import Swal from "sweetalert2";
+import { showAlert } from "../../../../utils/toast";
+import SlideTambahTest from "./SlideTambahTest";
+
+const UlanganBulanan = () => {
+  const [tests, setTests] = useState([]);
+  const [kelasList, setKelasList] = useState({ aktif: [] });
+  const [mapelList, setMapelList] = useState([]);
+  const [selectedKelas, setSelectedKelas] = useState("");
+  const [selectedMapel, setSelectedMapel] = useState("");
+
+  const [showTambahTest, setShowTambahTest] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const fetchData = async () => {
+    try {
+      const data = await getTestsByType("ub");
+      setTests(data);
+    } catch (err) {
+      console.error("Gagal ambil data test:", err);
+    }
+  };
+
+  const fetchKelas = async () => {
+    try {
+      const res = await fetchAllkelas();
+      setKelasList({
+        aktif: res.aktif || [],
+      });
+    } catch (err) {
+      console.error("Gagal ambil kelas:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    fetchKelas();
+  }, [refreshTrigger]);
+
+  // chain kelas → mapel
+  useEffect(() => {
+    const fetchMapel = async () => {
+      if (selectedKelas) {
+        try {
+          const data = await fetchAllMapelByKelas(selectedKelas);
+          setMapelList(data);
+          setSelectedMapel(""); // reset mapel setiap kali kelas berubah
+        } catch (err) {
+          console.error("Gagal ambil mapel:", err);
+          setMapelList([]);
+          setSelectedMapel("");
+        }
+      } else {
+        setMapelList([]);
+        setSelectedMapel("");
+      }
+    };
+
+    fetchMapel();
+  }, [selectedKelas]);
+
+  const handleDelete = (testID) => {
+    Swal.fire({
+      title: "Hapus Test?",
+      text: "Test akan dihapus permanen.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+      customClass: {
+        actions: "flex justify-center",
+        confirmButton:
+          "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        cancelButton:
+          "bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 ml-2 rounded",
+      },
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteTest(testID);
+          setTests((prev) => prev.filter((t) => t.test_id !== testID));
+          showAlert("Test berhasil dihapus.", "success");
+        } catch (err) {
+          console.error(err);
+          showAlert("Gagal menghapus test.", "error");
+        }
+      }
+    });
+  };
+
+  const handleTambahTest = async (newTest) => {
+    try {
+      await createTest(newTest);
+      setRefreshTrigger((prev) => prev + 1);
+      setShowTambahTest(false);
+      showAlert("Test berhasil ditambahkan", "success");
+    } catch (err) {
+      console.error(err);
+      showAlert("Gagal menambahkan test", "error");
+    }
+  };
+
+  const filteredTests = tests.filter((t) => {
+    const matchKelas = selectedKelas
+      ? t.kelas_id === parseInt(selectedKelas)
+      : true;
+    const matchMapel = selectedMapel
+      ? t.mapel_id === parseInt(selectedMapel)
+      : true;
+
+    return matchKelas && matchMapel;
+  });
+
+  return (
+    <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+          Daftar Ulangan Bulanan
+        </h1>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setRefreshTrigger((prev) => prev + 1)}
+            className="bg-gray-600 text-white px-3 py-2 rounded hover:bg-gray-700"
+          >
+            Refresh
+          </button>
+          <button
+            onClick={() => setShowTambahTest(true)}
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            + Tambah Test
+          </button>
+        </div>
+      </div>
+
+      {/* Search + Filter */}
+      <div className="flex flex-col md:flex-row md:space-x-2 mb-4">
+        <select
+          className="p-2 border rounded dark:bg-gray-700 dark:text-white"
+          value={selectedKelas}
+          onChange={(e) => setSelectedKelas(e.target.value)}
+        >
+          <option value="">-- Pilih Kelas --</option>
+
+          {kelasList.aktif.map((k) => (
+            <option key={k.kelas_id} value={k.kelas_id}>
+              {k.kelas_nama}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="p-2 border rounded dark:bg-gray-700 dark:text-white"
+          value={selectedMapel}
+          onChange={(e) => setSelectedMapel(e.target.value)}
+          disabled={!selectedKelas}
+        >
+          <option value="">-- Pilih Mapel --</option>
+          {mapelList.map((m) => (
+            <option key={m.kd_mapel} value={m.kd_mapel}>
+              {m.nm_mapel}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Tabel */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-100 dark:bg-gray-700">
+            <tr>
+              <th className="px-6 py-3 text-left">Judul</th>
+              <th className="px-6 py-3 text-left">Kelas</th>
+              <th className="px-6 py-3 text-left">Mapel</th>
+              <th className="px-6 py-3 text-left">Guru</th>
+              <th className="px-6 py-3 text-left">Durasi</th>
+              <th className="px-6 py-3 text-left">Jumlah Soal</th>
+              <th className="px-6 py-3 text-left">Acak Soal</th>
+              <th className="px-6 py-3 text-left">Aksi</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            {filteredTests.length === 0 && (
+              <tr>
+                <td colSpan={8} className="text-center py-4 text-gray-500">
+                  Tidak ada data test.
+                </td>
+              </tr>
+            )}
+
+            {filteredTests.map((test) => (
+              <tr key={test.test_id}>
+                <td className="px-6 py-4">{test.judul}</td>
+                <td className="px-6 py-4">{test?.kelas?.kelas_nama}</td>
+                <td className="px-6 py-4">{test?.mapel?.nm_mapel}</td>
+                <td className="px-6 py-4">{test?.guru?.guru_nama}</td>
+                <td className="px-6 py-4">{test.durasi_menit} menit</td>
+                <td className="px-6 py-4">{test.jumlah_soal_tampil}</td>
+                <td className="px-6 py-4">
+                  {test.random_soal ? (
+                    <span className="text-green-600 font-semibold">Ya</span>
+                  ) : (
+                    <span className="text-red-600 font-semibold">Tidak</span>
+                  )}
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex space-x-2">
+                    <HiPencil className="cursor-pointer hover:text-blue-600 text-lg" />
+                    <HiTrash
+                      className="cursor-pointer hover:text-red-600 text-lg"
+                      onClick={() => handleDelete(test.test_id)}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <SlideTambahTest
+        isOpen={showTambahTest}
+        onClose={() => setShowTambahTest(false)}
+        onSubmit={handleTambahTest}
+      />
+    </div>
+  );
+};
+
+export default UlanganBulanan;

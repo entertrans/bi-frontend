@@ -146,16 +146,16 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
         : null,
     };
 
-    console.log("Data yang dikirim ke backend:", payload);
+    // console.log("Data yang dikirim ke backend:", payload);
 
-    // try {
-    //   await createSoal(payload);
-    //   showToast("Soal berhasil ditambahkan", "success");
-    //   onClose();
-    // } catch (error) {
-    //   showToast("Gagal menambahkan soal", "error");
-    //   console.error("Error creating soal:", error);
-    // }
+    try {
+      await createSoal(payload);
+      showToast("Soal berhasil ditambahkan", "success");
+      onClose();
+    } catch (error) {
+      showToast("Gagal menambahkan soal", "error");
+      console.error("Error creating soal:", error);
+    }
   };
 
   return (

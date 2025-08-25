@@ -1,48 +1,60 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { getAllBankSoal, deleteSoal } from "../../../api/bankSoalAPI";
-import { fetchDetailKelasMapel } from "../../../api/siswaAPI"; // ⬅️ tambahkan ini
-import { HiPencil, HiTrash, HiPlus } from "react-icons/hi";
-import SlideTambahBankSoal from "./SlideTambahBankSoal";
+import { getInActiveBankSoal, restoreSoal } from "../../../api/bankSoalAPI";
+import { HiTrash, HiRefresh } from "react-icons/hi";
 import Swal from "sweetalert2";
 import { showAlert } from "../../../utils/toast";
 
-const DetailBankSoal = () => {
-  const { kelas, mapel } = useParams();
+const BankSoalTrash = () => {
   const [dataSoal, setDataSoal] = useState([]);
-  const [showTambahSoal, setShowTambahSoal] = useState(false);
-  const [kelasInfo, setKelasInfo] = useState(null);
-  const [mapelInfo, setMapelInfo] = useState(null);
-
-  const fetchLookup = async () => {
-    try {
-      const res = await fetchDetailKelasMapel(kelas, mapel);
-      setKelasInfo(res.data.kelas);
-      setMapelInfo(res.data.mapel);
-    } catch (err) {
-      console.error("Gagal ambil detail kelas/mapel:", err);
-    }
-  };
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchData = async () => {
     try {
-      const data = await getAllBankSoal(kelas, mapel);
+      const data = await getInActiveBankSoal();
       setDataSoal(data);
     } catch (err) {
-      console.error("Gagal ambil data bank soal:", err);
+      console.error("Gagal ambil data inactive soal:", err);
     }
   };
 
   useEffect(() => {
-    fetchLookup();
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kelas, mapel]);
+  }, []);
 
-  const handleDelete = (soalID) => {
+  const handleRestore = (soalID) => {
     Swal.fire({
-      title: "Hapus Soal?",
-      text: "Soal akan dihapus permanen dari bank soal.",
+      title: "Aktifkan Soal?",
+      text: "Soal ini akan dikembalikan ke bank soal aktif.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Ya, aktifkan!",
+      cancelButtonText: "Batal",
+      buttonsStyling: false,
+      customClass: {
+        actions: "flex justify-center",
+        confirmButton:
+          "bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        cancelButton:
+          "bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 ml-2 rounded",
+      },
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await restoreSoal(soalID);
+          setDataSoal((prev) => prev.filter((s) => s.soal_id !== soalID));
+          showAlert("Soal berhasil diaktifkan.", "success");
+        } catch (err) {
+          console.error(err);
+          showAlert("Gagal mengaktifkan soal.", "error");
+        }
+      }
+    });
+  };
+
+  const handleDeletePermanent = (soalID) => {
+    Swal.fire({
+      title: "Hapus Permanen?",
+      text: "Soal ini akan dihapus selamanya dan tidak bisa dikembalikan.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Ya, hapus!",
@@ -58,10 +70,10 @@ const DetailBankSoal = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          // TODO: panggil API hapus
-          await deleteSoal(soalID);
+          // TODO: bikin API delete permanent di testOnlineAPI.js
+          // await deleteSoalPermanen(soalID);
           setDataSoal((prev) => prev.filter((s) => s.soal_id !== soalID));
-          showAlert("Soal berhasil dihapus.", "success");
+          showAlert("Soal berhasil dihapus permanen.", "success");
         } catch (err) {
           console.error(err);
           showAlert("Gagal menghapus soal.", "error");
@@ -70,21 +82,27 @@ const DetailBankSoal = () => {
     });
   };
 
+  const filteredData = dataSoal.filter(
+    (soal) =>
+      soal.pertanyaan.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      soal.mapel?.nm_mapel.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      soal.kelas?.kelas_nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      soal.guru?.guru_nama.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold text-blue-600 dark:text-blue-400">
-          Detail Bank Soal - {kelasInfo?.nm_kelas || `Kelas ${kelas}`} |{" "}
-          {mapelInfo?.nm_mapel || `Mapel ${mapel}`}
-        </h1>
-        <button
-          onClick={() => setShowTambahSoal(true)}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2"
-        >
-          <HiPlus className="text-lg" />
-          Tambah Soal
-        </button>
-      </div>
+      <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">
+        Bank Soal Tidak Aktif
+      </h1>
+
+      <input
+        type="text"
+        placeholder="Cari soal / mapel / guru..."
+        className="mb-4 p-2 border rounded w-full md:w-80 dark:bg-gray-700 dark:text-white"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -101,19 +119,21 @@ const DetailBankSoal = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {dataSoal.length === 0 && (
+            {filteredData.length === 0 && (
               <tr>
                 <td colSpan={8} className="text-center py-4 text-gray-500">
-                  Belum ada soal untuk kelas & mapel ini.
+                  Tidak ada soal tidak aktif.
                 </td>
               </tr>
             )}
 
-            {dataSoal.map((soal) => (
+            {filteredData.map((soal) => (
               <tr key={soal.soal_id}>
-                <td className="px-6 py-4">{soal.kelas.kelas_nama}</td>
-                <td className="px-6 py-4">{soal.mapel.nm_mapel}</td>
-                <td className="px-6 py-4">{soal.guru.guru_nama}</td>
+                <td className="px-6 py-4">
+                  {soal.kelas?.kelas_nama.replace(/^Kelas\s*/i, "")}
+                </td>
+                <td className="px-6 py-4">{soal.mapel?.nm_mapel}</td>
+                <td className="px-6 py-4">{soal.guru?.guru_nama}</td>
                 <td className="px-6 py-4">{soal.tipe_soal}</td>
                 <td
                   className="px-6 py-4 truncate max-w-xs"
@@ -133,14 +153,15 @@ const DetailBankSoal = () => {
                 <td className="px-6 py-4">{soal.bobot}</td>
                 <td className="px-6 py-4">
                   <div className="flex space-x-2">
-                    <HiPencil
-                      title="Edit Soal"
-                      className="inline-block cursor-pointer hover:text-blue-600 text-lg"
+                    <HiRefresh
+                      title="Aktifkan kembali"
+                      className="inline-block cursor-pointer hover:text-green-600 text-lg"
+                      onClick={() => handleRestore(soal.soal_id)}
                     />
                     <HiTrash
-                      title="Hapus Soal"
+                      title="Hapus Permanen"
                       className="inline-block cursor-pointer hover:text-red-600 text-lg"
-                      onClick={() => handleDelete(soal.soal_id)}
+                      onClick={() => handleDeletePermanent(soal.soal_id)}
                     />
                   </div>
                 </td>
@@ -149,18 +170,8 @@ const DetailBankSoal = () => {
           </tbody>
         </table>
       </div>
-
-      <SlideTambahBankSoal
-        isOpen={showTambahSoal}
-        onClose={() => {
-          setShowTambahSoal(false);
-          fetchData(); // refresh setelah tambah
-        }}
-        kelas={kelasInfo}
-        mapel={mapelInfo}
-      />
     </div>
   );
 };
 
-export default DetailBankSoal;
+export default BankSoalTrash;

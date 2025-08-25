@@ -14,6 +14,13 @@ export const getAllRekapBankSoal = async () => {
 };
 
 // ==============================
+// Get inactive soal
+// ==============================
+export const getInActiveBankSoal = async () => {
+  const res = await axios.get(`${BASE_URL}/guru/banksoal/inactive`);
+  return res.data;
+};
+// ==============================
 // Get all active lampiran
 // ==============================
 export const getActiveLampiran = async () => {
@@ -58,6 +65,13 @@ export const uploadLampiran = async (formData, onProgress = null) => {
 // ==============================
 // Soft delete lampiran
 // ==============================
+export const deleteSoal = async (SoalId) => {
+  const res = await axios.delete(`${BASE_URL}/guru/banksoal/${SoalId}`);
+  return res.data;
+};
+// ==============================
+// Soft delete lampiran
+// ==============================
 export const deleteLampiran = async (lampiranId) => {
   const res = await axios.delete(`${BASE_URL}/lampiran/${lampiranId}`);
   return res.data;
@@ -68,6 +82,14 @@ export const deleteLampiran = async (lampiranId) => {
 // ==============================
 export const restoreLampiran = async (lampiranId) => {
   const res = await axios.put(`${BASE_URL}/lampiran/restore/${lampiranId}`);
+  return res.data;
+};
+// ==============================
+// Restore Soal
+// ==============================
+export const restoreSoal = async (SoalId) => {
+  // console.log(SoalId);
+  const res = await axios.put(`${BASE_URL}/guru/banksoal/${SoalId}/restore`);
   return res.data;
 };
 
