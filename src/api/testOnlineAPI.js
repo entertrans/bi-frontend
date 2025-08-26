@@ -59,24 +59,24 @@ export const deleteTest = async (id) => {
 
 // ambil semua peserta by test
 export const getPesertaByTest = async (testID) => {
-  const res = await axios.get(`${BASE_URL}/peserta/test/${testID}`);
+  const res = await axios.get(`${BASE_URL}/testquis/peserta/test/${testID}`);
   return res.data;
 };
 
 // tambah peserta
 export const addPeserta = async (pesertaData) => {
-  const res = await axios.post(`${BASE_URL}/peserta`, pesertaData);
+  const res = await axios.post(`${BASE_URL}/testquis/peserta`, pesertaData);
   return res.data;
 };
 
 // update peserta
 export const updatePeserta = async (pesertaID, data) => {
-  const res = await axios.put(`${BASE_URL}/peserta/${pesertaID}`, data);
+  const res = await axios.put(`${BASE_URL}/testquis/peserta/${pesertaID}`, data);
   return res.data;
 };
 
 // hapus peserta
 export const deletePeserta = async (pesertaID) => {
-  const res = await axios.delete(`${BASE_URL}/peserta/${pesertaID}`);
+  const res = await axios.delete(`${BASE_URL}/testquis/peserta/${pesertaID}`);
   return res.data;
 };

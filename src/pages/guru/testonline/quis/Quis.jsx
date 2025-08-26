@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { getTestsByType } from "../../../../api/testOnlineAPI";
-import { HiPencil, HiTrash, HiUserGroup, HiPlay } from "react-icons/hi";
+import { HiPencil, HiTrash, HiUserGroup, HiPlay, HiDocumentText } from "react-icons/hi";
 import Swal from "sweetalert2";
-import SlideTambahTest from "./SlideTambahTest";
-import SlidePeserta from "./SlidePeserta"; // slide untuk lihat peserta
+import SlideTambahTest from "./SlideTambahQuis";
+import { formatTanggalLengkap } from "../../../../utils/date";
+import SlidePeserta from "./SlidePeserta";
+import SlideTambahSoalQuis from "./SlideTambahSoalQuis"; // baru
 
 const Quis = () => {
   const [tests, setTests] = useState([]);
   const [showTambahTest, setShowTambahTest] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
   const [showPeserta, setShowPeserta] = useState(false);
+  const [showSoal, setShowSoal] = useState(false);
 
   const fetchTests = async () => {
     try {
@@ -67,7 +70,7 @@ const Quis = () => {
                 <td className="px-6 py-4">{test?.mapel?.nm_mapel}</td>
                 <td className="px-6 py-4">
                   {test.deadline
-                    ? new Date(test.deadline).toLocaleString()
+                    ? formatTanggalLengkap(test.deadline)
                     : "-"}
                 </td>
                 <td className="px-6 py-4">
@@ -83,6 +86,15 @@ const Quis = () => {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex space-x-3">
+                    {/* Kelola Soal */}
+                    <HiDocumentText
+                      className="cursor-pointer hover:text-purple-600 text-xl"
+                      onClick={() => {
+                        setSelectedTest(test);
+                        setShowSoal(true);
+                      }}
+                    />
+
                     {/* Lihat Peserta */}
                     <HiUserGroup
                       className="cursor-pointer hover:text-blue-600 text-xl"
@@ -126,13 +138,18 @@ const Quis = () => {
       />
 
       {/* Slide Peserta */}
-      {showPeserta && (
-        <SlidePeserta
-          isOpen={showPeserta}
-          onClose={() => setShowPeserta(false)}
-          test={selectedTest}
-        />
-      )}
+      <SlidePeserta
+        isOpen={showPeserta}
+        onClose={() => setShowPeserta(false)}
+        test={selectedTest}
+      />
+
+      {/* Slide Tambah Soal */}
+      <SlideTambahSoalQuis
+        isOpen={showSoal}
+        onClose={() => setShowSoal(false)}
+        test={selectedTest}
+      />
     </div>
   );
 };
