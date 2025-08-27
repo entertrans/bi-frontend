@@ -71,7 +71,10 @@ export const addPeserta = async (pesertaData) => {
 
 // update peserta
 export const updatePeserta = async (pesertaID, data) => {
-  const res = await axios.put(`${BASE_URL}/testquis/peserta/${pesertaID}`, data);
+  const res = await axios.put(
+    `${BASE_URL}/testquis/peserta/${pesertaID}`,
+    data
+  );
   return res.data;
 };
 
@@ -79,4 +82,59 @@ export const updatePeserta = async (pesertaID, data) => {
 export const deletePeserta = async (pesertaID) => {
   const res = await axios.delete(`${BASE_URL}/testquis/peserta/${pesertaID}`);
   return res.data;
+};
+
+// ambil semua soal by test
+export const getTestSoalByTestId = async (testId) => {
+  try {
+    const res = await axios.get(`${BASE_URL}/test-soal/by-test/${testId}`);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching test soal:", error);
+    throw error;
+  }
+};
+
+// ambil detail soal by id
+export const getDetailTestSoal = async (soalId) => {
+  try {
+    const res = await axios.get(`${BASE_URL}/test-soal/detail/${soalId}`);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching detail test soal:", error);
+    throw error;
+  }
+};
+
+// buat soal baru
+export const createTestSoal = async (soalData) => {
+  try {
+    const res = await axios.post(`${BASE_URL}/test-soal/create`, soalData);
+    return res.data;
+  } catch (error) {
+    console.error("Error creating test soal:", error);
+    throw error;
+  }
+};
+
+// hapus soal
+export const deleteTestSoal = async (soalId) => {
+  try {
+    const res = await axios.delete(`${BASE_URL}/test-soal/delete/${soalId}`);
+    return res.data;
+  } catch (error) {
+    console.error("Error deleting test soal:", error);
+    throw error;
+  }
+};
+
+// update soal
+export const updateTestSoal = async (soalId, data) => {
+  try {
+    const res = await axios.put(`${BASE_URL}/test-soal/update/${soalId}`, data);
+    return res.data;
+  } catch (error) {
+    console.error("Error updating test soal:", error);
+    throw error;
+  }
 };

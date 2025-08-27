@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { Transition } from "@headlessui/react";
-import FormFields from "../../guru/banksoal/FormFields";
-import SlideGaleryLampiran from "../../guru/banksoal/SlideGaleryLampiran";
-import FormPilihanGanda from "../../guru/banksoal/tipeSoal/FormPilihanGanda";
-import FormBenarSalah from "../../guru/banksoal/tipeSoal/FormBenarSalah";
-import FormMatching from "../../guru/banksoal/tipeSoal/FormMatching";
-import FormUraian from "../../guru/banksoal/tipeSoal/FormUraian";
-import { createTestSoal } from "../../../api/testOnlineAPI"; // ⬅️ endpoint baru
-import { showToast } from "../../../utils/toast";
+import FormFields from "./FormFields";
+// import FormFields from "./FormFields";
+import SlideGaleryLampiran from "../../../guru/banksoal/SlideGaleryLampiran";
+import FormPilihanGanda from "../../../guru/banksoal/tipeSoal/FormPilihanGanda";
+import FormBenarSalah from "../../../guru/banksoal/tipeSoal/FormBenarSalah";
+import FormMatching from "../../../guru/banksoal/tipeSoal/FormMatching";
+import FormUraian from "../../../guru/banksoal/tipeSoal/FormUraian";
+import { createTestSoal } from "../../../../api/testOnlineAPI"; // ⬅️ endpoint baru
+import { showToast } from "../../../../utils/toast";
 
-const tipeSoalOptions = [
+const tipeSoalOptionsQuis = [
   { value: "pg", label: "Pilihan Ganda" },
   { value: "pg_kompleks", label: "Pilihan Ganda Kompleks" },
   { value: "uraian", label: "Uraian" },
-  { value: "bs", label: "Benar / Salah" },
   { value: "matching", label: "Mencocokkan" },
   { value: "isian_singkat", label: "Isian Singkat" },
 ];
@@ -114,20 +114,19 @@ const SlideFormTambahSoal = ({ isOpen, onClose, test }) => {
       jawaban_benar = JSON.stringify([jawabanBenar || ""]);
     }
 
-    const payload = {
-      test_id: test?.test_id, // ⬅️ bedanya, dikaitkan ke test
+    const payloadQuis = {
+      test_id: test?.test_id,
       tipe_soal: form.tipeSoal,
       pertanyaan: form.pertanyaan,
       bobot: Number(form.bobot),
       pilihan_jawaban,
       jawaban_benar,
-      lampiran_id: form.lampiran?.lampiran_id
-        ? Number(form.lampiran.lampiran_id)
-        : null,
+      lampiran_id: form.lampiran?.lampiran_id || null,
     };
-
     try {
-      await createTestSoal(payload);
+      // console.log(payloadQuis);
+
+      await createTestSoal(payloadQuis);
       showToast("Soal berhasil ditambahkan", "success");
       onClose();
     } catch (error) {
@@ -175,8 +174,7 @@ const SlideFormTambahSoal = ({ isOpen, onClose, test }) => {
                 <FormFields
                   form={form}
                   onChange={handleChange}
-                  tipeSoalOptions={tipeSoalOptions}
-                  hideKelasMapel // ⬅️ soal quis tidak pilih kelas/mapel lagi
+                  tipeSoalOptions={tipeSoalOptionsQuis}
                 />
 
                 {(form.tipeSoal === "pg" ||

@@ -9,7 +9,7 @@ import FormUraian from "../../guru/banksoal/tipeSoal/FormUraian";
 import { createSoal } from "../../../api/bankSoalAPI";
 import { showToast } from "../../../utils/toast";
 
-const tipeSoalOptions = [
+const tipeSoalOptionsBank = [
   { value: "pg", label: "Pilihan Ganda" },
   { value: "pg_kompleks", label: "Pilihan Ganda Kompleks" },
   { value: "uraian", label: "Uraian" },
@@ -132,8 +132,8 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
       jawaban_benar = JSON.stringify([jawabanBenar || ""]);
     }
 
-    const payload = {
-      guru_id: 1, // TODO: ambil dari auth
+    const payloadBank = {
+      guru_id: 1,
       mapel_id: Number(form.mapelID),
       kelas_id: Number(form.kelasID),
       tipe_soal: form.tipeSoal,
@@ -141,15 +141,13 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
       bobot: Number(form.bobot),
       pilihan_jawaban,
       jawaban_benar,
-      lampiran_id: form.lampiran?.lampiran_id
-        ? Number(form.lampiran.lampiran_id)
-        : null,
+      lampiran_id: form.lampiran?.lampiran_id || null,
     };
 
     // console.log("Data yang dikirim ke backend:", payload);
 
     try {
-      await createSoal(payload);
+      await createSoal(payloadBank);
       showToast("Soal berhasil ditambahkan", "success");
       onClose();
     } catch (error) {
@@ -203,8 +201,9 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
                 <FormFields
                   form={form}
                   onChange={handleChange}
-                  tipeSoalOptions={tipeSoalOptions}
+                  tipeSoalOptions={tipeSoalOptionsBank}
                 />
+
                 {(form.tipeSoal === "pg" ||
                   form.tipeSoal === "pg_kompleks") && (
                   <FormPilihanGanda
