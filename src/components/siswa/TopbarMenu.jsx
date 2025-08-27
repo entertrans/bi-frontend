@@ -1,6 +1,7 @@
 // src/components/siswa/TopbarMenu.jsx
 import React, { useRef } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { Link, useLocation } from "react-router-dom";
 
 const menuItems = [
   { name: "Beranda", path: "/siswa", icon: "🏠" },
@@ -17,6 +18,7 @@ const menuItems = [
 
 const TopbarMenu = () => {
   const scrollRef = useRef(null);
+  const location = useLocation(); // Untuk mengetahui route aktif
 
   const scrollLeft = () => {
     scrollRef.current.scrollBy({ left: -200, behavior: "smooth" });
@@ -42,15 +44,24 @@ const TopbarMenu = () => {
           ref={scrollRef}
           className="flex overflow-x-auto hide-scrollbar space-x-4 py-2 px-2"
         >
-          {menuItems.map((item, index) => (
-            <div
-              key={index}
-              className="min-w-max px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition cursor-pointer"
-            >
-              <span className="mr-1">{item.icon}</span>
-              {item.name}
-            </div>
-          ))}
+          {menuItems.map((item, index) => {
+            const isActive = location.pathname === item.path;
+            
+            return (
+              <Link
+                key={index}
+                to={item.path}
+                className={`min-w-max px-4 py-2 rounded-lg text-sm font-medium transition cursor-pointer flex items-center ${
+                  isActive
+                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+                    : "text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}
+              >
+                <span className="mr-1">{item.icon}</span>
+                {item.name}
+              </Link>
+            );
+          })}
         </div>
 
         {/* ➡️ Scroll Right */}

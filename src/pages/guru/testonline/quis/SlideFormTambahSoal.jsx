@@ -18,7 +18,7 @@ const tipeSoalOptionsQuis = [
   { value: "isian_singkat", label: "Isian Singkat" },
 ];
 
-const SlideFormTambahSoal = ({ isOpen, onClose, test }) => {
+const SlideFormTambahSoal = ({ isOpen, onClose, test, onSuccess }) => {
   const [openLampiran, setOpenLampiran] = useState(false);
   const [openMatchingGallery, setOpenMatchingGallery] = useState({
     index: null,
@@ -128,6 +128,26 @@ const SlideFormTambahSoal = ({ isOpen, onClose, test }) => {
 
       await createTestSoal(payloadQuis);
       showToast("Soal berhasil ditambahkan", "success");
+      // Reset form
+      setForm({
+        tipeSoal: "",
+        pertanyaan: "",
+        bobot: 1,
+        lampiran: null,
+      });
+      setPgOptions([
+        { key: "a", text: "" },
+        { key: "b", text: "" },
+        { key: "c", text: "" },
+        { key: "d", text: "" },
+        { key: "e", text: "" },
+      ]);
+      setJawabanBenar("");
+      setMatchingPairs([{ left: "", right: "" }]);
+
+      // Panggil callback
+      if (onSuccess) onSuccess();
+
       onClose();
     } catch (error) {
       showToast("Gagal menambahkan soal", "error");

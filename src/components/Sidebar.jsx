@@ -2,16 +2,25 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { FaChevronDown, FaChevronRight } from "react-icons/fa";
 import { menuConfig } from "./sidebarMenuConfig";
+import { useAuth } from "../contexts/AuthContext";
 
 // //sidebar-menu-config
 
 const Sidebar = ({ isCollapsed, role = "admin" }) => {
+    const { logout } = useAuth();
   const location = useLocation();
   const [openMenus, setOpenMenus] = useState({}); // submenu toggle by label
   const menus = menuConfig[role] || [];
 
   const toggleSubmenu = (label) => {
     setOpenMenus((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
+
+   const handleMenuClick = (menu) => {
+    if (menu.action === "logout") {
+      logout();
+      window.location.href = "/login"; // redirect ke login
+    }
   };
 
   return (
@@ -70,6 +79,27 @@ const Sidebar = ({ isCollapsed, role = "admin" }) => {
                       })}
                     </ul>
                   )}
+                  {menu.action === "logout" ? (
+                  <button
+                    onClick={() => handleMenuClick(menu)}
+                    className="flex items-center w-full p-2 rounded transition text-red-600 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    {menu.icon}
+                    {!isCollapsed && <span>{menu.label}</span>}
+                  </button>
+                ) : (
+                  <Link
+                    to={menu.path}
+                    className={`flex items-center p-2 rounded transition ${
+                      isActive
+                        ? "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 font-medium"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    {menu.icon}
+                    {!isCollapsed && <span>{menu.label}</span>}
+                  </Link>
+                )}
                 </li>
               );
             }

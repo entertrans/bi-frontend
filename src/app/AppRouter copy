@@ -1,39 +1,18 @@
 // src/app/AppRouter.js
-import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 import GuruLayout from "../layouts/GuruLayout";
 import SiswaLayout from "../layouts/SiswaLayout";
-import Login from "../pages/Login";
+
+// 👉 Langsung impor dari file masing-masing
 import adminRoutes from "../routes/AdminRouter";
 import guruRoutes from "../routes/GuruRouter";
 import siswaRoutes from "../routes/SiswaRouter";
-import { useAuth } from "../contexts/AuthContext";
-
-function LogoutPage() {
-  const { logout } = useAuth();
-
-  React.useEffect(() => {
-    logout();
-    window.location.href = "/login"; // redirect
-  }, [logout]);
-
-  return <p>Logging out...</p>;
-}
 
 const AppRouter = () => {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="/login" element={<Login />} />
-
-      {/* Logout routes */}
-      <Route path="/logout" element={<LogoutPage />} />
-      <Route path="/admin/logout" element={<LogoutPage />} />
-      <Route path="/guru/logout" element={<LogoutPage />} />
-      <Route path="/siswa/logout" element={<LogoutPage />} />
-
-      {/* Admin Routes */}
+      {/* 👉 ADMIN ROUTES */}
       {adminRoutes.map((route, idx) => (
         <Route
           key={idx}
@@ -42,7 +21,7 @@ const AppRouter = () => {
         />
       ))}
 
-      {/* Guru Routes */}
+      {/* 👉 GURU ROUTES */}
       {guruRoutes.map((route, idx) => (
         <Route
           key={idx}
@@ -51,7 +30,7 @@ const AppRouter = () => {
         />
       ))}
 
-      {/* Siswa Routes */}
+      {/* 👉 SISWA ROUTES */}
       {siswaRoutes.map((route, idx) => (
         <Route
           key={idx}
@@ -60,7 +39,7 @@ const AppRouter = () => {
         />
       ))}
 
-      {/* 404 */}
+      {/* 👉 404 Page */}
       <Route path="*" element={<div className="p-10">404 Not Found</div>} />
     </Routes>
   );

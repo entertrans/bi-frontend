@@ -160,7 +160,7 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
                 Peserta Test: {test?.judul}
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Kelas: {test?.kelas?.kelas_nama} | {test?.mapel?.nm_mapel}
+                {test?.kelas?.kelas} | {test?.mapel?.nm_mapel}
               </p>
             </div>
             <button
@@ -191,7 +191,7 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
                     <div>
                       <p className="font-medium">{siswa.nama}</p>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
-                        NIS: {siswa.nis} | Kelas: {siswa.kelas_nama || "-"}
+                        NIS: {siswa.nis} | {siswa.kelas}
                       </p>
                     </div>
                     <button
@@ -272,7 +272,7 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
                           <div>
                             <p className="font-medium">{siswa.nama}</p>
                             <p className="text-sm text-gray-600 dark:text-gray-300">
-                              NIS: {siswa.nis} | Kelas: {siswa.kelas_nama || "-"}
+                              NIS: {siswa.nis} | {siswa.kelas|| "-"}
                             </p>
                           </div>
                           <HiPlus className="text-green-600" size={18} />

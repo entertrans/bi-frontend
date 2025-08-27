@@ -6,6 +6,7 @@ import {
 } from "../../../../api/testOnlineAPI";
 import Swal from "sweetalert2";
 import SlideFormTambahSoal from "./SlideFormTambahSoal";
+import { showAlert } from "../../../../utils/toast";
 import { removeHTMLTags } from "../../../../utils/format";
 
 const SlideTambahSoalQuis = ({ isOpen, onClose, test }) => {
@@ -85,14 +86,14 @@ const SlideTambahSoalQuis = ({ isOpen, onClose, test }) => {
           const response = await deleteTestSoal(soal.testsoal_id);
 
           if (response.success) {
-            Swal.fire("Terhapus!", "Soal berhasil dihapus.", "success");
+            showAlert("Soal berhasil dihapus.", "success");
             fetchSoal();
           } else {
-            Swal.fire("Gagal!", response.message, "error");
+            showAlert("Soal gagal dihapus", "error");
           }
         } catch (error) {
           console.error("Error deleting soal:", error);
-          Swal.fire("Gagal!", "Soal gagal dihapus.", "error");
+           showAlert("Soal gagal dihapus", "error");
         }
       }
     });
@@ -221,7 +222,7 @@ const SlideTambahSoalQuis = ({ isOpen, onClose, test }) => {
         onClose={() => setShowForm(false)}
         test={test}
         soal={selectedSoal}
-        onSuccess={fetchSoal}
+        onSuccess={fetchSoal} // Ini sudah benar, pastikan tidak ada typo
       />
     </>
   );
