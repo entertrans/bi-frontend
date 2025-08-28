@@ -8,6 +8,7 @@ import Login from "../pages/Login";
 import adminRoutes from "../routes/AdminRouter";
 import guruRoutes from "../routes/GuruRouter";
 import siswaRoutes from "../routes/SiswaRouter";
+import CBTUjian from "../pages/siswa/testonline/CBTUjian";
 import { useAuth } from "../contexts/AuthContext";
 
 function LogoutPage() {
@@ -32,6 +33,8 @@ const AppRouter = () => {
       <Route path="/admin/logout" element={<LogoutPage />} />
       <Route path="/guru/logout" element={<LogoutPage />} />
       <Route path="/siswa/logout" element={<LogoutPage />} />
+      <Route path="/siswa/ujian/:sessionId" element={<CBTUjian />} />
+       {/* { path: "/siswa/ujian/:sessionId", element: <CBTUjian /> }, // ✅ tambahin ini */}
 
       {/* Admin Routes */}
       {adminRoutes.map((route, idx) => (

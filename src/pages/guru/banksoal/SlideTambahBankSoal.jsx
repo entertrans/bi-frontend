@@ -55,7 +55,9 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
     { key: "d", text: "" },
     { key: "e", text: "" },
   ]);
-  const [jawabanBenar, setJawabanBenar] = useState("");
+  const [jawabanBenar, setJawabanBenar] = useState(
+    form.tipeSoal === "pg_kompleks" ? [] : ""
+  );
   const [matchingPairs, setMatchingPairs] = useState([{ left: "", right: "" }]);
 
   const handleSelectMatchingLampiran = (lampiran) => {
@@ -87,7 +89,10 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
       { key: "d", text: "" },
       { key: "e", text: "" },
     ]);
-    setJawabanBenar("");
+
+    // Reset berdasarkan tipe soal yang aktif
+    setJawabanBenar(form.tipeSoal === "pg_kompleks" ? [] : "");
+
     setMatchingPairs([{ left: "", right: "" }]);
     setOpenMatchingGallery({ index: null, side: null });
   };
@@ -101,6 +106,14 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
     }
   };
 
+  useEffect(() => {
+    if (form.tipeSoal === "pg_kompleks") {
+      setJawabanBenar([]);
+    } else {
+      setJawabanBenar("");
+    }
+  }, [form.tipeSoal]);
+
   // 🟢 submit
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -108,12 +121,17 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
     let pilihan_jawaban = "[]";
     let jawaban_benar = "[]";
 
+    // Untuk PG biasa
     if (form.tipeSoal === "pg") {
       pilihan_jawaban = JSON.stringify(pgOptions.map((opt) => opt.text));
-      jawaban_benar = JSON.stringify([jawabanBenar]);
+      jawaban_benar = JSON.stringify([jawabanBenar.toString()]); // "0", "1", dst
+
+      // Untuk PG kompleks
     } else if (form.tipeSoal === "pg_kompleks") {
       pilihan_jawaban = JSON.stringify(pgOptions.map((opt) => opt.text));
-      jawaban_benar = JSON.stringify(jawabanBenar);
+      // Pastikan jawabanBenar adalah array of string
+      const jawabanString = jawabanBenar.map((item) => item.toString());
+      jawaban_benar = JSON.stringify(jawabanString); // ["0", "2"]
     } else if (form.tipeSoal === "matching") {
       pilihan_jawaban = JSON.stringify(
         matchingPairs.map((pair) => ({
@@ -149,6 +167,7 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
     try {
       await createSoal(payloadBank);
       showToast("Soal berhasil ditambahkan", "success");
+      resetForm();
       onClose();
     } catch (error) {
       showToast("Gagal menambahkan soal", "error");

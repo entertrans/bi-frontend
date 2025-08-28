@@ -139,12 +139,21 @@ export const updateTestSoal = async (soalId, data) => {
   }
 };
 
-// Mulai test baru
+export const getActiveTestSession = async (testId, nis) => {
+  try {
+    const response = await axios.get(`/siswa/test/${testId}/active-session`, {
+      params: { nis }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const startTest = async (testId, nis) => {
   const res = await axios.post(`/siswa/test/start/${testId}?nis=${nis}`);
   return res.data;
 };
-
 // Ambil sesi test siswa
 // export const getTestSession = async (testId, nis) => {
 //   const res = await axios.get(

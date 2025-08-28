@@ -86,19 +86,26 @@ export const terbilang = (angka) => {
   return angka === 0 ? "Nol" : konversi(angka);
 };
 
-// utils/htmlUtils.js
+// src/utils/format.js
 export const removeHTMLTags = (html) => {
   if (!html) return "";
-
-  // Menggunakan regex untuk menghapus tag HTML
-  return html.replace(/<[^>]*>/g, "");
-};
-
-// Alternatif: menggunakan DOM parser (lebih aman)
-export const stripHTMLTags = (html) => {
-  if (!html) return "";
-
+  
+  // Menggunakan DOM parser untuk ekstrak teks
   const tmp = document.createElement("DIV");
   tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || "";
+  
+  // Mengganti &nbsp; dan entity HTML lainnya dengan spasi biasa
+  return tmp.textContent
+    .replace(/\u00A0/g, ' ') // &nbsp;
+    .replace(/\s+/g, ' ') // Multiple spaces to single space
+    .trim();
+};
+
+// Alternatif: untuk menangani HTML entities dengan lebih baik
+export const decodeHTML = (html) => {
+  if (!html) return "";
+  
+  const txt = document.createElement("TEXTAREA");
+  txt.innerHTML = html;
+  return txt.value;
 };

@@ -9,7 +9,6 @@ const siswaRoutes = [
   { path: "/siswa/course", element: <Course /> },
   { path: "/siswa/test", element: <ListUjian /> },
   { path: "/siswa/tugas", element: <Tugas /> },
-  { path: "/siswa/ujian/:sessionId", element: <CBTUjian /> }, // ✅ tambahin ini
 ];
 
 export default siswaRoutes;
