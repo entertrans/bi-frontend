@@ -14,35 +14,15 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [testSession, setTestSession] = useState(null);
 
   useEffect(() => {
     // Check if user is logged in on app start
     const userData = authAPI.getCurrentUser();
-    const savedSession = localStorage.getItem("testSession");
-
     if (userData) {
       setUser(userData);
     }
-
-    if (savedSession) {
-      setTestSession(JSON.parse(savedSession));
-    }
-
     setLoading(false);
   }, []);
-
-  // Function to set test session
-  const setTestSessionData = (sessionData) => {
-    setTestSession(sessionData);
-    localStorage.setItem("testSession", JSON.stringify(sessionData));
-  };
-
-  // Function to clear test session
-  const clearTestSession = () => {
-    setTestSession(null);
-    localStorage.removeItem("testSession");
-  };
 
   const login = async (username, password) => {
     try {
@@ -57,7 +37,6 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     authAPI.logout();
     setUser(null);
-    clearTestSession(); // Clear session juga saat logout
   };
 
   const value = {
@@ -65,9 +44,6 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     loading,
-    testSession, // Export test session
-    setTestSession: setTestSessionData, // Export function to set session
-    clearTestSession, // Export function to clear session
     isAuthenticated: authAPI.isAuthenticated(),
   };
 

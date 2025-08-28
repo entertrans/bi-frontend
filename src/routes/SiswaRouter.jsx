@@ -1,16 +1,15 @@
-// src/routes/siswaRoutes.js
 import SiswaDashboard from "../pages/siswa/Dashboard";
 import Course from "../pages/siswa/Course";
-import Testonline from "../pages/siswa/testonline/TestonlineDashboard";
 import Tugas from "../pages/siswa/tugas/Tugas";
-// Import lainnya...
+import ListUjian from "../pages/siswa/testonline/ListUjian";
+import CBTUjian from "../pages/siswa/testonline/CBTUjian"; // import CBTUjian
 
 const siswaRoutes = [
   { path: "/siswa", element: <SiswaDashboard /> },
   { path: "/siswa/course", element: <Course /> },
-  { path: "/siswa/test", element: <Testonline /> },
+  { path: "/siswa/test", element: <ListUjian /> },
   { path: "/siswa/tugas", element: <Tugas /> },
-  // Tambahkan route lainnya sesuai menuItems
+  { path: "/siswa/ujian/:sessionId", element: <CBTUjian /> }, // ✅ tambahin ini
 ];
 
 export default siswaRoutes;

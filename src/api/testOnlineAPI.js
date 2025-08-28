@@ -138,3 +138,52 @@ export const updateTestSoal = async (soalId, data) => {
     throw error;
   }
 };
+
+// Mulai test baru
+export const startTest = async (testId, nis) => {
+  const res = await axios.post(`/siswa/test/start/${testId}?nis=${nis}`);
+  return res.data;
+};
+
+// Ambil sesi test siswa
+// export const getTestSession = async (testId, nis) => {
+//   const res = await axios.get(
+//     `${BASE_URL}/siswa/test/${testId}/session?nis=${nis}`
+//   );
+//   return res.data;
+// };
+
+// Submit test
+export const submitTest = async (sessionId) => {
+  const res = await axios.post(`${BASE_URL}/siswa/test/submit/${sessionId}`);
+  return res.data;
+};
+
+// Ambil semua test UB (Ujian Blok)
+export const getAllUBTests = async () => {
+  const res = await axios.get(`${BASE_URL}/siswa/tests/ub`);
+  return res.data;
+};
+
+// Ambil soal berdasarkan test ID
+export const getSoalByTestId = async (testId) => {
+  const res = await axios.get(`${BASE_URL}/siswa/test/${testId}/soal`);
+  return res.data;
+};
+
+// Simpan jawaban siswa
+export const saveJawaban = async (jawabanData) => {
+  const res = await axios.post(`${BASE_URL}/siswa/jawaban/save`, jawabanData);
+  return res.data;
+};
+
+export const getUBTestsByKelas = async (kelasId) => {
+  const res = await axios.get(`${BASE_URL}/siswa/tests/ub/kelas/${kelasId}`);
+  return res.data;
+};
+
+// testOnlineAPI.js
+export const getTestSession = async (sessionId) => {
+  const res = await axios.get(`${BASE_URL}/siswa/test/session/${sessionId}`);
+  return res.data;
+};
