@@ -14,6 +14,7 @@ import NavigationControls from "./NavigationControls";
 import DaftarSoalModal from "./DaftarSoalModal";
 import LoadingState from "./LoadingState";
 import ErrorState from "./ErrorState";
+import { processSoalWithShuffle } from "./shuffleUtils"; // Import fungsi shuffle
 
 const CBTUjian = () => {
   const { sessionId } = useParams();
@@ -49,7 +50,9 @@ const CBTUjian = () => {
 
         if (sessionData?.TestID) {
           const soalData = await getSoalByTestId(sessionData.TestID);
-          setSoal(soalData);
+          // Proses soal dengan shuffle
+          const processedSoal = processSoalWithShuffle(soalData);
+          setSoal(processedSoal);
 
           if (!judul && soalData.judul_test) {
             setJudul(soalData.judul_test);
@@ -69,7 +72,7 @@ const CBTUjian = () => {
     loadData();
   }, [sessionId]);
 
-  // Cek jawaban kosong
+  // Cek jawaban kosong - tambahkan case untuk "bs"
   const cekJawabanKosong = (soalId, jawabanSiswa, tipeSoal) => {
     if (!jawabanSiswa) return true;
 
@@ -83,6 +86,9 @@ const CBTUjian = () => {
         return jawabanSiswa.trim() === "";
       case "matching":
         return Object.values(jawabanSiswa).some((value) => value === "");
+      case "bs":
+        if (!Array.isArray(jawabanSiswa)) return true;
+        return jawabanSiswa.some((j) => !j || j === "");
       default:
         return true;
     }
@@ -172,6 +178,10 @@ const CBTUjian = () => {
         confirmButtonColor: "#3085d6",
         confirmButtonText: "Tutup",
       }).then(() => {
+        // 🚀 kirim sinyal ke tab utama
+        if (window.opener) {
+          window.opener.postMessage({ type: "UJIAN_SELESAI", sessionId }, "*");
+        }
         window.close();
       });
     } catch (err) {

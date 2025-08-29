@@ -193,6 +193,7 @@ const ListUjian = () => {
 
   const handleExpire = (testId) => {
     console.log(`Waktu ujian ${testId} habis`);
+    fetchUBTests();
     checkActiveSessions(tests);
   };
 

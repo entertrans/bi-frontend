@@ -26,6 +26,37 @@ const ListUjian = () => {
   const nis = user?.siswa?.siswa_nis;
   const kelasId = user?.siswa?.kelas?.kelas_id;
 
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data?.type === "UJIAN_SELESAI") {
+        refreshAll(); // 🚀 langsung refresh daftar + sessions
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [nis, kelasId]);
+
+  // 🔥 helper untuk refresh tests + sessions
+  const refreshAll = async () => {
+    try {
+      if (!kelasId) return;
+
+      setLoading(true);
+      const data = await getUBTestsByKelas(kelasId);
+      setTests(data);
+
+      if (nis) {
+        await checkActiveSessions(data);
+      }
+    } catch (err) {
+      console.error("Gagal refresh data:", err);
+      Swal.fire("Error", "Gagal refresh data ujian", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Fetch data mapel
   const fetchMapelOptions = async () => {
     try {
@@ -95,20 +126,23 @@ const ListUjian = () => {
 
       window.open(`/siswa/ujian/${session.SessionID}`, "_blank");
     } catch (err) {
-      Swal.fire(
-        "Error",
-        err.response?.data?.error || "Gagal melanjutkan ujian",
-        "error"
-      );
+      const msg = err.response?.data?.error || "Gagal melanjutkan ujian";
+
+      Swal.fire("Error", msg, "error").then(() => {
+        if (msg.includes("waktu ujian sudah habis")) {
+          refreshAll(); // 🚀 biar tombol langsung jadi "Lihat Nilai"
+        }
+      });
     }
   };
 
   useEffect(() => {
-    if (kelasId) {
-      fetchMapelOptions();
-      fetchUBTests();
-    }
-  }, [kelasId]);
+  if (kelasId) {
+    fetchMapelOptions();
+    refreshAll();
+  }
+}, [kelasId]);
+
 
   // Filter tests
   const filteredTests = useMemo(() => {

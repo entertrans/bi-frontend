@@ -1,7 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { getTestsByType } from "../../../../api/testOnlineAPI";
-import { HiPencil, HiTrash, HiUserGroup, HiPlay, HiDocumentText } from "react-icons/hi";
+import {
+  getTestsByType,
+  deleteTest,
+  createTest,
+} from "../../../../api/testOnlineAPI";
+import {
+  HiPencil,
+  HiTrash,
+  HiUserGroup,
+  HiPlay,
+  HiDocumentText,
+} from "react-icons/hi";
 import Swal from "sweetalert2";
+import { showAlert } from "../../../../utils/toast";
 import SlideTambahTest from "./SlideTambahQuis";
 import { formatTanggalLengkap } from "../../../../utils/date";
 import SlidePeserta from "./SlidePeserta";
@@ -9,10 +20,11 @@ import SlideTambahSoalQuis from "./SlideTambahSoalQuis"; // baru
 
 const Quis = () => {
   const [tests, setTests] = useState([]);
-  const [showTambahTest, setShowTambahTest] = useState(false);
   const [selectedTest, setSelectedTest] = useState(null);
   const [showPeserta, setShowPeserta] = useState(false);
   const [showSoal, setShowSoal] = useState(false);
+  const [showTambahTest, setShowTambahTest] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchTests = async () => {
     try {
@@ -20,6 +32,18 @@ const Quis = () => {
       setTests(data);
     } catch (err) {
       console.error("Gagal ambil data quis:", err);
+    }
+  };
+
+  const handleTambahTest = async (newTest) => {
+    try {
+      await createTest(newTest);
+      setRefreshTrigger((prev) => prev + 1);
+      setShowTambahTest(false);
+      showAlert("Test berhasil ditambahkan", "success");
+    } catch (err) {
+      console.error(err);
+      showAlert("Gagal menambahkan test", "error");
     }
   };
 
@@ -69,9 +93,7 @@ const Quis = () => {
                 <td className="px-6 py-4">{test?.kelas?.kelas_nama}</td>
                 <td className="px-6 py-4">{test?.mapel?.nm_mapel}</td>
                 <td className="px-6 py-4">
-                  {test.deadline
-                    ? formatTanggalLengkap(test.deadline)
-                    : "-"}
+                  {test.deadline ? formatTanggalLengkap(test.deadline) : "-"}
                 </td>
                 <td className="px-6 py-4">
                   {test.aktif === null && (
@@ -133,7 +155,7 @@ const Quis = () => {
       <SlideTambahTest
         isOpen={showTambahTest}
         onClose={() => setShowTambahTest(false)}
-        onSubmit={() => fetchTests()}
+        onSubmit={() => handleTambahTest()}
         type="quis"
       />
 
