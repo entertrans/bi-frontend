@@ -7,11 +7,20 @@ const FormPilihanGanda = ({
   jawabanBenar,
   setJawabanBenar,
   isKompleks = false,
+  errors,
+  setErrors,
 }) => {
   const handleOptionChange = (index, value) => {
     const newOptions = [...options];
     newOptions[index].text = value;
     setOptions(newOptions);
+
+    // hapus error kalau sudah diisi
+    if (errors && errors[`option_${index}`]) {
+      const newErrors = { ...errors };
+      delete newErrors[`option_${index}`];
+      setErrors(newErrors);
+    }
   };
 
   const toggleJawabanBenar = (index) => {
@@ -20,6 +29,37 @@ const FormPilihanGanda = ({
     } else {
       setJawabanBenar([...jawabanBenar, index]);
     }
+
+    // hapus error jawaban kalau sudah ada pilihan
+    if (errors?.jawabanBenar) {
+      const newErrors = { ...errors };
+      delete newErrors.jawabanBenar;
+      setErrors(newErrors);
+    }
+  };
+
+  // fungsi validasi (dipanggil parent)
+  const validate = () => {
+    const newErrors = {};
+
+    options.forEach((opt, i) => {
+      if (!opt.text || opt.text.trim() === "") {
+        newErrors[`option_${i}`] = `Pilihan ${String.fromCharCode(
+          65 + i
+        )} harus diisi`;
+      }
+    });
+
+    if (!isKompleks && (jawabanBenar === null || jawabanBenar === "")) {
+      newErrors.jawabanBenar = "Pilih jawaban yang benar";
+    }
+
+    if (isKompleks && (!jawabanBenar || jawabanBenar.length === 0)) {
+      newErrors.jawabanBenar = "Centang minimal 1 jawaban yang benar";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   return (
@@ -42,6 +82,9 @@ const FormPilihanGanda = ({
             placeholder={`Jawaban ${String.fromCharCode(65 + i)}`}
             toolbar="bold italic underline | bullist numlist | removeformat"
           />
+          {errors && errors[`option_${i}`] && (
+            <p className="text-red-500 text-sm mt-1">{errors[`option_${i}`]}</p>
+          )}
         </div>
       ))}
 
@@ -51,27 +94,40 @@ const FormPilihanGanda = ({
       </label>
 
       {!isKompleks ? (
-        // 🔸 Untuk PG biasa (single answer)
-        <select
-          value={jawabanBenar !== null ? jawabanBenar : ""}
-          onChange={(e) => setJawabanBenar(parseInt(e.target.value))}
-          className="w-full p-2 border border-gray-300 rounded bg-white dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-        >
-          <option value="">-- Pilih Jawaban Benar --</option>
-          {options.map(
-            (opt, i) =>
-              opt.text.trim() !== "" && (
-                <option key={i} value={i}>
-                  {String.fromCharCode(65 + i)}.{" "}
-                  {opt.text.replace(/<[^>]+>/g, "")}
-                </option>
-              )
+        <div>
+          <select
+            value={jawabanBenar !== null ? jawabanBenar : ""}
+            onChange={(e) => {
+              setJawabanBenar(parseInt(e.target.value));
+              if (errors?.jawabanBenar) {
+                const newErrors = { ...errors };
+                delete newErrors.jawabanBenar;
+                setErrors(newErrors);
+              }
+            }}
+            className={`w-full p-2 border rounded bg-white dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 ${
+              errors?.jawabanBenar
+                ? "border-red-500 focus:ring-red-500"
+                : "border-gray-300 focus:ring-blue-500"
+            }`}
+          >
+            <option value="">-- Pilih Jawaban Benar --</option>
+            {options.map(
+              (opt, i) =>
+                opt.text.trim() !== "" && (
+                  <option key={i} value={i}>
+                    {String.fromCharCode(65 + i)}.{" "}
+                    {opt.text.replace(/<[^>]+>/g, "")}
+                  </option>
+                )
+            )}
+          </select>
+          {errors?.jawabanBenar && (
+            <p className="text-red-500 text-sm mt-1">{errors.jawabanBenar}</p>
           )}
-        </select>
+        </div>
       ) : (
-        // 🔸 Untuk PG kompleks (multi answer)
-        <div className="w-full border border-gray-300 rounded p-3 bg-white dark:bg-gray-800 dark:text-white">
+        <div className="w-full border rounded p-3 bg-white dark:bg-gray-800 dark:text-white">
           {options.map(
             (opt, i) =>
               opt.text.trim() !== "" && (
@@ -85,7 +141,7 @@ const FormPilihanGanda = ({
                     type="checkbox"
                     checked={jawabanBenar.includes(i)}
                     onChange={() => toggleJawabanBenar(i)}
-                    className="w-4 h-4 text-black bg-gray-100 border-gray-300 rounded-sm focus:ring-black dark:focus:ring-gray-400 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                    className="w-4 h-4 text-black bg-gray-100 border-gray-300 rounded-sm focus:ring-black dark:focus:ring-gray-400 focus:ring-2"
                   />
                   <span className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
                     <span className="font-semibold mr-1">
@@ -96,10 +152,8 @@ const FormPilihanGanda = ({
                 </label>
               )
           )}
-          {jawabanBenar.length === 0 && (
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Centang satu atau lebih jawaban yang benar
-            </p>
+          {errors?.jawabanBenar && (
+            <p className="text-red-500 text-sm mt-1">{errors.jawabanBenar}</p>
           )}
         </div>
       )}

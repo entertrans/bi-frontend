@@ -19,6 +19,7 @@ const tipeSoalOptionsBank = [
 ];
 
 const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
+  const [errors, setErrors] = useState({});
   const [openLampiran, setOpenLampiran] = useState(false);
   const [openMatchingGallery, setOpenMatchingGallery] = useState({
     index: null,
@@ -89,6 +90,7 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
       { key: "d", text: "" },
       { key: "e", text: "" },
     ]);
+    setBsPernyataan([{ teks: "", jawaban: "" }]);
 
     // Reset berdasarkan tipe soal yang aktif
     setJawabanBenar(form.tipeSoal === "pg_kompleks" ? [] : "");
@@ -96,6 +98,7 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
     setMatchingPairs([{ left: "", right: "" }]);
     setOpenMatchingGallery({ index: null, side: null });
   };
+  const [bsPernyataan, setBsPernyataan] = useState([{ teks: "", jawaban: "" }]);
 
   // 🟢 handler form umum
   const handleChange = (field, value) => {
@@ -117,21 +120,74 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
   // 🟢 submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+    let newErrors = {};
 
+    // === VALIDASI UTAMA ===
+    if (!form.tipeSoal) {
+      newErrors.tipeSoal = "Tipe soal harus dipilih";
+    }
+    if (!form.pertanyaan.trim()) {
+      newErrors.pertanyaan = "Pertanyaan tidak boleh kosong";
+    }
+
+    // === VALIDASI TIPE SOAL ===
+    if (form.tipeSoal === "pg" || form.tipeSoal === "pg_kompleks") {
+      pgOptions.forEach((opt, i) => {
+        if (!opt.text.trim()) {
+          newErrors[`pg_${i}`] = `Pilihan ${String.fromCharCode(
+            65 + i
+          )} kosong`;
+        }
+      });
+
+      if (form.tipeSoal === "pg" && jawabanBenar === "") {
+        newErrors.jawabanBenar = "Pilih jawaban benar";
+      }
+      if (form.tipeSoal === "pg_kompleks" && jawabanBenar.length === 0) {
+        newErrors.jawabanBenar = "Minimal satu jawaban benar";
+      }
+    }
+
+    if (form.tipeSoal === "bs") {
+      bsPernyataan.forEach((p, i) => {
+        if (!p.teks.trim()) {
+          newErrors[`pernyataan_${i}`] = "Pernyataan harus diisi";
+        }
+        if (!p.jawaban) {
+          newErrors[`jawaban_${i}`] = "Jawaban harus dipilih";
+        }
+      });
+    }
+
+    if (form.tipeSoal === "matching") {
+      matchingPairs.forEach((pair, i) => {
+        if (!pair.left && !pair.leftLampiran) {
+          newErrors[`matching_left_${i}`] = "Isi teks/gambar sisi kiri";
+        }
+        if (!pair.right && !pair.rightLampiran) {
+          newErrors[`matching_right_${i}`] = "Isi teks/gambar sisi kanan";
+        }
+      });
+    }
+
+    // set error ke state
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      showToast("Isi semua form terlebih dahulu", "error"); // ✅ alert
+      return;
+    }
+
+    // === LANJUT PROSES SUBMIT ===
     let pilihan_jawaban = "[]";
     let jawaban_benar = "[]";
 
-    // Untuk PG biasa
     if (form.tipeSoal === "pg") {
       pilihan_jawaban = JSON.stringify(pgOptions.map((opt) => opt.text));
-      jawaban_benar = JSON.stringify([jawabanBenar.toString()]); // "0", "1", dst
-
-      // Untuk PG kompleks
+      jawaban_benar = JSON.stringify([jawabanBenar.toString()]);
     } else if (form.tipeSoal === "pg_kompleks") {
       pilihan_jawaban = JSON.stringify(pgOptions.map((opt) => opt.text));
-      // Pastikan jawabanBenar adalah array of string
-      const jawabanString = jawabanBenar.map((item) => item.toString());
-      jawaban_benar = JSON.stringify(jawabanString); // ["0", "2"]
+      jawaban_benar = JSON.stringify(jawabanBenar.map((i) => i.toString()));
     } else if (form.tipeSoal === "matching") {
       pilihan_jawaban = JSON.stringify(
         matchingPairs.map((pair) => ({
@@ -142,7 +198,15 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
         }))
       );
     } else if (form.tipeSoal === "bs") {
-      jawaban_benar = JSON.stringify([jawabanBenar]);
+      // Pilihan jawaban = array object { teks }
+      pilihan_jawaban = JSON.stringify(
+        bsPernyataan.map((p) => ({
+          teks: p.teks.trim(),
+        }))
+      );
+
+      // Jawaban benar = array string ("benar"/"salah")
+      jawaban_benar = JSON.stringify(bsPernyataan.map((p) => p.jawaban));
     } else if (
       form.tipeSoal === "uraian" ||
       form.tipeSoal === "isian_singkat"
@@ -162,7 +226,7 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
       lampiran_id: form.lampiran?.lampiran_id || null,
     };
 
-    // console.log("Data yang dikirim ke backend:", payload);
+    // console.log("Data ke backend:", payloadBank);
 
     try {
       await createSoal(payloadBank);
@@ -171,7 +235,6 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
       onClose();
     } catch (error) {
       showToast("Gagal menambahkan soal", "error");
-      console.error("Error creating soal:", error);
     }
   };
 
@@ -221,6 +284,8 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
                   form={form}
                   onChange={handleChange}
                   tipeSoalOptions={tipeSoalOptionsBank}
+                  errors={errors}
+                  setErrors={setErrors}
                 />
 
                 {(form.tipeSoal === "pg" ||
@@ -231,13 +296,17 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
                     jawabanBenar={jawabanBenar}
                     setJawabanBenar={setJawabanBenar}
                     isKompleks={form.tipeSoal === "pg_kompleks"}
+                    errors={errors}
+                    setErrors={setErrors}
                   />
                 )}
 
                 {form.tipeSoal === "bs" && (
                   <FormBenarSalah
-                    jawabanBenar={jawabanBenar}
-                    setJawabanBenar={setJawabanBenar}
+                    pernyataan={bsPernyataan}
+                    setPernyataan={setBsPernyataan}
+                    errors={errors}
+                    setErrors={setErrors}
                   />
                 )}
 
@@ -246,6 +315,8 @@ const SlideTambahBankSoal = ({ isOpen, onClose, kelas, mapel }) => {
                     pairs={matchingPairs}
                     setPairs={setMatchingPairs}
                     onOpenGallery={setOpenMatchingGallery}
+                    errors={errors}
+                    setErrors={setErrors}
                   />
                 )}
 

@@ -5,18 +5,13 @@ import {
   getActiveTestSession,
 } from "../../../api/testOnlineAPI";
 import { fetchAllMapelByKelas } from "../../../api/siswaAPI";
-import {
-  HiPlay,
-  HiFilter,
-  HiChevronLeft,
-  HiChevronRight,
-  HiRefresh,
-  HiClock,
-} from "react-icons/hi";
-import { formatTanggalLengkap } from "../../../utils/date";
 import Swal from "sweetalert2";
 import { useAuth } from "../../../contexts/AuthContext";
-import Countdown from "react-countdown";
+import FilterSection from "./FilterSection";
+import LoadingState from "./LoadingState";
+import ActiveTestsTable from "./ActiveTestsTable";
+import ExpiredTestsTable from "./ExpiredTestsTable";
+import Pagination from "./Pagination";
 
 const ListUjian = () => {
   const [tests, setTests] = useState([]);
@@ -26,7 +21,6 @@ const ListUjian = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [loading, setLoading] = useState(false);
-  const [checkingSessions, setCheckingSessions] = useState({});
 
   const { user } = useAuth();
   const nis = user?.siswa?.siswa_nis;
@@ -66,18 +60,17 @@ const ListUjian = () => {
     }
   };
 
-  // Cek session aktif - DIPERBAIKI
+  // Cek session aktif
   const checkActiveSessions = async (testsData) => {
     const sessions = {};
 
     for (const test of testsData) {
       try {
         const session = await getActiveTestSession(test.test_id, nis);
-        if (session && session.Status === "in_progress") {
-          sessions[test.test_id] = session;
+        if (session) {
+          sessions[test.test_id] = session; // ✅ simpan meskipun submitted
         }
       } catch (err) {
-        // Tidak ada session aktif atau session sudah expired
         sessions[test.test_id] = null;
       }
     }
@@ -85,7 +78,7 @@ const ListUjian = () => {
     setActiveSessions(sessions);
   };
 
-  // Handler untuk lanjutkan ujian - DIPERBAIKI
+  // Handler untuk lanjutkan ujian
   const handleLanjutkan = async (testId) => {
     try {
       if (!nis) {
@@ -93,14 +86,12 @@ const ListUjian = () => {
         return;
       }
 
-      // Gunakan startTest untuk memastikan waktu sisa dihitung ulang
       const session = await startTest(testId, nis);
 
       if (!session || !session.SessionID) {
         Swal.fire("Error", "Session aktif tidak ditemukan", "error");
         return;
       }
-      console.log(testId);
 
       window.open(`/siswa/ujian/${session.SessionID}`, "_blank");
     } catch (err) {
@@ -144,7 +135,6 @@ const ListUjian = () => {
     indexOfFirstItem,
     indexOfLastItem
   );
-  const currentExpiredTests = expiredTests.slice(0, 5);
 
   const totalPages = Math.ceil(activeTests.length / itemsPerPage);
 
@@ -191,268 +181,35 @@ const ListUjian = () => {
     }
   };
 
-  const handleExpire = (testId) => {
-    console.log(`Waktu ujian ${testId} habis`);
-    checkActiveSessions(tests);
-  };
-
   return (
     <div className="p-6 bg-white dark:bg-gray-800 shadow rounded-lg">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <h1 className="text-2xl font-bold text-purple-600 mb-4 md:mb-0">
-          Daftar Ujian
-        </h1>
-
-        {/* Filter Mapel */}
-        <div className="flex items-center gap-3">
-          <HiFilter className="text-gray-600 text-xl" />
-          <select
-            value={selectedMapel}
-            onChange={(e) => setSelectedMapel(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-          >
-            <option value="">Semua Mata Pelajaran</option>
-            {mapelOptions.map((mapel) => (
-              <option key={mapel.kd_mapel} value={mapel.kd_mapel}>
-                {mapel.nm_mapel}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <FilterSection
+        selectedMapel={selectedMapel}
+        setSelectedMapel={setSelectedMapel}
+        mapelOptions={mapelOptions}
+      />
 
       {loading ? (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-          <p className="mt-3 text-gray-600">Memuat data ujian...</p>
-        </div>
+        <LoadingState />
       ) : (
         <>
-          {/* Active Tests */}
-          <div className="mb-8">
-            {activeTests.length === 0 ? (
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 text-center">
-                <p className="text-gray-500 dark:text-gray-400">
-                  {selectedMapel
-                    ? "Tidak ada ujian aktif untuk mata pelajaran ini"
-                    : "Tidak ada ujian aktif"}
-                </p>
-              </div>
-            ) : (
-              <>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead className="bg-gray-100 dark:bg-gray-700">
-                      <tr>
-                        <th className="px-6 py-3 text-left">Judul Ujian</th>
-                        <th className="px-6 py-3 text-left">Mata Pelajaran</th>
-                        <th className="px-6 py-3 text-left">Jumlah Soal</th>
-                        <th className="px-6 py-3 text-left">Durasi</th>
-                        <th className="px-6 py-3 text-left">Status</th>
-                        <th className="px-6 py-3 text-left">Sisa Waktu</th>
-                        <th className="px-6 py-3 text-left">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                      {currentActiveTests.map((test) => {
-                        const session = activeSessions[test.test_id];
-                        const hasActiveSession = !!session;
-                        
+          <ActiveTestsTable
+            tests={currentActiveTests}
+            activeSessions={activeSessions}
+            onKerjakan={handleKerjakan}
+            onLanjutkan={handleLanjutkan}
+          />
 
-                      
-                        return (
-                          <tr
-                            key={test.test_id}
-                            className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                          >
-                            <td className="px-6 py-4 font-medium">
-                              <div>
-                                <div className="font-semibold">
-                                  {test.judul}
-                                </div>
-                                {test.deskripsi && (
-                                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                    {test.deskripsi}
-                                  </div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              {test?.mapel?.nm_mapel || "-"}
-                            </td>
-                            <td className="px-6 py-4">
-                              {test.jumlah_soal_tampil || 0} soal
-                            </td>
-                            <td className="px-6 py-4">
-                              {test.durasi_menit} menit
-                            </td>
-                            <td className="px-6 py-4">
-                              {hasActiveSession ? (
-                                <span className="text-green-600 font-semibold">
-                                  Dalam Proses
-                                </span>
-                              ) : (
-                                <span className="text-blue-600">
-                                  Belum Dimulai
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-6 py-4">
-                              {hasActiveSession && (
-                                <div className="flex items-center gap-2">
-                                  <HiClock className="text-yellow-500" />
-                                  <Countdown
-                                    date={
-                                      new Date(
-                                        activeSessions[test.test_id].EndTime
-                                      )
-                                    }
-                                    renderer={({
-                                      hours,
-                                      minutes,
-                                      seconds,
-                                      completed,
-                                    }) => {
-                                      if (completed) {
-                                        return (
-                                          <span className="text-red-500">
-                                            Selesai
-                                          </span>
-                                        );
-                                      }
-                                      return (
-                                        <span className="text-green-400">
-                                          {hours > 0 ? `${hours}:` : ""}
-                                          {minutes.toString().padStart(2, "0")}:
-                                          {seconds.toString().padStart(2, "0")}
-                                        </span>
-                                      );
-                                    }}
-                                  />
-                                  
-                                </div>
-                              )}
-                            </td>
-                            <td className="px-6 py-4">
-                              {hasActiveSession ? (
-                                <button
-                                  onClick={() => handleLanjutkan(test.test_id)}
-                                  className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
-                                >
-                                  <HiRefresh className="text-lg" />
-                                  Lanjutkan
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() =>
-                                    handleKerjakan(
-                                      test.test_id,
-                                      test.judul,
-                                      test.durasi_menit
-                                    )
-                                  }
-                                  className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
-                                >
-                                  <HiPlay className="text-lg" />
-                                  Kerjakan
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex justify-center mt-6">
-                    <nav className="flex items-center gap-2">
-                      <button
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
-                      >
-                        <HiChevronLeft className="text-xl" />
-                      </button>
-
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                        (page) => (
-                          <button
-                            key={page}
-                            onClick={() => handlePageChange(page)}
-                            className={`px-3 py-2 rounded-lg border ${
-                              currentPage === page
-                                ? "bg-purple-600 text-white border-purple-600"
-                                : "border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        )
-                      )}
-
-                      <button
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-700"
-                      >
-                        <HiChevronRight className="text-xl" />
-                      </button>
-                    </nav>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Expired Tests */}
           {expiredTests.length > 0 && (
-            <div>
-              <h2 className="text-xl font-semibold text-red-600 mb-4">
-                Ujian Kadaluarsa ({expiredTests.length})
-              </h2>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 opacity-70">
-                  <thead className="bg-gray-100 dark:bg-gray-700">
-                    <tr>
-                      <th className="px-6 py-3 text-left">Judul Ujian</th>
-                      <th className="px-6 py-3 text-left">Mata Pelajaran</th>
-                      <th className="px-6 py-3 text-left">Jumlah Soal</th>
-                      <th className="px-6 py-3 text-left">Durasi</th>
-                      <th className="px-6 py-3 text-left">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {currentExpiredTests.map((test) => (
-                      <tr key={test.test_id}>
-                        <td className="px-6 py-4">
-                          <div>
-                            <div className="font-medium">{test.judul}</div>
-                            {test.deskripsi && (
-                              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                {test.deskripsi}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {test?.mapel?.nm_mapel || "-"}
-                        </td>
-                        <td className="px-6 py-4">
-                          {test.jumlah_soal_tampil || 0} soal
-                        </td>
-                        <td className="px-6 py-4">{test.durasi_menit} menit</td>
-                        <td className="px-6 py-4 text-red-500 font-semibold">
-                          Kadaluarsa
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <ExpiredTestsTable tests={expiredTests.slice(0, 5)} />
           )}
         </>
       )}
