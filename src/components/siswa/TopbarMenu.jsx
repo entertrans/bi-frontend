@@ -12,7 +12,7 @@ const menuItems = [
   { name: "Nilai", path: "/siswa/nilai", icon: "📊" },
   { name: "Absensi", path: "/siswa/absensi", icon: "✅" },
   { name: "Test Online", path: "/siswa/test", icon: "🧑‍💻" },
-  { name: "Kuis", path: "/siswa/kuis", icon: "❓" },
+  { name: "Test Review", path: "/siswa/review", icon: "❓" },
   { name: "Tugas", path: "/siswa/tugas", icon: "📝" },
 ];
 
@@ -46,7 +46,7 @@ const TopbarMenu = () => {
         >
           {menuItems.map((item, index) => {
             const isActive = location.pathname === item.path;
-            
+
             return (
               <Link
                 key={index}

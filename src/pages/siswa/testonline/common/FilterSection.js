@@ -1,11 +1,16 @@
 import React from "react";
 import { HiFilter } from "react-icons/hi";
 
-const FilterSection = ({ selectedMapel, setSelectedMapel, mapelOptions }) => {
+const FilterSection = ({
+  selectedMapel,
+  setSelectedMapel,
+  mapelOptions,
+  judul,
+}) => {
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
       <h1 className="text-2xl font-bold text-purple-600 mb-4 md:mb-0">
-        Daftar Ujian
+        {judul}
       </h1>
 
       <div className="flex items-center gap-3">

@@ -1,5 +1,5 @@
 import React from "react";
-import { removeHTMLTags } from "../../../utils/format";
+import { removeHTMLTags } from "../../../../utils/format";
 import CountdownTimer from "./CountdownTimer";
 
 const HeaderUjian = ({

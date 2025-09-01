@@ -59,20 +59,20 @@ export const deleteTest = async (id) => {
 
 // ambil semua peserta by test
 export const getPesertaByTest = async (testID) => {
-  const res = await axios.get(`${BASE_URL}/testquis/peserta/test/${testID}`);
+  const res = await axios.get(`${BASE_URL}/testreview/peserta/test/${testID}`);
   return res.data;
 };
 
 // tambah peserta
 export const addPeserta = async (pesertaData) => {
-  const res = await axios.post(`${BASE_URL}/testquis/peserta`, pesertaData);
+  const res = await axios.post(`${BASE_URL}/testreview/peserta`, pesertaData);
   return res.data;
 };
 
 // update peserta
 export const updatePeserta = async (pesertaID, data) => {
   const res = await axios.put(
-    `${BASE_URL}/testquis/peserta/${pesertaID}`,
+    `${BASE_URL}/testreview/peserta/${pesertaID}`,
     data
   );
   return res.data;
@@ -80,7 +80,7 @@ export const updatePeserta = async (pesertaID, data) => {
 
 // hapus peserta
 export const deletePeserta = async (pesertaID) => {
-  const res = await axios.delete(`${BASE_URL}/testquis/peserta/${pesertaID}`);
+  const res = await axios.delete(`${BASE_URL}/testreview/peserta/${pesertaID}`);
   return res.data;
 };
 
@@ -139,28 +139,31 @@ export const updateTestSoal = async (soalId, data) => {
   }
 };
 
+// api/testOnlineAPI.js
 export const getActiveTestSession = async (testId, nis) => {
   try {
-    const response = await axios.get(`/siswa/test/${testId}/active-session`, {
-      params: { nis }
-    });
-    return response.data;
+    const res = await axios.get(
+      `${BASE_URL}/siswa/test/${testId}/active-session?nis=${nis}`
+    );
+    return res.data; // null jika tidak ada session
   } catch (error) {
+    if (error.response?.status === 404) return null;
     throw error;
   }
 };
 
+// Mulai session baru + ambil soal fix
 export const startTest = async (testId, nis) => {
-  const res = await axios.post(`/siswa/test/start/${testId}?nis=${nis}`);
-  return res.data;
+  const res = await axios.post(
+    `${BASE_URL}/siswa/test/start/${testId}?nis=${nis}`
+  );
+  return res.data; // session + soal fix
 };
-// Ambil sesi test siswa
-// export const getTestSession = async (testId, nis) => {
-//   const res = await axios.get(
-//     `${BASE_URL}/siswa/test/${testId}/session?nis=${nis}`
-//   );
-//   return res.data;
-// };
+// Load soal fix + jawaban lama berdasarkan session
+export const continueTest = async (sessionId) => {
+  const res = await axios.get(`${BASE_URL}/siswa/test/lanjut/${sessionId}`);
+  return res.data; // { session, soal, jawaban }
+};
 
 // Submit test
 export const submitTest = async (sessionId) => {
@@ -176,8 +179,12 @@ export const getAllUBTests = async () => {
 
 // Ambil soal berdasarkan test ID
 export const getSoalByTestId = async (testId) => {
-  const res = await axios.get(`${BASE_URL}/siswa/test/${testId}/soal`);
-  return res.data;
+  try {
+    const response = await axios.get(`/siswa/test/${testId}/soal`);
+    return response.data; // Sekarang response adalah object, bukan array
+  } catch (error) {
+    throw error;
+  }
 };
 
 // Simpan jawaban siswa
@@ -186,13 +193,15 @@ export const saveJawaban = async (jawabanData) => {
   return res.data;
 };
 
-export const getUBTestsByKelas = async (kelasId) => {
-  const res = await axios.get(`${BASE_URL}/siswa/tests/ub/kelas/${kelasId}`);
-  return res.data;
-};
-
 // testOnlineAPI.js
 export const getTestSession = async (sessionId) => {
   const res = await axios.get(`${BASE_URL}/siswa/test/session/${sessionId}`);
+  return res.data; // session lengkap + waktu sisa
+};
+
+export const gettestbykelas = async (type, kelasId) => {
+  const res = await axios.get(
+    `${BASE_URL}/siswa/tests/by-type/${type}/kelas/${kelasId}`
+  );
   return res.data;
 };

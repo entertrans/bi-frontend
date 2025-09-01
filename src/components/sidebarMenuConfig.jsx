@@ -186,9 +186,14 @@ export const menuConfig = {
           key: "guru-test-ub",
         },
         {
-          label: "Test / Quis",
-          path: "/guru/test-online/quis",
-          key: "guru-test-quis",
+          label: "Test Review",
+          path: "/guru/test-online/TR",
+          key: "guru-test-review",
+        },
+        {
+          label: "Tugas",
+          path: "/guru/test-online/tugas",
+          key: "guru-tugas",
         },
       ],
     },

@@ -5,24 +5,35 @@ import {
   createTest,
 } from "../../../../api/testOnlineAPI";
 import { fetchAllkelas, fetchAllMapelByKelas } from "../../../../api/siswaAPI";
-import { HiPencil, HiTrash } from "react-icons/hi";
+import {
+  HiPencil,
+  HiTrash,
+  HiDocumentText,
+  HiUserGroup,
+  HiPlay,
+} from "react-icons/hi";
 import Swal from "sweetalert2";
 import { showAlert } from "../../../../utils/toast";
 import SlideTambahTest from "../common/SlideTambahTest";
+import SlidePeserta from "../common/SlidePeserta";
+import SlideTambahSoal from "../common/SlideTambahSoal";
 
-const UlanganBulanan = () => {
+const TestReview = () => {
   const [tests, setTests] = useState([]);
   const [kelasList, setKelasList] = useState({ aktif: [] });
   const [mapelList, setMapelList] = useState([]);
   const [selectedKelas, setSelectedKelas] = useState("");
   const [selectedMapel, setSelectedMapel] = useState("");
+  const [selectedTest, setSelectedTest] = useState(null);
 
   const [showTambahTest, setShowTambahTest] = useState(false);
+  const [showPeserta, setShowPeserta] = useState(false);
+  const [showSoal, setShowSoal] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchData = async () => {
     try {
-      const data = await getTestsByType("ub");
+      const data = await getTestsByType("tr"); // Ubah type menjadi "tr"
       setTests(data);
     } catch (err) {
       console.error("Gagal ambil data test:", err);
@@ -69,7 +80,7 @@ const UlanganBulanan = () => {
 
   const handleDelete = (testID) => {
     Swal.fire({
-      title: "Hapus Test?",
+      title: "Hapus Test Review?",
       text: "Test akan dihapus permanen.",
       icon: "warning",
       showCancelButton: true,
@@ -87,7 +98,7 @@ const UlanganBulanan = () => {
         try {
           await deleteTest(testID);
           setTests((prev) => prev.filter((t) => t.test_id !== testID));
-          showAlert("Test berhasil dihapus.", "success");
+          showAlert("Test Review berhasil dihapus.", "success");
         } catch (err) {
           console.error(err);
           showAlert("Gagal menghapus test.", "error");
@@ -101,7 +112,7 @@ const UlanganBulanan = () => {
       await createTest(newTest);
       setRefreshTrigger((prev) => prev + 1);
       setShowTambahTest(false);
-      showAlert("Test berhasil ditambahkan", "success");
+      showAlert("Test Review berhasil ditambahkan", "success");
     } catch (err) {
       console.error(err);
       showAlert("Gagal menambahkan test", "error");
@@ -123,7 +134,7 @@ const UlanganBulanan = () => {
     <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-          Daftar Ulangan Bulanan
+          Daftar Test Review
         </h1>
         <div className="flex space-x-2">
           <button
@@ -136,11 +147,10 @@ const UlanganBulanan = () => {
             onClick={() => setShowTambahTest(true)}
             className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
           >
-            + Tambah Test
+            + Tambah Test Review
           </button>
         </div>
       </div>
-
       {/* Search + Filter */}
       <div className="flex flex-col md:flex-row md:space-x-2 mb-4">
         <select
@@ -149,7 +159,6 @@ const UlanganBulanan = () => {
           onChange={(e) => setSelectedKelas(e.target.value)}
         >
           <option value="">-- Pilih Kelas --</option>
-
           {kelasList.aktif.map((k) => (
             <option key={k.kelas_id} value={k.kelas_id}>
               {k.kelas_nama}
@@ -171,7 +180,6 @@ const UlanganBulanan = () => {
           ))}
         </select>
       </div>
-
       {/* Tabel */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -184,14 +192,15 @@ const UlanganBulanan = () => {
               <th className="px-6 py-3 text-left">Durasi</th>
               <th className="px-6 py-3 text-left">Jumlah Soal</th>
               <th className="px-6 py-3 text-left">Acak Soal</th>
+              <th className="px-6 py-3 text-left">Status</th>
               <th className="px-6 py-3 text-left">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {filteredTests.length === 0 && (
               <tr>
-                <td colSpan={8} className="text-center py-4 text-gray-500">
-                  Tidak ada data test.
+                <td colSpan={9} className="text-center py-4 text-gray-500">
+                  Tidak ada data test review.
                 </td>
               </tr>
             )}
@@ -212,10 +221,51 @@ const UlanganBulanan = () => {
                   )}
                 </td>
                 <td className="px-6 py-4">
-                  <div className="flex space-x-2">
-                    <HiPencil className="cursor-pointer hover:text-blue-600 text-lg" />
+                  {test.aktif === 1 ? (
+                    <span className="text-green-600 font-semibold">Aktif</span>
+                  ) : (
+                    <span className="text-red-600 font-semibold">Nonaktif</span>
+                  )}
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex space-x-3">
+                    {/* Kelola Soal */}
+                    <HiDocumentText
+                      className="cursor-pointer hover:text-purple-600 text-xl"
+                      onClick={() => {
+                        setSelectedTest(test);
+                        setShowSoal(true);
+                      }}
+                    />
+
+                    {/* Lihat Peserta */}
+                    <HiUserGroup
+                      className="cursor-pointer hover:text-blue-600 text-xl"
+                      onClick={() => {
+                        setSelectedTest(test);
+                        setShowPeserta(true);
+                      }}
+                    />
+
+                    {/* Aktifkan */}
+                    <HiPlay
+                      className={`cursor-pointer text-xl ${
+                        test.aktif === 1
+                          ? "text-green-600"
+                          : "hover:text-green-600"
+                      }`}
+                      onClick={() => {
+                        Swal.fire(
+                          "Aktifkan Test Review",
+                          "Fitur coming soon",
+                          "info"
+                        );
+                      }}
+                    />
+
+                    {/* Hapus */}
                     <HiTrash
-                      className="cursor-pointer hover:text-red-600 text-lg"
+                      className="cursor-pointer hover:text-red-600 text-xl"
                       onClick={() => handleDelete(test.test_id)}
                     />
                   </div>
@@ -225,15 +275,27 @@ const UlanganBulanan = () => {
           </tbody>
         </table>
       </div>
-
+      {/* Slide Tambah Test Review */}
       <SlideTambahTest
         isOpen={showTambahTest}
         onClose={() => setShowTambahTest(false)}
         onSubmit={handleTambahTest}
-        type="ub" // Tentukan jenis test
+        type="tr" // Tentukan jenis test
+      />
+      {/* Slide Peserta */}
+      <SlidePeserta
+        isOpen={showPeserta}
+        onClose={() => setShowPeserta(false)}
+        test={selectedTest}
+      />
+      {/* Slide Tambah Soal */}
+      <SlideTambahSoal
+        isOpen={showSoal}
+        onClose={() => setShowSoal(false)}
+        test={selectedTest}
       />
     </div>
   );
 };
 
-export default UlanganBulanan;
+export default TestReview;

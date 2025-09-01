@@ -161,52 +161,18 @@ const CBTUjian = () => {
   };
 
   // Handle jawab
-  // Handle jawab
   const handleJawab = async (soalId, val) => {
     try {
-      const soalItem = soal.find((s) => s.soal_id === soalId);
-      if (!soalItem) return;
-
-      let payload = val;
-
-      // Format jawaban sesuai tipe soal
-      switch (soalItem.tipe_soal) {
-        case "bs":
-          // Pastikan val array of {index, jawaban}
-          if (!Array.isArray(val)) payload = [];
-          break;
-
-        case "matching":
-          // Pastikan val array of {leftIndex, rightIndex}
-          if (!Array.isArray(val)) payload = [];
-          break;
-
-        case "pg_kompleks":
-          // Array biasa (["A","C"])
-          if (!Array.isArray(val)) payload = [];
-          break;
-
-        case "pg":
-        case "isian_singkat":
-        case "uraian":
-        default:
-          // String biasa
-          if (typeof val !== "string") payload = String(val || "");
-          break;
-      }
-
-      // Update state lokal
-      setJawaban((prev) => ({ ...prev, [soalId]: payload }));
-
-      // Simpan ke backend
+      setJawaban((prev) => ({ ...prev, [soalId]: val }));
+      //  console.log(sessionId,soalId,val);
       await saveJawaban({
         session_id: parseInt(sessionId),
         soal_id: soalId,
-        jawaban_siswa: JSON.stringify(payload),
+        jawaban_siswa: JSON.stringify({ jawaban: val }),
         skor_objektif: 0,
       });
     } catch (err) {
-      console.error("Gagal simpan jawaban:", err);
+      Swal.fire("Error", "Gagal menyimpan jawaban", "error");
     }
   };
 

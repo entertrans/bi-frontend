@@ -1,17 +1,17 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
-  getUBTestsByKelas,
+  gettestbykelas,
   startTest,
   getActiveTestSession,
 } from "../../../api/testOnlineAPI";
 import { fetchAllMapelByKelas } from "../../../api/siswaAPI";
 import Swal from "sweetalert2";
 import { useAuth } from "../../../contexts/AuthContext";
-import FilterSection from "./FilterSection";
-import LoadingState from "./LoadingState";
-import ActiveTestsTable from "./ActiveTestsTable";
-import ExpiredTestsTable from "./ExpiredTestsTable";
-import Pagination from "./Pagination";
+import FilterSection from "./common/FilterSection";
+import LoadingState from "./common/LoadingState";
+import ActiveTestsTable from "./common/ActiveTestsTable";
+import ExpiredTestsTable from "./common/ExpiredTestsTable";
+import Pagination from "./common/Pagination";
 
 const ListUjian = () => {
   const [tests, setTests] = useState([]);
@@ -25,6 +25,7 @@ const ListUjian = () => {
   const { user } = useAuth();
   const nis = user?.siswa?.siswa_nis;
   const kelasId = user?.siswa?.kelas?.kelas_id;
+  const typeTest = "ub";
 
   useEffect(() => {
     const handleMessage = (event) => {
@@ -43,7 +44,7 @@ const ListUjian = () => {
       if (!kelasId) return;
 
       setLoading(true);
-      const data = await getUBTestsByKelas(kelasId);
+      const data = await gettestbykelas(typeTest, kelasId);
       setTests(data);
 
       if (nis) {
@@ -69,27 +70,6 @@ const ListUjian = () => {
   };
 
   // Fetch data ujian
-  const fetchUBTests = async () => {
-    try {
-      if (!kelasId) {
-        console.error("Kelas ID tidak ditemukan");
-        return;
-      }
-
-      setLoading(true);
-      const data = await getUBTestsByKelas(kelasId);
-      setTests(data);
-
-      if (nis) {
-        checkActiveSessions(data);
-      }
-    } catch (err) {
-      console.error("Gagal ambil data UB:", err);
-      Swal.fire("Error", "Gagal mengambil data ujian", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Cek session aktif
   const checkActiveSessions = async (testsData) => {
@@ -137,12 +117,11 @@ const ListUjian = () => {
   };
 
   useEffect(() => {
-  if (kelasId) {
-    fetchMapelOptions();
-    refreshAll();
-  }
-}, [kelasId]);
-
+    if (kelasId) {
+      fetchMapelOptions();
+      refreshAll();
+    }
+  }, [kelasId]);
 
   // Filter tests
   const filteredTests = useMemo(() => {
@@ -221,6 +200,7 @@ const ListUjian = () => {
         selectedMapel={selectedMapel}
         setSelectedMapel={setSelectedMapel}
         mapelOptions={mapelOptions}
+        judul="Daftar Ujian"
       />
 
       {loading ? (

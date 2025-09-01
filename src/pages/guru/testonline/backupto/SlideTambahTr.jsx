@@ -3,7 +3,7 @@ import { Transition } from "@headlessui/react";
 import { fetchAllkelas, fetchAllMapelByKelas } from "../../../../api/siswaAPI";
 import { showToast } from "../../../../utils/toast";
 
-const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
+const SlideTambahTr = ({ isOpen, onClose, onSubmit }) => {
   const [kelasList, setKelasList] = useState([]);
   const [mapelList, setMapelList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -12,7 +12,7 @@ const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
   const [form, setForm] = useState({
     kelas_id: "",
     mapel_id: "",
-    type_test: "quis",
+    type_test: "tr",
     judul: "",
     deskripsi: "",
     durasi_menit: 60,
@@ -28,9 +28,9 @@ const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
       // Set default deadline to tomorrow
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      setForm(prev => ({
+      setForm((prev) => ({
         ...prev,
-        deadline: tomorrow.toISOString().split('T')[0]
+        deadline: tomorrow.toISOString().split("T")[0],
       }));
     }
   }, [isOpen]);
@@ -39,13 +39,13 @@ const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
     try {
       setIsLoading(true);
       const kelasResponse = await fetchAllkelas();
-      
-      const kelasData = Array.isArray(kelasResponse?.aktif) 
-        ? kelasResponse.aktif 
+
+      const kelasData = Array.isArray(kelasResponse?.aktif)
+        ? kelasResponse.aktif
         : Array.isArray(kelasResponse)
         ? kelasResponse
         : [];
-      
+
       setKelasList(kelasData);
     } catch (error) {
       console.error("Gagal mengambil data kelas:", error);
@@ -132,7 +132,7 @@ const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
     setForm({
       kelas_id: "",
       mapel_id: "",
-      type_test: "quis",
+      type_test: "tr",
       judul: "",
       deskripsi: "",
       durasi_menit: 60,
@@ -168,12 +168,12 @@ const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
         <div className="fixed inset-y-0 right-0 max-w-full flex">
           <Transition.Child
             enter="transform transition ease-in-out duration-300"
-          enterFrom="translate-x-full"
-          enterTo="translate-x-0"
-          leave="transform transition ease-in-out duration-300"
-          leaveFrom="translate-x-0"
-          leaveTo="translate-x-full"
-          className="relative bg-white dark:bg-gray-800 w-full max-w-xl h-full shadow-xl"
+            enterFrom="translate-x-full"
+            enterTo="translate-x-0"
+            leave="transform transition ease-in-out duration-300"
+            leaveFrom="translate-x-0"
+            leaveTo="translate-x-full"
+            className="relative bg-white dark:bg-gray-800 w-full max-w-xl h-full shadow-xl"
           >
             <div className="w-screen max-w-md">
               <div className="h-full flex flex-col bg-white dark:bg-gray-800 shadow-xl overflow-y-auto">
@@ -201,9 +201,13 @@ const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
                         </label>
                         <select
                           value={form.kelas_id}
-                          onChange={(e) => handleChange("kelas_id", e.target.value)}
+                          onChange={(e) =>
+                            handleChange("kelas_id", e.target.value)
+                          }
                           className={`w-full p-2 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
-                            errors.kelas_id ? "border-red-500" : "border-gray-300"
+                            errors.kelas_id
+                              ? "border-red-500"
+                              : "border-gray-300"
                           }`}
                           disabled={isLoading}
                         >
@@ -228,9 +232,13 @@ const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
                         </label>
                         <select
                           value={form.mapel_id}
-                          onChange={(e) => handleChange("mapel_id", e.target.value)}
+                          onChange={(e) =>
+                            handleChange("mapel_id", e.target.value)
+                          }
                           className={`w-full p-2 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
-                            errors.mapel_id ? "border-red-500" : "border-gray-300"
+                            errors.mapel_id
+                              ? "border-red-500"
+                              : "border-gray-300"
                           }`}
                           disabled={isLoadingMapel || !form.kelas_id}
                         >
@@ -241,7 +249,10 @@ const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
                             </option>
                           ) : (
                             mapelList.map((mapel) => (
-                              <option key={mapel.kd_mapel} value={mapel.kd_mapel}>
+                              <option
+                                key={mapel.kd_mapel}
+                                value={mapel.kd_mapel}
+                              >
                                 {mapel.nm_mapel}
                               </option>
                             ))
@@ -259,8 +270,8 @@ const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
                         )}
                       </div>
 
-                      {/* Test Type - Hidden karena default quis */}
-                      <input type="hidden" value="quis" />
+                      {/* Test Type - Hidden karena default tr */}
+                      <input type="hidden" value="tr" />
 
                       {/* Judul */}
                       <div>
@@ -270,14 +281,18 @@ const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
                         <input
                           type="text"
                           value={form.judul}
-                          onChange={(e) => handleChange("judul", e.target.value)}
+                          onChange={(e) =>
+                            handleChange("judul", e.target.value)
+                          }
                           className={`w-full p-2 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
                             errors.judul ? "border-red-500" : "border-gray-300"
                           }`}
                           placeholder="Masukkan judul test"
                         />
                         {errors.judul && (
-                          <p className="mt-1 text-sm text-red-600">{errors.judul}</p>
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors.judul}
+                          </p>
                         )}
                       </div>
 
@@ -288,7 +303,9 @@ const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
                         </label>
                         <textarea
                           value={form.deskripsi}
-                          onChange={(e) => handleChange("deskripsi", e.target.value)}
+                          onChange={(e) =>
+                            handleChange("deskripsi", e.target.value)
+                          }
                           className="w-full p-2 border border-gray-300 rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
                           rows="3"
                           placeholder="Masukkan deskripsi test"
@@ -310,7 +327,9 @@ const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
                             )
                           }
                           className={`w-full p-2 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
-                            errors.durasi_menit ? "border-red-500" : "border-gray-300"
+                            errors.durasi_menit
+                              ? "border-red-500"
+                              : "border-gray-300"
                           }`}
                           min="1"
                         />
@@ -329,11 +348,15 @@ const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
                         <input
                           type="date"
                           value={form.deadline}
-                          onChange={(e) => handleChange("deadline", e.target.value)}
+                          onChange={(e) =>
+                            handleChange("deadline", e.target.value)
+                          }
                           className={`w-full p-2 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600 ${
-                            errors.deadline ? "border-red-500" : "border-gray-300"
+                            errors.deadline
+                              ? "border-red-500"
+                              : "border-gray-300"
                           }`}
-                          min={new Date().toISOString().split('T')[0]}
+                          min={new Date().toISOString().split("T")[0]}
                         />
                         {errors.deadline && (
                           <p className="mt-1 text-sm text-red-600">
@@ -383,4 +406,4 @@ const SlideTambahQuis = ({ isOpen, onClose, onSubmit }) => {
   );
 };
 
-export default SlideTambahQuis;
+export default SlideTambahTr;

@@ -9,7 +9,7 @@ import SlideFormTambahSoal from "./SlideFormTambahSoal";
 import { showAlert } from "../../../../utils/toast";
 import { removeHTMLTags } from "../../../../utils/format";
 
-const SlideTambahSoalQuis = ({ isOpen, onClose, test }) => {
+const SlideTambahSoalTr = ({ isOpen, onClose, test }) => {
   const [isMounted, setIsMounted] = useState(false);
   const [showPanel, setShowPanel] = useState(false);
   const [soalList, setSoalList] = useState([]);
@@ -93,7 +93,7 @@ const SlideTambahSoalQuis = ({ isOpen, onClose, test }) => {
           }
         } catch (error) {
           console.error("Error deleting soal:", error);
-           showAlert("Soal gagal dihapus", "error");
+          showAlert("Soal gagal dihapus", "error");
         }
       }
     });
@@ -228,4 +228,4 @@ const SlideTambahSoalQuis = ({ isOpen, onClose, test }) => {
   );
 };
 
-export default SlideTambahSoalQuis;
+export default SlideTambahSoalTr;

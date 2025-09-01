@@ -1,14 +1,15 @@
 import SiswaDashboard from "../pages/siswa/Dashboard";
 import Course from "../pages/siswa/Course";
-import Tugas from "../pages/siswa/tugas/Tugas";
+import ListTugas from "../pages/siswa/tugas/ListTugas";
 import ListUjian from "../pages/siswa/testonline/ListUjian";
-import CBTUjian from "../pages/siswa/testonline/CBTUjian"; // import CBTUjian
+import TestReview from "../pages/siswa/testreview/TestReview";
 
 const siswaRoutes = [
   { path: "/siswa", element: <SiswaDashboard /> },
   { path: "/siswa/course", element: <Course /> },
   { path: "/siswa/test", element: <ListUjian /> },
-  { path: "/siswa/tugas", element: <Tugas /> },
+  { path: "/siswa/tugas", element: <ListTugas /> },
+  { path: "/siswa/review", element: <TestReview /> },
 ];
 
 export default siswaRoutes;

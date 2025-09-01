@@ -9,7 +9,8 @@ import BankSoalRekap from "../pages/guru/banksoal/BankSoalRekap";
 import BankSoalTrash from "../pages/guru/banksoal/BankSoalTrash";
 import DetailBankSoal from "../pages/guru/banksoal/DetailBankSoal";
 import UlanganBulanan from "../pages/guru/testonline/ub/UlanganBulanan";
-import Quis from "../pages/guru/testonline/quis/Quis";
+import TestReview from "../pages/guru/testonline/tr/TestReview";
+import TugasList from "../pages/guru/testonline/tugas/TugasList";
 
 export const guruRoutes = [
   { path: "/guru", element: <Home /> },
@@ -25,7 +26,8 @@ export const guruRoutes = [
   },
   // { path: "/guru/bank-soal-aktif", element: <BankSoal /> },
   { path: "/guru/test-online/UB", element: <UlanganBulanan /> },
-  { path: "/guru/test-online/quis", element: <Quis /> },
+  { path: "/guru/test-online/TR", element: <TestReview /> },
+  { path: "/guru/test-online/tugas", element: <TugasList /> },
   { path: "/guru/ulangan", element: <Ulangan /> },
   { path: "/guru/logout", element: <Logout /> },
 ];

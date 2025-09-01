@@ -1,10 +1,41 @@
-// src/components/guru/quis/FormFields.js
+// src/components/guru/testreview/FormFields.js
 import React from "react";
 import TinyMCEWrapper from "../../banksoal/TinyMCEWrapper";
 
-const FormFields = ({ form, onChange, tipeSoalOptions }) => {
+const FormFields = ({ form, onChange, tipeSoalOptions, errors, setErrors }) => {
   const handleEditorChange = (data) => {
     onChange("pertanyaan", data);
+
+    if (errors?.pertanyaan) {
+      const newErrors = { ...errors };
+      delete newErrors.pertanyaan;
+      setErrors(newErrors);
+    }
+  };
+
+  const handleTipeSoalChange = (value) => {
+    onChange("tipeSoal", value);
+
+    if (errors?.tipeSoal) {
+      const newErrors = { ...errors };
+      delete newErrors.tipeSoal;
+      setErrors(newErrors);
+    }
+  };
+
+  // 🚀 bisa dipanggil parent sebelum submit
+  const validate = () => {
+    const newErrors = {};
+
+    if (!form.tipeSoal || form.tipeSoal === "") {
+      newErrors.tipeSoal = "Tipe soal wajib dipilih";
+    }
+    if (!form.pertanyaan || form.pertanyaan.trim() === "") {
+      newErrors.pertanyaan = "Pertanyaan tidak boleh kosong";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   return (
@@ -16,9 +47,12 @@ const FormFields = ({ form, onChange, tipeSoalOptions }) => {
         </label>
         <select
           value={form.tipeSoal}
-          onChange={(e) => onChange("tipeSoal", e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
+          onChange={(e) => handleTipeSoalChange(e.target.value)}
+          className={`w-full p-2 border rounded bg-white text-gray-900 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 ${
+            errors?.tipeSoal
+              ? "border-red-500 focus:ring-red-500"
+              : "border-gray-300 focus:ring-blue-500"
+          }`}
         >
           <option value="">-- Pilih Tipe Soal --</option>
           {tipeSoalOptions.map((opt) => (
@@ -27,6 +61,9 @@ const FormFields = ({ form, onChange, tipeSoalOptions }) => {
             </option>
           ))}
         </select>
+        {errors?.tipeSoal && (
+          <p className="text-red-500 text-sm mt-1">{errors.tipeSoal}</p>
+        )}
       </div>
 
       {/* Lampiran */}
@@ -83,6 +120,9 @@ const FormFields = ({ form, onChange, tipeSoalOptions }) => {
           placeholder="Tulis pertanyaan disini..."
           toolbar="bold italic underline | bullist numlist | removeformat"
         />
+        {errors?.pertanyaan && (
+          <p className="text-red-500 text-sm mt-1">{errors.pertanyaan}</p>
+        )}
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           Bisa copy-paste langsung dari Word. Gunakan toolbar untuk formatting.
         </p>

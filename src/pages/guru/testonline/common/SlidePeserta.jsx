@@ -176,7 +176,7 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
             <h3 className="text-md font-semibold mb-3 text-gray-800 dark:text-white">
               Siswa yang akan ditambahkan
             </h3>
-            
+
             {selectedSiswa.length === 0 ? (
               <p className="text-gray-500 dark:text-gray-400 italic text-sm">
                 Belum ada siswa yang dipilih
@@ -272,7 +272,7 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
                           <div>
                             <p className="font-medium">{siswa.nama}</p>
                             <p className="text-sm text-gray-600 dark:text-gray-300">
-                              NIS: {siswa.nis} | {siswa.kelas|| "-"}
+                              NIS: {siswa.nis} | {siswa.kelas || "-"}
                             </p>
                           </div>
                           <HiPlus className="text-green-600" size={18} />
@@ -290,7 +290,7 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
             <h3 className="text-md font-semibold mb-3 text-gray-800 dark:text-white">
               Daftar Peserta Saat Ini ({peserta.length})
             </h3>
-            
+
             {peserta.length === 0 ? (
               <p className="text-gray-500 dark:text-gray-400 italic text-sm">
                 Belum ada peserta yang ditambahkan
@@ -305,7 +305,9 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
                     >
                       <div className="flex justify-between items-center">
                         <div>
-                          <p className="font-medium">{p.siswa?.siswa_nama || "Nama tidak tersedia"}</p>
+                          <p className="font-medium">
+                            {p.siswa?.siswa_nama || "Nama tidak tersedia"}
+                          </p>
                           <p className="text-sm text-gray-600 dark:text-gray-300">
                             NIS: {p.siswa_nis} | Status: {p.status}
                           </p>

@@ -13,12 +13,12 @@ import {
 } from "react-icons/hi";
 import Swal from "sweetalert2";
 import { showAlert } from "../../../../utils/toast";
-import SlideTambahTest from "./SlideTambahQuis";
+import SlideTambahTest from "./SlideTambahTr";
 import { formatTanggalLengkap } from "../../../../utils/date";
 import SlidePeserta from "./SlidePeserta";
-import SlideTambahSoalQuis from "./SlideTambahSoalQuis"; // baru
+import SlideTambahSoalTr from "./SlideTambahSoalTr"; // baru
 
-const Quis = () => {
+const TestReview = () => {
   const [tests, setTests] = useState([]);
   const [selectedTest, setSelectedTest] = useState(null);
   const [showPeserta, setShowPeserta] = useState(false);
@@ -28,10 +28,10 @@ const Quis = () => {
 
   const fetchTests = async () => {
     try {
-      const data = await getTestsByType("quis");
+      const data = await getTestsByType("tr");
       setTests(data);
     } catch (err) {
-      console.error("Gagal ambil data quis:", err);
+      console.error("Gagal ambil data Test Review", err);
     }
   };
 
@@ -55,13 +55,13 @@ const Quis = () => {
     <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-          Daftar Quis
+          Daftar Test Review
         </h1>
         <button
           onClick={() => setShowTambahTest(true)}
           className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
         >
-          + Tambah Quis
+          + Tambah Test Review
         </button>
       </div>
 
@@ -82,7 +82,7 @@ const Quis = () => {
             {tests.length === 0 && (
               <tr>
                 <td colSpan={6} className="text-center py-4 text-gray-500">
-                  Tidak ada data quis.
+                  Tidak ada data Test Review.
                 </td>
               </tr>
             )}
@@ -134,7 +134,11 @@ const Quis = () => {
                           : "hover:text-green-600"
                       }`}
                       onClick={() => {
-                        Swal.fire("Aktifkan Quis", "Fitur coming soon", "info");
+                        Swal.fire(
+                          "Aktifkan Test Review",
+                          "Fitur coming soon",
+                          "info"
+                        );
                       }}
                     />
 
@@ -151,12 +155,12 @@ const Quis = () => {
         </table>
       </div>
 
-      {/* Slide Tambah Quis */}
+      {/* Slide Tambah Test Review */}
       <SlideTambahTest
         isOpen={showTambahTest}
         onClose={() => setShowTambahTest(false)}
         onSubmit={() => handleTambahTest()}
-        type="quis"
+        type="tr"
       />
 
       {/* Slide Peserta */}
@@ -167,7 +171,7 @@ const Quis = () => {
       />
 
       {/* Slide Tambah Soal */}
-      <SlideTambahSoalQuis
+      <SlideTambahSoalTr
         isOpen={showSoal}
         onClose={() => setShowSoal(false)}
         test={selectedTest}
@@ -176,4 +180,4 @@ const Quis = () => {
   );
 };
 
-export default Quis;
+export default TestReview;

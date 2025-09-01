@@ -29,7 +29,7 @@ const ActiveTestsTable = ({
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left">Judul Ujian</th>
+              <th className="px-6 py-3 text-left w-1/3">Judul Ujian</th>
               <th className="px-6 py-3 text-left">Mata Pelajaran</th>
               <th className="px-6 py-3 text-left">Jumlah Soal</th>
               <th className="px-6 py-3 text-left">Durasi</th>
