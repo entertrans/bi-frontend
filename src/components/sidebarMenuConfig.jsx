@@ -159,6 +159,12 @@ export const menuConfig = {
       key: "guru-kisi-kisi",
     },
     {
+      label: "Daftar Siswa",
+      icon: <FaUsers className="mr-3" />,
+      path: "/guru/siswa",
+      key: "guru-siswa",
+    },
+    {
       label: "Bank Soal",
       icon: <FaLaptopCode className="mr-3" />,
       key: "guru-bank-soal",
@@ -194,6 +200,11 @@ export const menuConfig = {
           label: "Tugas",
           path: "/guru/test-online/tugas",
           key: "guru-tugas",
+        },
+        {
+          label: "Penilaian",
+          path: "/guru/test-online/penilaian",
+          key: "guru-penilaian",
         },
       ],
     },

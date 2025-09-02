@@ -129,7 +129,7 @@ const ListTugas = () => {
         return;
       }
 
-      window.open(`/siswa/ujian/${session.SessionID}`, "_blank");
+      window.open(`/siswa/tugas/${session.SessionID}`, "_blank");
     } catch (err) {
       console.error("Error mulai tugas:", err);
       Swal.fire("Error", "Gagal membuka tugas", "error");
@@ -143,7 +143,7 @@ const ListTugas = () => {
       Swal.fire("Error", "Session ID tidak ditemukan", "error");
       return;
     }
-    window.open(`/siswa/ujian/${session.SessionID}`, "_blank");
+    window.open(`/siswa/tugas/${session.SessionID}`, "_blank");
   };
 
   return (

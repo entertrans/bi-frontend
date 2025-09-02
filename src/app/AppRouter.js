@@ -10,6 +10,7 @@ import guruRoutes from "../routes/GuruRouter";
 import siswaRoutes from "../routes/SiswaRouter";
 import CBTUjian from "../pages/siswa/testonline/CBTUjian";
 import { useAuth } from "../contexts/AuthContext";
+import CBTTugas from "../pages/siswa/testonline/CBTTugas";
 
 function LogoutPage() {
   const { logout } = useAuth();
@@ -34,6 +35,7 @@ const AppRouter = () => {
       <Route path="/guru/logout" element={<LogoutPage />} />
       <Route path="/siswa/logout" element={<LogoutPage />} />
       <Route path="/siswa/ujian/:sessionId" element={<CBTUjian />} />
+      <Route path="/siswa/tugas/:sessionId" element={<CBTTugas />} />
        {/* { path: "/siswa/ujian/:sessionId", element: <CBTUjian /> }, // ✅ tambahin ini */}
 
       {/* Admin Routes */}

@@ -11,6 +11,8 @@ import DetailBankSoal from "../pages/guru/banksoal/DetailBankSoal";
 import UlanganBulanan from "../pages/guru/testonline/ub/UlanganBulanan";
 import TestReview from "../pages/guru/testonline/tr/TestReview";
 import TugasList from "../pages/guru/testonline/tugas/TugasList";
+import Penilaian from "../pages/guru/testonline/penilaian/Penilaian";
+import DaftarSiswa from "../pages/guru/testonline/daftarsiswa/DaftarSiswa";
 
 export const guruRoutes = [
   { path: "/guru", element: <Home /> },
@@ -25,9 +27,11 @@ export const guruRoutes = [
     element: <DetailBankSoal />,
   },
   // { path: "/guru/bank-soal-aktif", element: <BankSoal /> },
+  { path: "/guru/siswa", element: <DaftarSiswa /> },
   { path: "/guru/test-online/UB", element: <UlanganBulanan /> },
   { path: "/guru/test-online/TR", element: <TestReview /> },
   { path: "/guru/test-online/tugas", element: <TugasList /> },
+  { path: "/guru/test-online/penilaian", element: <Penilaian /> },
   { path: "/guru/ulangan", element: <Ulangan /> },
   { path: "/guru/logout", element: <Logout /> },
 ];

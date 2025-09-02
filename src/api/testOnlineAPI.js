@@ -170,6 +170,10 @@ export const submitTest = async (sessionId) => {
   const res = await axios.post(`${BASE_URL}/siswa/test/submit/${sessionId}`);
   return res.data;
 };
+export const submitTugas = async (sessionId) => {
+  const res = await axios.post(`${BASE_URL}/siswa/tugas/submit/${sessionId}`);
+  return res.data;
+};
 
 // Ambil semua test UB (Ujian Blok)
 export const getAllUBTests = async () => {

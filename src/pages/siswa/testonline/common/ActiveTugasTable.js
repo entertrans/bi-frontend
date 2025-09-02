@@ -1,5 +1,5 @@
 import React from "react";
-import { HiPlay, HiEye } from "react-icons/hi";
+import { HiPlay, HiPencilAlt } from "react-icons/hi";
 import dayjs from "dayjs";
 
 const ActiveTugasTable = ({ tasks, submissions, onKerjakan, onView }) => {
@@ -66,9 +66,9 @@ const ActiveTugasTable = ({ tasks, submissions, onKerjakan, onView }) => {
                     {isSubmitted ? (
                       <button
                         onClick={() => onView(task.test_id)}
-                        className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+                        className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
                       >
-                        <HiEye /> Lihat
+                        <HiPencilAlt /> Revisi
                       </button>
                     ) : !isLate ? (
                       <button
