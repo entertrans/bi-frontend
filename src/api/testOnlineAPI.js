@@ -209,3 +209,39 @@ export const gettestbykelas = async (type, kelasId) => {
   );
   return res.data;
 };
+
+//jawaban siswa
+
+// Get detail siswa
+export const fetchSiswaDetail = async (siswaNis) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/siswa/${siswaNis}`);
+    return response.data.data; // { data: {...} }
+  } catch (error) {
+    console.error('Error fetching siswa detail:', error);
+    throw error;
+  }
+};
+
+// src/api/testOnlineAPI.js
+export const fetchJawabanSiswaDetail = async (siswaNis) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/siswa/${siswaNis}`);
+    // console.log("✅ Response siswa detail:", response.data);
+    return response.data; // Langsung return response.data (object langsung)
+  } catch (error) {
+    // console.error('❌ Error fetching siswa detail:', error);
+    throw error;
+  }
+};
+
+export const fetchJawabanBySiswa = async (siswaNis) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/guru/jawaban/siswa/${siswaNis}`);
+    // console.log("✅ Response jawaban:", response.data);
+    return response.data; // {results: [], count: X, siswa_nis: "..."}
+  } catch (error) {
+    // console.error('❌ Error fetching jawaban:', error);
+    throw error;
+  }
+};

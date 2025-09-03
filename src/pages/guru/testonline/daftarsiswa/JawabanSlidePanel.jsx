@@ -4,6 +4,8 @@ import { Transition } from "@headlessui/react";
 
 // 🔹 Slide Panel Level 2
 function JawabanSlidePanel({ siswa, isOpen, onClose }) {
+  console.log(siswa);
+  
   if (!siswa) return null;
 
   return (
