@@ -5,6 +5,7 @@ import {
   createTest,
 } from "../../../../api/testOnlineAPI";
 import { fetchAllkelas, fetchAllMapelByKelas } from "../../../../api/siswaAPI";
+import { updateTestAktif } from "../../../../api/testOnlineAPI";
 import { HiTrash, HiDocumentText, HiUserGroup, HiPlay } from "react-icons/hi";
 import Swal from "sweetalert2";
 import { showAlert } from "../../../../utils/toast";
@@ -235,12 +236,25 @@ const TugasList = () => {
                           ? "text-green-600"
                           : "hover:text-green-600"
                       }`}
-                      onClick={() => {
-                        Swal.fire(
-                          "Aktifkan Tugas",
-                          "Fitur coming soon",
-                          "info"
-                        );
+                      onClick={async () => {
+                        try {
+                          const newAktif = t.aktif === 1 ? 0 : 1;
+                          await updateTestAktif(t.test_id, newAktif);
+                          setTugasList((prev) =>
+                            prev.map((item) =>
+                              item.test_id === t.test_id
+                                ? { ...item, aktif: newAktif }
+                                : item
+                            )
+                          );
+                          showAlert(
+                            "Status tugas berhasil diperbarui",
+                            "success"
+                          );
+                        } catch (err) {
+                          console.error(err);
+                          showAlert("Gagal memperbarui status", "error");
+                        }
                       }}
                     />
 

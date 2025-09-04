@@ -218,7 +218,7 @@ export const fetchSiswaDetail = async (siswaNis) => {
     const response = await axios.get(`${BASE_URL}/siswa/${siswaNis}`);
     return response.data.data; // { data: {...} }
   } catch (error) {
-    console.error('Error fetching siswa detail:', error);
+    console.error("Error fetching siswa detail:", error);
     throw error;
   }
 };
@@ -237,11 +237,20 @@ export const fetchJawabanSiswaDetail = async (siswaNis) => {
 
 export const fetchJawabanBySiswa = async (siswaNis) => {
   try {
-    const response = await axios.get(`${BASE_URL}/guru/jawaban/siswa/${siswaNis}`);
+    const response = await axios.get(
+      `${BASE_URL}/guru/jawaban/siswa/${siswaNis}`
+    );
     // console.log("✅ Response jawaban:", response.data);
     return response.data; // {results: [], count: X, siswa_nis: "..."}
   } catch (error) {
     // console.error('❌ Error fetching jawaban:', error);
     throw error;
   }
+};
+
+export const updateTestAktif = async (testID, aktif) => {
+  const res = await axios.put(`${BASE_URL}/guru/test/${testID}`, {
+    aktif,
+  });
+  return res.data;
 };

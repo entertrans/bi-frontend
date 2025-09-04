@@ -5,6 +5,7 @@ import {
   createTest,
 } from "../../../../api/testOnlineAPI";
 import { fetchAllkelas, fetchAllMapelByKelas } from "../../../../api/siswaAPI";
+import { updateTestAktif } from "../../../../api/testOnlineAPI";
 import {
   HiPencil,
   HiTrash,
@@ -254,12 +255,27 @@ const TestReview = () => {
                           ? "text-green-600"
                           : "hover:text-green-600"
                       }`}
-                      onClick={() => {
-                        Swal.fire(
-                          "Aktifkan Test Review",
-                          "Fitur coming soon",
-                          "info"
-                        );
+                      onClick={async () => {
+                        const newAktif = test.aktif === 1 ? 0 : 1;
+                        try {
+                          await updateTestAktif(test.test_id, newAktif);
+                          setTests((prev) =>
+                            prev.map((t) =>
+                              t.test_id === test.test_id
+                                ? { ...t, aktif: newAktif }
+                                : t
+                            )
+                          );
+                          showAlert(
+                            `Test Review berhasil ${
+                              newAktif === 1 ? "diaktifkan" : "dinonaktifkan"
+                            }`,
+                            "success"
+                          );
+                        } catch (err) {
+                          console.error(err);
+                          showAlert("Gagal update status test.", "error");
+                        }
                       }}
                     />
 

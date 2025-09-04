@@ -1,0 +1,329 @@
+[33mcommit 228ed015526e1531bbdb35d9003788629097af19[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Wed Sep 3 17:01:56 2025 +0700
+
+    checkpoint di guru
+
+[33mcommit 3496f3aeee6c093fa78169b69797393afbd3f67f[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Tue Sep 2 16:53:50 2025 +0700
+
+    update daftar siswa buat penilaian
+
+[33mcommit 1941f6d4a72914fc94775595acfa4336e78389d6[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Mon Sep 1 07:30:59 2025 +0700
+
+    tinggal benerin tugas
+
+[33mcommit b203c0728c2bb660b1f271f900290114768361d2[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Fri Aug 29 17:04:46 2025 +0700
+
+    ganti nama quis jadi testreview
+
+[33mcommit aaa790fdedf97c6aa75f00830ba3724333ce84c4[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Fri Aug 29 07:39:44 2025 +0700
+
+    tinggal tampilan test online siswa
+
+[33mcommit 1f77da0929aa5dff4821f2a5c8914d90f326984d[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Thu Aug 28 17:00:54 2025 +0700
+
+    masih ada bug buat ujian
+
+[33mcommit 8b590863dfa264a7a56d67fc10ebe366c87317e6[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Thu Aug 28 07:34:19 2025 +0700
+
+    lanjutin tampilan kerjakan siswa
+
+[33mcommit 86b5151c2536b8e10d7d8154ca2e9a8a8510d6be[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Wed Aug 27 16:55:33 2025 +0700
+
+    benerin header
+
+[33mcommit 410b2aaac521bf050f98beea3592d16dd6027dc2[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Wed Aug 27 07:48:07 2025 +0700
+
+    mines minornya aja
+
+[33mcommit bc19c849d900bd927c11aa8ae4e7032ec3957aed[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Tue Aug 26 17:02:07 2025 +0700
+
+    lanjutin slide tambah quis, sql nya di whatsapp
+
+[33mcommit b51fc248282fca72695fe3875461015c8b0e1db1[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Mon Aug 25 17:01:25 2025 +0700
+
+    lanjutin slidetambah test
+
+[33mcommit c8f2551de88d89259131783e156e75730da520fc[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Mon Aug 25 07:42:44 2025 +0700
+
+    fix test online tampilan guru
+
+[33mcommit da101f809d1478ee82d494490e828ed6fae05cef[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Sat Aug 23 11:12:20 2025 +0700
+
+    lanjutin yang inactive
+
+[33mcommit 1f0b441ccfa0dabbd5ce9a4f9583bef2f9f14618[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Fri Aug 22 16:58:55 2025 +0700
+
+    fix lampiran galery
+
+[33mcommit 61a72fe0850ab1161231bd395049180431573d60[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Thu Aug 21 16:55:07 2025 +0700
+
+    fix lampiran
+
+[33mcommit e1399da0eb26b0af6c8ccac041d07dd8e3ad8129[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Wed Aug 20 16:53:43 2025 +0700
+
+    penambahan fitur paste dari word rumus mtk
+
+[33mcommit 00e3c818d0feeff7c053eac07b8a9cdc93999611[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Mon Aug 11 17:06:35 2025 +0700
+
+    test aja
+
+[33mcommit 0c5f5e83f527c05802563b449bcbb1c84c07618e[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Mon Aug 11 07:40:10 2025 +0700
+
+    tambahin alter table liat di whatsapp
+
+[33mcommit 2533b34b8a0a3ab96b93d77d9407608fe9774b69[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Sat Aug 9 19:25:01 2025 +0700
+
+    checkpoin klik bayar dan outside fix
+
+[33mcommit 0d7a64683162cb2afd95f15145bf6aba9698de54[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Sat Aug 9 14:26:23 2025 +0700
+
+    check point restore sisa bayar panel
+
+[33mcommit 5d5545272f25b3ea451137dcc6e414b65cf95153[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Fri Aug 8 07:26:31 2025 +0700
+
+    fix cetak dari siswa aktif, tinggal bayar
+
+[33mcommit d67887092ffab6df5cfd8ff5cb91ff8dc9b314f6[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Thu Aug 7 16:59:05 2025 +0700
+
+    benerin siswa active
+
+[33mcommit 9089b82f6d93903fe3a83eac9873a3c223523fe6[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Thu Aug 7 07:40:04 2025 +0700
+
+    fix tampilan cetak kwitansi
+
+[33mcommit 0b47401744c197d7a6db9b3dff8544a3363457b6[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Wed Aug 6 16:44:16 2025 +0700
+
+    ganti tbl_pembayaran tujuan
+
+[33mcommit f0afa875351893b9afc2bd11465dd425621b1c44[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Wed Aug 6 07:35:53 2025 +0700
+
+    revisi liat di whatsaap
+
+[33mcommit d2668e55446dab6b82f5a7a104766d6c9de69133[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Fri Aug 1 16:20:38 2025 +0700
+
+    update preview cetak
+
+[33mcommit 84a133ff368199aa15c2a3c893448002513fd47f[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Fri Aug 1 07:45:20 2025 +0700
+
+    cetak invoice
+
+[33mcommit 7cc0f08513262b6962c5c4a8c5bca306d1722c41[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Thu Jul 31 06:52:24 2025 +0700
+
+    update fix tambah dan hapus
+
+[33mcommit 59222afa97b07e8c079649746d67e06acb6c7f43[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Wed Jul 30 16:38:05 2025 +0700
+
+    fix add , tinggal bikin backendnya
+
+[33mcommit 9350fee0a159fc9a20d1a8b7b467f64fe7ecfe52[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Wed Jul 30 07:39:16 2025 +0700
+
+    tambah database tbl_keuangan sama tbl_petycash
+
+[33mcommit ba0d64aee5af92b94c9b157b3df93ea29fdd67a4[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Fri Jul 25 07:08:27 2025 +0700
+
+    penambahan sql buat transaksi sama petycash tinggal rename
+
+[33mcommit 39c398580471ff5de2e2ab709e06daa577ff5ba9[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Mon Jul 21 07:30:40 2025 +0700
+
+    last checkpoint
+
+[33mcommit 6ea0f473403bf382a2f88af429a3751fb3fcf8b5[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Sat Jul 19 21:09:58 2025 +0700
+
+    pembayaran kwitansi fix clear tinggal minor
+
+[33mcommit 159dbc948bd59ca466aa835870dfda9257afc0e7[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Sat Jul 19 20:13:11 2025 +0700
+
+    checkpoint pusing
+
+[33mcommit a26ddac6b58857cbaf5cde0467a288aa5ed91c8e[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Fri Jul 18 07:23:05 2025 +0700
+
+    comit tampilanpetycash
+
+[33mcommit 38f8d8990bdf2b26abb188beb5e4a33ce5e9d41a[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Wed Jul 16 07:08:45 2025 +0700
+
+    update databasenya tbl_pembayaran
+
+[33mcommit f699f73013e2b396e0a4f10ff990e345700b962f[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Tue Jul 15 16:52:06 2025 +0700
+
+    slide animation fix
+
+[33mcommit 96e7fd5c06abc74638c990202d4971becda24bb9[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Tue Jul 15 07:14:55 2025 +0700
+
+    buat smooth close
+
+[33mcommit 8db8ee8f888387e469c692c9608d9c6811578b6a[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Mon Jul 14 07:20:11 2025 +0700
+
+    tambahin db invoice check di chatgpt
+
+[33mcommit 78f5e280d7d46a77e53bd8e41b95d249eaa71422[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Fri Jul 11 02:34:21 2025 +0700
+
+    check point siswa aktif , button keluarkan,kc,oc selesai
+
+[33mcommit bfd3653b3553400083cedffc959e120ded7e6c94[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Thu Jul 10 07:12:52 2025 +0700
+
+    ppdb done, lanjut ke siswa aktif
+
+[33mcommit 4538307bb5ddfc2cd971bb681859f94937dbe3d5[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Wed Jul 9 00:06:50 2025 +0700
+
+    fix baut hapus siswanya / batalkan ppdb
+
+[33mcommit 65d3605b5df86709412687799fc65447b7e98b50[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Sun Jul 6 00:57:01 2025 +0700
+
+    check point front end ppdb
+
+[33mcommit 3e65656a17babe90c4a8eb583a07440fe6611950[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Fri Jul 4 16:52:32 2025 +0700
+
+    fix tampilan siswa dari samping
+
+[33mcommit fadb126713a763e333fc4b78cbd77bf089ab9dc3[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Wed Jun 25 00:05:35 2025 +0700
+
+    fix frontend all read siswa
+
+[33mcommit cd5436902ab690f72d1ca3033ff5da553ae0a922[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Tue Jun 24 16:57:20 2025 +0700
+
+    fix tampilan siswa aktif dengan 2pilihan
+
+[33mcommit 69a0c101a1f7b83d2abac4d9e81f9aa1fd3260fd[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Tue Jun 24 00:15:43 2025 +0700
+
+    fix bridge siswa
+
+[33mcommit 759207e5fc94a30f708ae0b3428f033b120afb0a[m
+Author: Merik Nugroho <mericknugroho@gmail.com>
+Date:   Mon Jun 23 16:52:32 2025 +0700
+
+    fix alumni , siswa keluar ,router, tambah PPDB
+
+[33mcommit 1ba1b14177ed9c9b1d5286459a71291ede1e7d46[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Sun Jun 22 23:59:35 2025 +0700
+
+    fix router, siswa aktif, dll
+
+[33mcommit 60cbeaa2792febe974c6f3bc2c18c4420e5c22b4[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Sun Jun 22 10:00:27 2025 +0700
+
+    checkpoint tampilan detail siswa
+
+[33mcommit 68529ba1c261d0da70b3384f236f4f87661a1db5[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Sun Jun 22 00:49:37 2025 +0700
+
+    tampilan siswa, guru, admin  fix
+
+[33mcommit 1d381b3cf384b41a29d62da46c49674e92dcde5b[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Sat Jun 21 23:52:34 2025 +0700
+
+    tampilan siswa fix
+
+[33mcommit fc245579fef620456f06747eb4cd064e22961799[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Sat Jun 21 19:49:54 2025 +0700
+
+    sidebar guru . admin fix
+
+[33mcommit 4e8fb40f18a79e0928c22a3cef1908e7ce53e96f[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Sat Jun 21 17:05:29 2025 +0700
+
+    💾 checkpoint: header & sidebar stable
+
+[33mcommit c18d9f814b6ae87eb110f2836a1dc3344376c10b[m
+Author: merick rumah <mericknugroho@gmail.com>
+Date:   Sat Jun 21 13:08:27 2025 +0700
+
+    Initialize project using Create React App
