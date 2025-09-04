@@ -32,7 +32,7 @@ const CBTUjian = () => {
   const [showDaftarSoal, setShowDaftarSoal] = useState(false);
   const [targetDate, setTargetDate] = useState(null);
 
-  // Load data on component mount
+
   // Load data on component mount
   useEffect(() => {
     const loadData = async () => {
@@ -161,36 +161,35 @@ const CBTUjian = () => {
   };
 
   // Handle jawab
-  // Handle jawab
   const handleJawab = async (soalId, val) => {
     try {
       const soalItem = soal.find((s) => s.soal_id === soalId);
       if (!soalItem) return;
-
+      console.log("datamentah:", [val]);
       let payload = val;
 
       // Format jawaban sesuai tipe soal
       switch (soalItem.tipe_soal) {
         case "bs":
-          // Pastikan val array of {index, jawaban}
           if (!Array.isArray(val)) payload = [];
           break;
-
         case "matching":
-          // Pastikan val array of {leftIndex, rightIndex}
           if (!Array.isArray(val)) payload = [];
           break;
-
         case "pg_kompleks":
-          // Array biasa (["A","C"])
           if (!Array.isArray(val)) payload = [];
           break;
-
         case "pg":
+          if (Array.isArray(val)) {
+            payload = val; // sudah array, biarkan
+          } else {
+            payload = [val]; // kalau single value, bungkus array
+          }
+          break;
+
         case "isian_singkat":
         case "uraian":
         default:
-          // String biasa
           if (typeof val !== "string") payload = String(val || "");
           break;
       }
@@ -198,13 +197,23 @@ const CBTUjian = () => {
       // Update state lokal
       setJawaban((prev) => ({ ...prev, [soalId]: payload }));
 
-      // Simpan ke backend
-      await saveJawaban({
+      // Data yang akan dikirim ke backend
+      const requestData = {
         session_id: parseInt(sessionId),
         soal_id: soalId,
         jawaban_siswa: JSON.stringify(payload),
         skor_objektif: 0,
+      };
+
+      console.log("Data yang dikirim ke backend:", requestData);
+      console.log("Detail soal:", {
+        tipe_soal: soalItem.tipe_soal,
+        payload_asli: payload,
+        payload_stringified: JSON.stringify(payload),
       });
+
+      // Simpan ke backend
+      await saveJawaban(requestData);
     } catch (err) {
       console.error("Gagal simpan jawaban:", err);
     }
@@ -254,7 +263,12 @@ const CBTUjian = () => {
   // Submit final
   const handleSubmitFinal = async () => {
     try {
-      await submitTest(sessionId);
+      console.log("Mengirim permintaan submit untuk session:", sessionId);
+
+      const response = await submitTest(sessionId);
+
+      console.log("Response dari submit:", response);
+
       Swal.fire({
         title: "Ujian Selesai!",
         text: "Jawaban Anda telah berhasil dikumpulkan.",
@@ -262,13 +276,13 @@ const CBTUjian = () => {
         confirmButtonColor: "#3085d6",
         confirmButtonText: "Tutup",
       }).then(() => {
-        // 🚀 kirim sinyal ke tab utama
         if (window.opener) {
-          window.opener.postMessage({ type: "UJIAN_SELESAI", sessionId }, "*");
+          // window.opener.postMessage({ type: "UJIAN_SELESAI", sessionId }, "*");
         }
         window.close();
       });
     } catch (err) {
+      console.error("Error saat submit:", err);
       Swal.fire(
         "Error",
         err.response?.data?.error || "Gagal mengumpulkan ujian",

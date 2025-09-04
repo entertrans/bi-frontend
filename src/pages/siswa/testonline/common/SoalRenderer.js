@@ -39,10 +39,11 @@ const SoalRenderer = ({
                 type="radio"
                 name={name}
                 value={originalValue}
-                checked={jawaban[s.soal_id] === originalValue}
-                onChange={() => onJawab(s.soal_id, originalValue)}
+                checked={(jawaban[s.soal_id] || []).includes(originalValue)} // ✅ pakai includes
+                onChange={() => onJawab(s.soal_id, [originalValue])} // ✅ simpan array [val]
                 className="w-5 h-5 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-500 focus:ring-2"
               />
+
               <label
                 htmlFor={id}
                 className="ms-3 text-white text-sm cursor-pointer flex-1"

@@ -160,7 +160,7 @@ const CBTTugas = () => {
     return "sudah-dijawab";
   };
 
-  // Handle jawab
+
   // Handle jawab
   const handleJawab = async (soalId, val) => {
     try {
