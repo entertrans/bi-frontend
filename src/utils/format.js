@@ -89,23 +89,31 @@ export const terbilang = (angka) => {
 // src/utils/format.js
 export const removeHTMLTags = (html) => {
   if (!html) return "";
-  
+
   // Menggunakan DOM parser untuk ekstrak teks
   const tmp = document.createElement("DIV");
   tmp.innerHTML = html;
-  
+
   // Mengganti &nbsp; dan entity HTML lainnya dengan spasi biasa
   return tmp.textContent
-    .replace(/\u00A0/g, ' ') // &nbsp;
-    .replace(/\s+/g, ' ') // Multiple spaces to single space
+    .replace(/\u00A0/g, " ") // &nbsp;
+    .replace(/\s+/g, " ") // Multiple spaces to single space
     .trim();
 };
 
 // Alternatif: untuk menangani HTML entities dengan lebih baik
 export const decodeHTML = (html) => {
   if (!html) return "";
-  
+
   const txt = document.createElement("TEXTAREA");
   txt.innerHTML = html;
   return txt.value;
+};
+
+//format text
+export const truncateWords = (text, wordLimit = 20) => {
+  if (!text) return "";
+  const words = text.split(" ");
+  if (words.length <= wordLimit) return text;
+  return words.slice(0, wordLimit).join(" ") + " ...";
 };

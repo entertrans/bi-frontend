@@ -14,6 +14,7 @@ import TugasList from "../pages/guru/testonline/tugas/TugasList";
 import Penilaian from "../pages/guru/testonline/penilaian/Penilaian";
 import DaftarSiswa from "../pages/guru/testonline/daftarsiswa/DaftarSiswa";
 import JawabanPage from "../pages/guru/testonline/daftarsiswa/JawabanPage";
+import DetailJawabanPage from "../pages/guru/testonline/daftarsiswa/DetailJawabanPage";
 
 export const guruRoutes = [
   { path: "/guru", element: <Home /> },
@@ -34,6 +35,10 @@ export const guruRoutes = [
   { path: "/guru/test-online/tugas", element: <TugasList /> },
   { path: "/guru/test-online/penilaian", element: <Penilaian /> },
   { path: "/guru/jawaban/siswa/:siswa_nis", element: <JawabanPage /> },
+  {
+    path: "/guru/jawaban/siswa/detail/:session_id",
+    element: <DetailJawabanPage />,
+  },
   { path: "/guru/ulangan", element: <Ulangan /> },
   { path: "/guru/logout", element: <Logout /> },
 ];

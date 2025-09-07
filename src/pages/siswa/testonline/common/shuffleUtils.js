@@ -64,18 +64,21 @@ export const processSoalWithShuffle = (soalData) => {
             });
           }
           // Untuk Matching - acak kedua kolom secara independen
+          // Di bagian untuk tipe matching - perbaiki mapping
           else if (soal.tipe_soal === "matching") {
             // Acak sisi kiri (beserta lampirannya)
-            const leftItems = pilihan.map((pair) => ({
+            const leftItems = pilihan.map((pair, index) => ({
               left: pair.left,
               leftLampiran: pair.leftLampiran,
+              originalIndex: index, // Simpan index asli
             }));
             const shuffledLeft = shuffleArray(leftItems);
 
             // Acak sisi kanan (beserta lampirannya) secara independen
-            const rightItems = pilihan.map((pair) => ({
+            const rightItems = pilihan.map((pair, index) => ({
               right: pair.right,
               rightLampiran: pair.rightLampiran,
+              originalIndex: index, // Simpan index asli
             }));
             const shuffledRight = shuffleArray(rightItems);
 
@@ -87,27 +90,27 @@ export const processSoalWithShuffle = (soalData) => {
               rightLampiran: shuffledRight[index].rightLampiran,
             }));
 
-            // Untuk matching, kita tidak perlu mapping index karena jawaban disimpan berdasarkan teks left
-            // Tetapi kita tetap buat mapping kosong untuk konsistensi
+            // PERBAIKAN: Buat mapping yang benar untuk kedua sisi
             originalToShuffledMap = { left: {}, right: {} };
             shuffledToOriginalMap = { left: {}, right: {} };
 
-            pilihan.forEach((pair, originalIndex) => {
-              const shuffledLeftIndex = shuffledLeft.findIndex(
-                (item) => item.left === pair.left
-              );
-              if (shuffledLeftIndex !== -1) {
-                originalToShuffledMap.left[originalIndex] = shuffledLeftIndex;
-                shuffledToOriginalMap.left[shuffledLeftIndex] = originalIndex;
-              }
+            // Mapping untuk left
+            shuffledLeft.forEach((item, shuffledIndex) => {
+              originalToShuffledMap.left[item.originalIndex] = shuffledIndex;
+              shuffledToOriginalMap.left[shuffledIndex] = item.originalIndex;
+            });
 
-              const shuffledRightIndex = shuffledRight.findIndex(
-                (item) => item.right === pair.right
-              );
-              if (shuffledRightIndex !== -1) {
-                originalToShuffledMap.right[originalIndex] = shuffledRightIndex;
-                shuffledToOriginalMap.right[shuffledRightIndex] = originalIndex;
-              }
+            // Mapping untuk right - INI YANG DIPERBAIKI
+            shuffledRight.forEach((item, shuffledIndex) => {
+              originalToShuffledMap.right[item.originalIndex] = shuffledIndex;
+              shuffledToOriginalMap.right[shuffledIndex] = item.originalIndex;
+            });
+
+            console.log("Matching mapping:", {
+              originalToShuffledMap,
+              shuffledToOriginalMap,
+              shuffledLeft,
+              shuffledRight,
             });
           }
           // Untuk PG dan PG Kompleks

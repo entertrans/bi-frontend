@@ -62,8 +62,6 @@ const JawabanPage = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      
-      
       try {
         setIsLoading(true);
         const [siswaData, testData] = await Promise.all([
@@ -72,7 +70,7 @@ const JawabanPage = () => {
         ]);
         setSiswa(siswaData);
         setTests(testData?.results || []);
-         console.log(testData);
+        console.log(testData);
       } catch (err) {
         console.error("❌ Gagal ambil data:", err);
       } finally {
@@ -80,7 +78,6 @@ const JawabanPage = () => {
       }
     };
     loadData();
-   
   }, [siswa_nis]);
 
   // 🔎 daftar jenis test unik
@@ -202,8 +199,6 @@ const JawabanPage = () => {
             </thead>
             <tbody>
               {paginatedTests.map((t) => (
-               
-                
                 <tr key={t.test_id} className="border-b dark:border-gray-600">
                   <td className="px-4 py-3">{t.jenis}</td>
                   <td className="px-4 py-3">{t.mapel}</td>
@@ -218,7 +213,7 @@ const JawabanPage = () => {
                   <td className="px-4 py-3">
                     <StatusBadge status={t.status} submited={t.submited} />
                   </td>
-                  
+
                   <td className="px-4 py-3">
                     <ReviewBadge
                       butuhReview={t.butuh_review}
@@ -228,14 +223,21 @@ const JawabanPage = () => {
                   </td>
                   <td className="px-4 py-3">
                     {t.tanggal !== null && t.tanggal !== undefined ? (
-                      <span className="font-medium">{formatTanggalIndo(t.tanggal)}</span>
+                      <span className="font-medium">
+                        {formatTanggalIndo(t.tanggal)}
+                      </span>
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}
                   </td>
                   <td className="px-4 py-3 flex gap-2">
                     {t.submited || t.butuh_review ? (
-                      <button className="text-blue-600 hover:underline text-sm dark:text-blue-400">
+                      <button
+                        onClick={() =>
+                          navigate(`/guru/jawaban/siswa/detail/${t.session_id}`)
+                        }
+                        className="text-blue-600 hover:underline text-sm dark:text-blue-400"
+                      >
                         Detail Jawaban
                       </button>
                     ) : (

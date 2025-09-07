@@ -61,7 +61,7 @@ const ActiveTestsTableTR = ({
                   <td className="px-6 py-4">{test.jumlah_soal_tampil}</td>
                   <td className="px-6 py-4">{test.durasi_menit} menit</td>
                   <td className="px-6 py-4">
-                    {session && !isSubmitted && endTime ? (
+                    {session && session.Status !== "submitted" && endTime ? ( // Tambahkan kondisi Status
                       <div className="flex items-center gap-2">
                         <HiClock className="text-yellow-500" />
                         <Countdown
@@ -93,9 +93,10 @@ const ActiveTestsTableTR = ({
                       "-"
                     )}
                   </td>
+
                   <td className="px-6 py-4 text-center">
                     {session ? (
-                      isSubmitted ? (
+                      session.Status === "submitted" ? ( // Periksa Status
                         <span className="px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded">
                           📊 Lihat Nilai
                         </span>

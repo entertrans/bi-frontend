@@ -115,23 +115,56 @@ const SoalRenderer = ({
 
       case "matching": {
         const pairs = s.shuffledPilihan || safeParse(s.pilihan_jawaban);
-        const rightOptions = pairs.map((item, idx) => ({
-          label: String.fromCharCode(65 + idx),
-          text: item.right,
-          lampiran: item.rightLampiran,
-        }));
-        const current = jawaban[s.soal_id] || []; // array of {leftIndex, rightIndex}
+
+        // Pastikan mapping ada dan lengkap
+        const leftMap = s.shuffledToOriginalMap?.left || {};
+        const rightMap = s.shuffledToOriginalMap?.right || {};
+
+        const rightOptions = pairs.map((item, shuffledRightIdx) => {
+          const originalIndex = rightMap[shuffledRightIdx] ?? shuffledRightIdx;
+          return {
+            label: String.fromCharCode(65 + shuffledRightIdx),
+            text: item.right,
+            lampiran: item.rightLampiran,
+            originalIndex: originalIndex,
+            shuffledIndex: shuffledRightIdx,
+          };
+        });
+
+        const current = jawaban[s.soal_id] || [];
 
         return (
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Kolom Kiri */}
             <div className="flex-1 space-y-3">
-              {pairs.map((item, idx) => {
-                const leftKey = item.left; // asumsi unik
-                const name = `soal_${s.soal_id}_${leftKey}`;
+              {pairs.map((item, shuffledLeftIdx) => {
+                const leftOriginalIdx =
+                  leftMap[shuffledLeftIdx] ?? shuffledLeftIdx;
+                const name = `soal_${s.soal_id}_${leftOriginalIdx}`;
+
+                // Cari jawaban untuk left ini
+                const currentAnswer = current.find(
+                  (c) => c.leftIndex === leftOriginalIdx
+                );
+                const currentRightOriginalIdx = currentAnswer?.rightIndex;
+
+                // Cari label untuk right yang dipilih
+                let currentRightLabel = "";
+                if (currentRightOriginalIdx !== undefined) {
+                  // Cari shuffled index dari right yang dipilih
+                  const rightShuffledIdx = Object.keys(rightMap).find(
+                    (key) => rightMap[key] === currentRightOriginalIdx
+                  );
+
+                  if (rightShuffledIdx !== undefined) {
+                    currentRightLabel =
+                      rightOptions[rightShuffledIdx]?.label || "";
+                  }
+                }
+
                 return (
                   <div
-                    key={idx}
+                    key={shuffledLeftIdx}
                     className="p-4 bg-gray-750 rounded-lg border border-gray-600"
                   >
                     <div className="flex flex-col md:flex-row md:items-center gap-3">
@@ -145,7 +178,7 @@ const SoalRenderer = ({
                           <div className="mt-2">
                             <LampiranViewer
                               lampiran={item.leftLampiran}
-                              altText={`Lampiran kiri ${idx + 1}`}
+                              altText={`Lampiran kiri ${shuffledLeftIdx + 1}`}
                               maxWidth="150px"
                               maxHeight="100px"
                             />
@@ -157,27 +190,9 @@ const SoalRenderer = ({
                         <select
                           name={name}
                           className="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white"
-                          value={
-                            current.find(
-                              (c) =>
-                                c.leftIndex ===
-                                s.shuffledToOriginalMap.left[idx]
-                            )
-                              ? rightOptions.find(
-                                  (_, ridx) =>
-                                    s.shuffledToOriginalMap.right[ridx] ===
-                                    current.find(
-                                      (c) =>
-                                        c.leftIndex ===
-                                        s.shuffledToOriginalMap.left[idx]
-                                    )?.rightIndex
-                                )?.label || ""
-                              : ""
-                          }
+                          value={currentRightLabel}
                           onChange={(e) => {
                             const rightLabel = e.target.value;
-                            const leftOriginalIdx =
-                              s.shuffledToOriginalMap.left[idx];
 
                             if (!rightLabel) {
                               // reset → hapus jawaban untuk left ini
@@ -188,16 +203,21 @@ const SoalRenderer = ({
                               return;
                             }
 
+                            // Cari rightShuffledIdx berdasarkan label
                             const rightShuffledIdx = rightOptions.findIndex(
                               (opt) => opt.label === rightLabel
                             );
+
+                            if (rightShuffledIdx === -1) return;
+
                             const rightOriginalIdx =
-                              s.shuffledToOriginalMap.right[rightShuffledIdx];
+                              rightOptions[rightShuffledIdx]?.originalIndex;
 
                             const mapped = {
                               leftIndex: leftOriginalIdx,
                               rightIndex: rightOriginalIdx,
                             };
+
                             const next = [
                               ...current.filter(
                                 (c) => c.leftIndex !== leftOriginalIdx
@@ -208,23 +228,20 @@ const SoalRenderer = ({
                           }}
                         >
                           <option value="">-- Pilih --</option>
-                          {rightOptions.map((opt, ridx) => {
-                            const rightOriginalIdx =
-                              s.shuffledToOriginalMap.right[ridx];
+                          {rightOptions.map((opt) => {
+                            // Cek apakah opsi ini sudah dipakai oleh left lain
                             const sudahDipakai = current.some(
-                              (c) => c.rightIndex === rightOriginalIdx
+                              (c) =>
+                                c.rightIndex === opt.originalIndex &&
+                                c.leftIndex !== leftOriginalIdx
                             );
-                            const leftOriginalIdx =
-                              s.shuffledToOriginalMap.left[idx];
-                            const currentRightIdx = current.find(
-                              (c) => c.leftIndex === leftOriginalIdx
-                            )?.rightIndex;
 
+                            // Jika sudah dipakai dan bukan oleh left yang sedang diproses, sembunyikan
                             if (
                               sudahDipakai &&
-                              currentRightIdx !== rightOriginalIdx
+                              currentRightOriginalIdx !== opt.originalIndex
                             ) {
-                              return null; // hide opsi yang sudah dipakai
+                              return null;
                             }
 
                             return (
@@ -248,33 +265,49 @@ const SoalRenderer = ({
             {/* Kolom Kanan */}
             <div className="flex-1 bg-gray-750 p-4 rounded-lg border border-gray-600">
               <div className="flex flex-col gap-3">
-                {rightOptions.map((opt) => (
-                  <div key={opt.label} className="p-3 bg-gray-700 rounded">
-                    <div className="flex items-start gap-2">
-                      <span className="font-bold text-blue-400 text-sm">
-                        {opt.label}.
-                      </span>
-                      <div className="flex-1">
-                        {opt.text && (
-                          <span
-                            className="text-white text-sm block mb-2"
-                            dangerouslySetInnerHTML={{ __html: opt.text }}
-                          />
-                        )}
-                        {opt.lampiran && (
-                          <div>
-                            <LampiranViewer
-                              lampiran={opt.lampiran}
-                              altText={`Lampiran ${opt.label}`}
-                              maxWidth="150px"
-                              maxHeight="100px"
+                {rightOptions.map((opt) => {
+                  const sudahDipakai = current.some(
+                    (c) => c.rightIndex === opt.originalIndex
+                  );
+
+                  return (
+                    <div
+                      key={opt.label}
+                      className={`p-3 rounded ${
+                        sudahDipakai ? "bg-green-900" : "bg-gray-700"
+                      }`}
+                    >
+                      <div className="flex items-start gap-2">
+                        <span className="font-bold text-blue-400 text-sm">
+                          {opt.label}.
+                        </span>
+                        <div className="flex-1">
+                          {opt.text && (
+                            <span
+                              className="text-white text-sm block mb-2"
+                              dangerouslySetInnerHTML={{ __html: opt.text }}
                             />
-                          </div>
+                          )}
+                          {opt.lampiran && (
+                            <div>
+                              <LampiranViewer
+                                lampiran={opt.lampiran}
+                                altText={`Lampiran ${opt.label}`}
+                                maxWidth="150px"
+                                maxHeight="100px"
+                              />
+                            </div>
+                          )}
+                        </div>
+                        {sudahDipakai && (
+                          <span className="text-green-400 text-xs">
+                            ✓ Terpakai
+                          </span>
                         )}
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>

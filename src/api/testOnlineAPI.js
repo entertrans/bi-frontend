@@ -222,6 +222,28 @@ export const fetchSiswaDetail = async (siswaNis) => {
     throw error;
   }
 };
+export const fetchDetailJawabanBySession = async (sessionID) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/guru/session/${sessionID}/jawaban`
+    );
+
+    // Pastikan response structure sesuai
+    // console.log("API Response:", response.data);
+
+    // Cek jika response memiliki data
+    if (response.data && response.data.data) {
+      return response.data.data;
+    } else if (response.data) {
+      return response.data; // Jika data langsung di root
+    } else {
+      throw new Error("Data tidak ditemukan dalam response");
+    }
+  } catch (error) {
+    console.error("Error fetching jawaban detail:", error);
+    throw error;
+  }
+};
 
 // src/api/testOnlineAPI.js
 export const fetchJawabanSiswaDetail = async (siswaNis) => {
@@ -253,4 +275,82 @@ export const updateTestAktif = async (testID, aktif) => {
     aktif,
   });
   return res.data;
+};
+// api/testOnlineAPI.js
+export const updateJawabanFinal = async (sessionID, scoreload) => {
+  try {
+    console.log("Sending update request:", { sessionID, scoreload });
+
+    const response = await axios.put(
+      `${BASE_URL}/guru/session/${sessionID}/jawaban`,
+      scoreload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 10000,
+      }
+    );
+
+    console.log("Update response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating jawaban final:", error);
+
+    if (error.response) {
+      console.error("Response data:", error.response.data);
+      console.error("Response status:", error.response.status);
+
+      if (error.response.data && error.response.data.error) {
+        throw new Error(error.response.data.error);
+      } else {
+        throw new Error(`Server error: ${error.response.status}`);
+      }
+    } else if (error.request) {
+      console.error("No response received:", error.request);
+      throw new Error("Tidak ada respons dari server");
+    } else {
+      console.error("Error setting up request:", error.message);
+      throw new Error(`Error: ${error.message}`);
+    }
+  }
+};
+
+export const updateOverrideNilai = async (sessionID, scoreload) => {
+  try {
+    console.log("Sending override request:", { sessionID, scoreload });
+
+    const response = await axios.put(
+      `${BASE_URL}/guru/session/${sessionID}/nilai-akhir`,
+      scoreload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 10000,
+      }
+    );
+
+    console.log("Override response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating override nilai:", error);
+
+    if (error.response) {
+      console.error("Response data:", error.response.data);
+      console.error("Response status:", error.response.status);
+
+      if (error.response.data && error.response.data.error) {
+        throw new Error(error.response.data.error);
+      } else {
+        throw new Error(`Server error: ${error.response.status}`);
+      }
+    } else if (error.request) {
+      console.error("No response received:", error.request);
+      throw new Error("Tidak ada respons dari server");
+    } else {
+      console.error("Error setting up request:", error.message);
+      throw new Error(`Error: ${error.message}`);
+    }
+  }
 };

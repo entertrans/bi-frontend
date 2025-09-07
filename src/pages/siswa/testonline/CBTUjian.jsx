@@ -32,7 +32,6 @@ const CBTUjian = () => {
   const [showDaftarSoal, setShowDaftarSoal] = useState(false);
   const [targetDate, setTargetDate] = useState(null);
 
-
   // Load data on component mount
   useEffect(() => {
     const loadData = async () => {
@@ -205,12 +204,12 @@ const CBTUjian = () => {
         skor_objektif: 0,
       };
 
-      console.log("Data yang dikirim ke backend:", requestData);
-      console.log("Detail soal:", {
-        tipe_soal: soalItem.tipe_soal,
-        payload_asli: payload,
-        payload_stringified: JSON.stringify(payload),
-      });
+      // console.log("Data yang dikirim ke backend:", requestData);
+      // console.log("Detail soal:", {
+      //   tipe_soal: soalItem.tipe_soal,
+      //   payload_asli: payload,
+      //   payload_stringified: JSON.stringify(payload),
+      // });
 
       // Simpan ke backend
       await saveJawaban(requestData);
@@ -277,7 +276,7 @@ const CBTUjian = () => {
         confirmButtonText: "Tutup",
       }).then(() => {
         if (window.opener) {
-          // window.opener.postMessage({ type: "UJIAN_SELESAI", sessionId }, "*");
+          window.opener.postMessage({ type: "UJIAN_SELESAI", sessionId }, "*");
         }
         window.close();
       });
