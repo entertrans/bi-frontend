@@ -1,6 +1,8 @@
 import React from "react";
 import { HiPlay, HiRefresh, HiClock } from "react-icons/hi";
 import Countdown from "react-countdown";
+import Swal from "sweetalert2";
+import { fetchNilaiBySession } from "../../../../api/testOnlineAPI"; // Sesuaikan path API
 
 const ActiveTestsTable = ({
   tests,
@@ -12,6 +14,58 @@ const ActiveTestsTable = ({
   const currentActiveTest = Object.values(activeSessions).find(
     (s) => s && s.Status === "in_progress"
   );
+
+  // Fungsi untuk menampilkan nilai dengan SweetAlert
+  const handleLihatNilai = async (sessionID, testJudul) => {
+    try {
+      // Tampilkan loading
+      Swal.fire({
+        title: "Memuat nilai...",
+        text: "Sedang mengambil data nilai",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      // Panggil API untuk mendapatkan nilai
+      const response = await fetchNilaiBySession(sessionID);
+
+      // Tutup loading
+      Swal.close();
+
+      // Tampilkan nilai dengan SweetAlert
+      Swal.fire({
+        title: `Nilai Ujian`,
+        html: `
+          <div class="text-center">
+            <h3 class="text-xl font-bold mb-2">${testJudul}</h3>
+            <div class="text-4xl font-bold text-blue-600 mb-4">${response.nilai_akhir.toFixed(
+              2
+            )}</div>
+          </div>
+        `,
+        icon: "info",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#3B82F6",
+        buttonsStyling: false,
+        customClass: {
+          popup: "rounded-lg",
+          actions: "flex justify-center",
+          confirmButton:
+            "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching nilai:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Gagal mengambil data nilai",
+        icon: "error",
+        confirmButtonText: "Tutup",
+      });
+    }
+  };
 
   if (tests.length === 0) {
     return (
@@ -124,7 +178,7 @@ const ActiveTestsTable = ({
                       ) : (
                         <button
                           onClick={() =>
-                            console.log("Lihat nilai", session.SessionID)
+                            handleLihatNilai(session.SessionID, test.judul)
                           }
                           className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg"
                         >

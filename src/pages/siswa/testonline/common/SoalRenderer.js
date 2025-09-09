@@ -301,7 +301,7 @@ const SoalRenderer = ({
                         </div>
                         {sudahDipakai && (
                           <span className="text-green-400 text-xs">
-                            ✓ Terpakai
+                            ✓ Terpilih
                           </span>
                         )}
                       </div>

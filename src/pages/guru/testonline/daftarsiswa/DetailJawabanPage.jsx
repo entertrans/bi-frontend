@@ -1,14 +1,14 @@
 // src/pages/guru/DetailJawabanPage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-// Tambah ini pada import paling atas (sesuaikan nama fungsi API nyata)
 import {
   fetchDetailJawabanBySession,
-  updateJawabanFinal, // contoh: simpan jawaban per-soal ke jawabanfinal
-  updateOverrideNilai, // contoh: simpan override nilai ke testonline
+  updateJawabanFinal,
+  updateOverrideNilai,
 } from "../../../../api/testOnlineAPI";
 import ExpandableText from "../../../../utils/ExpandableText";
 import { renderJawaban, renderKunci } from "./renderKunci";
+import { showAlert } from "../../../../utils/toast";
 
 const DetailJawabanPage = () => {
   const { session_id } = useParams();
@@ -16,11 +16,13 @@ const DetailJawabanPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [jawabanData, setJawabanData] = useState(null);
   const [error, setError] = useState(null);
-  const [nilaiAkhir, setNilaiAkhir] = useState(0);
-  const [isEditing, setIsEditing] = useState(false); // edit per soal
-  const [isOverrideEditing, setIsOverrideEditing] = useState(false); // override nilai akhir
+  const [isEditing, setIsEditing] = useState(false);
+  const [isOverrideEditing, setIsOverrideEditing] = useState(false);
   const [overrideNilai, setOverrideNilai] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Tambahkan refresh trigger
 
+  // Ambil nilai dari response backend
+  const nilaiAkhir = jawabanData?.test?.nilai || 0;
   const displayedNilai = overrideNilai !== null ? overrideNilai : nilaiAkhir;
 
   useEffect(() => {
@@ -35,9 +37,8 @@ const DetailJawabanPage = () => {
         }
 
         setJawabanData(data);
-
-        // hitung nilai awal
-        hitungNilaiAkhir(data.jawaban);
+        // Reset override nilai ketika data di-refresh
+        setOverrideNilai(null);
       } catch (err) {
         console.error("❌ Gagal ambil data:", err);
         setError(err.message || "Terjadi kesalahan saat mengambil data");
@@ -47,88 +48,104 @@ const DetailJawabanPage = () => {
     };
 
     loadData();
-  }, [session_id]);
-
-  const hitungNilaiAkhir = (jawabanArr) => {
-    const totalSkor = jawabanArr.reduce((total, item) => {
-      const skor =
-        item.skor_uraian !== null ? item.skor_uraian : item.skor_objektif;
-      return total + (skor || 0);
-    }, 0);
-
-    const avgSkor = totalSkor / jawabanArr.length;
-    setNilaiAkhir(avgSkor * 100);
+  }, [session_id, refreshTrigger]); // Tambahkan refreshTrigger sebagai dependency
+  // Fungsi untuk refresh data
+  const refreshData = async () => {
+    try {
+      const data = await fetchDetailJawabanBySession(session_id);
+      if (data && data.jawaban && Array.isArray(data.jawaban)) {
+        setJawabanData(data);
+        setOverrideNilai(null); // Reset override setelah refresh
+      }
+    } catch (err) {
+      console.error("❌ Gagal refresh data:", err);
+      showAlert("Gagal memperbarui data", "error");
+    }
   };
 
-  // ubah nilai manual (hanya uraian & isian singkat)
+  // Hapus fungsi hitungNilaiAkhir karena sudah tidak diperlukan
+
   const handleNilaiChange = (index, nilai) => {
     const newJawabanData = { ...jawabanData };
     newJawabanData.jawaban[index].skor_uraian = parseFloat(nilai) || 0;
     setJawabanData(newJawabanData);
-    hitungNilaiAkhir(newJawabanData.jawaban);
+
+    // Otomatis reset override nilai ketika mengubah nilai uraian
+    setOverrideNilai(null);
   };
 
-  // Simpan hanya untuk jawaban per-soal (jawabanfinal)
-  // Simpan hanya untuk jawaban per-soal (uraian & isian_singkat)
   const handleSaveNilai = async () => {
     try {
-      if (!isEditing) return; // safety
+      if (!isEditing) return;
 
-      // ambil hanya soal yang bisa diubah manual
       const perubahan = jawabanData.jawaban
         .filter(
           (item) =>
             item.tipe_soal === "uraian" || item.tipe_soal === "isian_singkat"
         )
         .map((item) => ({
-          session_id: Number(session_id), // pastikan integer
+          session_id: Number(session_id),
           soal_id: item.soal_id,
-          nilai: item.skor_uraian ?? 0, // skor manual yang guru isi
+          nilai: item.skor_uraian ?? 0,
         }));
 
       if (perubahan.length === 0) {
-        alert("Tidak ada perubahan nilai untuk disimpan.");
+        showAlert("Tidak ada perubahan nilai untuk disimpan.", "info");
         return;
       }
 
-      // console.log("📤 Data yang dikirim ke backend:", perubahan);
-
-      // panggil API dengan data yang sudah diringkas
       await updateJawabanFinal(session_id, { perubahan });
 
       setIsEditing(false);
-      alert("✅ Nilai per soal berhasil disimpan!");
+      showAlert("Nilai per soal berhasil disimpan!", "success");
+
+      // Refresh data dan trigger re-render
+      setRefreshTrigger((prev) => prev + 1);
     } catch (error) {
       console.error("Gagal menyimpan nilai per soal:", error);
-      alert("❌ Gagal menyimpan nilai per soal!");
+      showAlert("Gagal menyimpan nilai per soal!", "error");
     }
   };
 
-  // Simpan override ke endpoint testonline (nilai akhir)
   const handleSaveOverrideNilai = async () => {
     try {
       const final = Number(overrideNilai);
       if (Number.isNaN(final) || final < 0 || final > 100) {
-        alert("Nilai override tidak valid (harus antara 0 - 100).");
+        showAlert("Nilai override tidak valid (harus antara 0 - 100)", "info");
         return;
       }
 
-      // panggil API yang khusus menyimpan override (testonline)
       await updateOverrideNilai(session_id, { nilai_akhir: final });
 
       setIsOverrideEditing(false);
-      alert("✅ Override nilai berhasil disimpan!");
+      showAlert("Override nilai berhasil disimpan!", "success");
+
+      // Update local state langsung tanpa refresh dari server
+      setJawabanData((prevData) => ({
+        ...prevData,
+        test: {
+          ...prevData.test,
+          nilai: final,
+        },
+      }));
+
+      // Juga set overrideNilai ke null agar displayedNilai menggunakan nilai dari data
+      setOverrideNilai(null);
     } catch (error) {
       console.error("Gagal menyimpan override nilai:", error);
-      alert("❌ Gagal menyimpan override nilai!");
+      showAlert("Gagal menyimpan override nilai!", "error");
     }
   };
 
-  const handleExport = () => {
-    alert("⚡ Export belum diimplementasikan");
+  const handleCancelOverride = () => {
+    setIsOverrideEditing(false);
+    setOverrideNilai(null);
   };
 
-  // Komponen untuk menampilkan lampiran
+  const handleExport = () => {
+    showAlert("Export belum diimplementasikan", "info");
+  };
+
   const LampiranDisplay = ({ lampiran }) => {
     if (!lampiran || !lampiran.lampiran_path_file) return null;
 
@@ -168,18 +185,16 @@ const DetailJawabanPage = () => {
     }
   };
 
-  // Fungsi untuk menentukan warna badge berdasarkan tipe soal
   const getBadgeColor = (tipeSoal) => {
     switch (tipeSoal) {
       case "uraian":
       case "isian_singkat":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"; // Kuning untuk soal yang dinilai guru
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
       default:
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"; // Hijau untuk soal yang dinilai sistem
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
     }
   };
 
-  // Loading UI
   if (isLoading) {
     return (
       <div className="p-8 flex justify-center items-center h-64">
@@ -193,7 +208,6 @@ const DetailJawabanPage = () => {
     );
   }
 
-  // Error UI
   if (error) {
     return (
       <div className="p-8">
@@ -236,28 +250,37 @@ const DetailJawabanPage = () => {
           <div className="mt-2 text-gray-700 dark:text-gray-300">
             <p>
               <span className="font-medium">Nama:</span>{" "}
-              {jawabanData.siswa?.nama || "Tidak diketahui"}
+              {jawabanData?.siswa?.nama || "Tidak diketahui"}
             </p>
             <p>
               <span className="font-medium">NIS:</span>{" "}
-              {jawabanData.siswa?.nis || "Tidak diketahui"}
+              {jawabanData?.siswa?.nis || "Tidak diketahui"}
             </p>
             <p>
               <span className="font-medium">Mata Pelajaran:</span>{" "}
-              {jawabanData.test?.mapel || "Tidak diketahui"}
+              {jawabanData?.test?.mapel || "Tidak diketahui"}
             </p>
             <p>
               <span className="font-medium">Judul Test:</span>{" "}
-              {jawabanData.test?.judul || "Tidak diketahui"}
+              {jawabanData?.test?.judul || "Tidak diketahui"}
             </p>
           </div>
         </div>
-        <button
-          onClick={() => navigate(-1)}
-          className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
-        >
-          ← Kembali
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={refreshData}
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
+            title="Refresh data"
+          >
+            🔄
+          </button>
+          <button
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
+          >
+            ← Kembali
+          </button>
+        </div>
       </div>
 
       {/* Info Nilai */}
@@ -279,7 +302,7 @@ const DetailJawabanPage = () => {
                   value={
                     overrideNilai !== null
                       ? overrideNilai
-                      : Number(parseFloat(nilaiAkhir.toFixed(2)))
+                      : Number(parseFloat(nilaiAkhir).toFixed(2))
                   }
                   onChange={(e) => setOverrideNilai(parseFloat(e.target.value))}
                   className="ml-2 w-24 px-2 py-1 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
@@ -292,11 +315,7 @@ const DetailJawabanPage = () => {
                   💾
                 </button>
                 <button
-                  onClick={() => {
-                    setIsOverrideEditing(false);
-                    // optional: reset overrideNilai jika mau
-                    // setOverrideNilai(null);
-                  }}
+                  onClick={handleCancelOverride}
                   className="ml-2 text-red-600 hover:text-red-800"
                   title="Batal"
                 >
@@ -311,12 +330,7 @@ const DetailJawabanPage = () => {
                 <button
                   onClick={() => {
                     setIsOverrideEditing(true);
-                    // inisialisasi nilai override dengan nilaiAkhir saat mulai edit supaya input terisi
-                    if (overrideNilai === null) {
-                      setOverrideNilai(
-                        Number(parseFloat(nilaiAkhir.toFixed(2)))
-                      );
-                    }
+                    setOverrideNilai(Number(parseFloat(nilaiAkhir).toFixed(2)));
                   }}
                   className="ml-2 text-yellow-600 hover:text-yellow-800 dark:hover:text-yellow-400"
                   title="Edit nilai akhir"
@@ -326,10 +340,8 @@ const DetailJawabanPage = () => {
               </>
             )}
           </div>
-
           {/* Aksi */}
           <div className="flex gap-2">
-            {/* Edit jawaban per soal */}
             <button
               onClick={() => setIsEditing(!isEditing)}
               className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
@@ -337,7 +349,6 @@ const DetailJawabanPage = () => {
               {isEditing ? "Batal Edit Jawaban" : "Edit Nilai Per Soal"}
             </button>
 
-            {/* Simpan semua perubahan: hanya tampil kalau edit per-soal aktif */}
             {isEditing && (
               <button
                 onClick={handleSaveNilai}
@@ -347,7 +358,6 @@ const DetailJawabanPage = () => {
               </button>
             )}
 
-            {/* Export */}
             <button
               onClick={handleExport}
               className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
@@ -392,7 +402,6 @@ const DetailJawabanPage = () => {
                 </td>
 
                 <td className="px-4 py-3">
-                  {/* Tampilkan lampiran soal jika ada */}
                   <LampiranDisplay lampiran={item} />
                 </td>
                 <td className="px-4 py-3">
@@ -414,7 +423,7 @@ const DetailJawabanPage = () => {
                       <input
                         type="number"
                         min="0"
-                        max={item.max_score} // BATASI NILAI MAKSIMUM
+                        max={item.max_score}
                         step="0.1"
                         value={
                           item.skor_uraian !== null
@@ -423,7 +432,6 @@ const DetailJawabanPage = () => {
                         }
                         onChange={(e) => {
                           const nilai = parseFloat(e.target.value);
-                          // Validasi tidak boleh lebih dari max_score
                           if (nilai <= item.max_score) {
                             handleNilaiChange(index, nilai);
                           }

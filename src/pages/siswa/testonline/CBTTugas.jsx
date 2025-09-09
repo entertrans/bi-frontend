@@ -6,6 +6,7 @@ import {
   saveJawaban,
   submitTugas,
 } from "../../../api/testOnlineAPI";
+import { showAlert } from "../../../utils/toast";
 import Swal from "sweetalert2";
 import { useAuth } from "../../../contexts/AuthContext";
 import HeaderUjian from "./common/HeaderUjian";
@@ -267,11 +268,7 @@ const CBTTugas = () => {
         window.close();
       });
     } catch (err) {
-      Swal.fire(
-        "Error",
-        err.response?.data?.error || "Gagal mengumpulkan tugas",
-        "error"
-      );
+      showAlert("Gagal mengumpulkan tugas", "error");
     }
   };
 

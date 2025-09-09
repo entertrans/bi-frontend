@@ -75,6 +75,7 @@ const UlanganBulanan = () => {
       showCancelButton: true,
       confirmButtonText: "Ya, hapus!",
       cancelButtonText: "Batal",
+      buttonsStyling: true,
       customClass: {
         actions: "flex justify-center",
         confirmButton:

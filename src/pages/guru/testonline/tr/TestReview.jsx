@@ -87,6 +87,7 @@ const TestReview = () => {
       showCancelButton: true,
       confirmButtonText: "Ya, hapus!",
       cancelButtonText: "Batal",
+      buttonsStyling: false,
       customClass: {
         actions: "flex justify-center",
         confirmButton:

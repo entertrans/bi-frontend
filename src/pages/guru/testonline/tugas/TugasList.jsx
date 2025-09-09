@@ -81,6 +81,14 @@ const TugasList = () => {
       showCancelButton: true,
       confirmButtonText: "Ya, hapus!",
       cancelButtonText: "Batal",
+      buttonsStyling: false,
+      customClass: {
+        actions: "flex justify-center",
+        confirmButton:
+          "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        cancelButton:
+          "bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 ml-2 rounded",
+      },
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {

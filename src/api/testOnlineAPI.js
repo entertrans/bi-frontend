@@ -354,3 +354,20 @@ export const updateOverrideNilai = async (sessionID, scoreload) => {
     }
   }
 };
+
+export const resetTestSession = async (sessionId) => {
+  const res = await axios.delete(`${BASE_URL}/guru/test/reset/${sessionId}`);
+  return res.data;
+};
+
+export const fetchNilaiBySession = async (sessionID) => {
+  try {
+    const response = await axios.get(
+      `${BASE_URL}/siswa/test/session/${sessionID}/nilai`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching nilai:", error);
+    throw error;
+  }
+};

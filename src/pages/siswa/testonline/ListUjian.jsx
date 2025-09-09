@@ -183,6 +183,12 @@ const ListUjian = () => {
         `,
         icon: "success",
         confirmButtonText: "Mengerti",
+        buttonsStyling: false,
+        customClass: {
+          actions: "flex justify-center",
+          confirmButton:
+            "bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        },
       });
     } catch (err) {
       console.error("Error mulai ujian:", err);

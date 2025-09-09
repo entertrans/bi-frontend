@@ -7,6 +7,7 @@ import {
   submitTest,
 } from "../../../api/testOnlineAPI";
 import Swal from "sweetalert2";
+import { showAlert } from "../../../utils/toast";
 import { useAuth } from "../../../contexts/AuthContext";
 import HeaderUjian from "./common/HeaderUjian";
 import SoalRenderer from "./common/SoalRenderer";
@@ -107,11 +108,7 @@ const CBTUjian = () => {
           }
         }
       } catch (err) {
-        Swal.fire(
-          "Error",
-          err.response?.data?.error || "Gagal memuat ujian",
-          "error"
-        );
+        showAlert("Gagal memuat ujian", "error");
       } finally {
         setLoading(false);
       }
@@ -239,8 +236,13 @@ const CBTUjian = () => {
         title: "Soal Belum Dijawab",
         html: `Masih ada <b>${soalBelumDijawab.length} soal</b> yang belum dijawab.`,
         icon: "warning",
-        confirmButtonColor: "#3085d6",
         confirmButtonText: "Periksa Lagi",
+        buttonsStyling: false,
+        customClass: {
+          actions: "flex justify-center",
+          confirmButton:
+            "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        },
       });
       return false;
     }
@@ -250,8 +252,13 @@ const CBTUjian = () => {
         title: "Soal Ragu-Ragu",
         html: `Anda masih menandai <b>${soalRaguRagu.length} soal</b> sebagai ragu-ragu.`,
         icon: "warning",
-        confirmButtonColor: "#3085d6",
         confirmButtonText: "Periksa Lagi",
+        buttonsStyling: false,
+        customClass: {
+          actions: "flex justify-center",
+          confirmButton:
+            "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        },
       });
       return false;
     }
@@ -272,8 +279,13 @@ const CBTUjian = () => {
         title: "Ujian Selesai!",
         text: "Jawaban Anda telah berhasil dikumpulkan.",
         icon: "success",
-        confirmButtonColor: "#3085d6",
         confirmButtonText: "Tutup",
+        buttonsStyling: false,
+        customClass: {
+          actions: "flex justify-center",
+          confirmButton:
+            "bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        },
       }).then(() => {
         if (window.opener) {
           window.opener.postMessage({ type: "UJIAN_SELESAI", sessionId }, "*");
@@ -282,11 +294,7 @@ const CBTUjian = () => {
       });
     } catch (err) {
       console.error("Error saat submit:", err);
-      Swal.fire(
-        "Error",
-        err.response?.data?.error || "Gagal mengumpulkan ujian",
-        "error"
-      );
+      showAlert("Gagal mengumpulkan ujian", "error");
     }
   };
 
