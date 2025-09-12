@@ -32,6 +32,55 @@ const BASE_URL = "http://localhost:8080";
 //   return await res.json();
 // };
 
+//pilih bank soal
+// ambil soal dari bank soal berdasarkan kelas + mapel
+export const fetchBankSoalByKelasMapel= async (kelasID, mapelID, testID) => {
+  try {
+    const res = await axios.get(`${BASE_URL}/guru/by-kelas-mapel`, {
+      params: { 
+        kelas_id: kelasID, 
+        mapel_id: mapelID,
+        test_id: testID
+      },
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Gagal ambil bank soal dengan selection:", err);
+    throw err;
+  }
+};
+
+export const removeSoalFromTest = async (testId, soalId) => {
+  try {
+    const res = await axios.delete(`${BASE_URL}/guru/${testId}/soal/${soalId}`);
+    return res.data;
+  } catch (err) {
+    console.error("Gagal menghapus soal dari test:", err);
+    throw err;
+  }
+};
+
+
+
+// tambah soal ke test
+export const addSoalToTest = async (testID, soalIDs) => {
+  console.log(testID,soalIDs);
+  
+  try {
+    const res = await axios.post(`${BASE_URL}/guru/tests/${testID}/add-soal`, {
+      soal_ids: soalIDs,
+    });
+    return res.data;
+  } catch (err) {
+    console.error("Gagal tambah soal ke test:", err);
+    throw err;
+  }
+};
+
+
+// end of pilih
+
+
 export const getTestsByType = async (type) => {
   const res = await axios.get(`${BASE_URL}/guru/test/type/${type}`);
   return res.data;

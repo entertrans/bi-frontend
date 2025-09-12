@@ -9,6 +9,7 @@ import { HiPencil, HiTrash } from "react-icons/hi";
 import Swal from "sweetalert2";
 import { showAlert } from "../../../../utils/toast";
 import SlideTambahTest from "../common/SlideTambahTest";
+import SlideTambahSoalKeTest from "./SlideTambahSoalKeTest";
 
 const UlanganBulanan = () => {
   const [tests, setTests] = useState([]);
@@ -16,7 +17,8 @@ const UlanganBulanan = () => {
   const [mapelList, setMapelList] = useState([]);
   const [selectedKelas, setSelectedKelas] = useState("");
   const [selectedMapel, setSelectedMapel] = useState("");
-
+  const [selectedTest, setSelectedTest] = useState(null);
+  const [showTambahSoal, setShowTambahSoal] = useState(false);
   const [showTambahTest, setShowTambahTest] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -67,6 +69,10 @@ const UlanganBulanan = () => {
     fetchMapel();
   }, [selectedKelas]);
 
+  const handleTambahSoal = (test) => {
+    setSelectedTest(test);
+    setShowTambahSoal(true);
+  };
   const handleDelete = (testID) => {
     Swal.fire({
       title: "Hapus Test?",
@@ -219,6 +225,12 @@ const UlanganBulanan = () => {
                       className="cursor-pointer hover:text-red-600 text-lg"
                       onClick={() => handleDelete(test.test_id)}
                     />
+                    <button
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                      onClick={() => handleTambahSoal(test)}
+                    >
+                      + Soal
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -232,6 +244,11 @@ const UlanganBulanan = () => {
         onClose={() => setShowTambahTest(false)}
         onSubmit={handleTambahTest}
         type="ub" // Tentukan jenis test
+      />
+      <SlideTambahSoalKeTest
+        isOpen={showTambahSoal}
+        onClose={() => setShowTambahSoal(false)}
+        test={selectedTest}
       />
     </div>
   );
