@@ -423,4 +423,56 @@ export const deleteTagihan = async (id) => {
   return await res.json();
 };
 
-// invoice
+// kisikisi
+// api/siswaAPI.js
+export const getAllKisiKisiByMapel = async (mapelId) => {
+  try {
+    const response = await axios.get(`http://localhost:8080/siswa/kisikisi/mapel/${mapelId}`);
+    // Response langsung array, bukan response.data.data
+    return response.data || [];
+  } catch (error) {
+    console.error('Error fetching kisi-kisi by mapel:', error);
+    throw error;
+  }
+};
+
+export const getAllKisiKisiByKelas = async (kelasId) => {
+  try {
+    const response = await axios.get(`http://localhost:8080/siswa/kisikisi/kelas/${kelasId}`);
+    // Response adalah object dengan property data
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching kisi-kisi by kelas:', error);
+    throw error;
+  }
+};
+
+export const createKisiKisi = async (kisiKisiData) => {
+  try {
+    const response = await axios.post(`http://localhost:8080/siswa/kisikisi`, kisiKisiData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating kisi-kisi:', error);
+    throw error;
+  }
+};
+
+export const updateKisiKisi = async (id, kisiKisiData) => {
+  try {
+    const response = await axios.put(`http://localhost:8080/siswa/kisikisi/${id}`, kisiKisiData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating kisi-kisi:', error);
+    throw error;
+  }
+};
+
+export const deleteKisiKisi = async (id) => {
+  try {
+    const response = await axios.delete(`http://localhost:8080/siswa/kisikisi/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting kisi-kisi:', error);
+    throw error;
+  }
+};

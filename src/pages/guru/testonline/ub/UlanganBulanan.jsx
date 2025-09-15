@@ -5,7 +5,7 @@ import {
   createTest,
 } from "../../../../api/testOnlineAPI";
 import { fetchAllkelas, fetchAllMapelByKelas } from "../../../../api/siswaAPI";
-import { HiPencil, HiTrash } from "react-icons/hi";
+import { HiPencil, HiTrash, HiDocumentText } from "react-icons/hi";
 import Swal from "sweetalert2";
 import { showAlert } from "../../../../utils/toast";
 import SlideTambahTest from "../common/SlideTambahTest";
@@ -220,17 +220,21 @@ const UlanganBulanan = () => {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex space-x-2">
-                    <HiPencil className="cursor-pointer hover:text-blue-600 text-lg" />
+                    {/* <HiPencil className="cursor-pointer hover:text-blue-600 text-lg" /> */}
                     <HiTrash
                       className="cursor-pointer hover:text-red-600 text-lg"
                       onClick={() => handleDelete(test.test_id)}
                     />
-                    <button
+                    <HiDocumentText
+                      className="cursor-pointer hover:text-purple-600 text-xl"
+                      onClick={() => handleTambahSoal(test)}
+                    />
+                    {/* <button
                       className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
                       onClick={() => handleTambahSoal(test)}
                     >
                       + Soal
-                    </button>
+                    </button> */}
                   </div>
                 </td>
               </tr>

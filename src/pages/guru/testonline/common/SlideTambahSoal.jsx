@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { HiX, HiPencil, HiTrash } from "react-icons/hi";
+import LampiranRenderer from "../../../../utils/LampiranRenderer";
 import {
   getTestSoalByTestId,
   deleteTestSoal,
@@ -147,7 +148,7 @@ const SlideTambahSoal = ({ isOpen, onClose, test }) => {
       >
         <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-            Kelola Soal Quis: {test?.judul}
+            Kelola Soal Tugas: {test?.judul}
           </h2>
           <button
             onClick={handleClose}
@@ -209,6 +210,13 @@ const SlideTambahSoal = ({ isOpen, onClose, test }) => {
                         {removeHTMLTags(soal.pertanyaan)}
                       </td>
                       <td className="px-6 py-4">
+                        <LampiranRenderer
+                          lampiran={soal.lampiran}
+                          soalId={soal.testsoal_id}
+                        />
+                      </td>
+
+                      {/* <td className="px-6 py-4">
                         {soal.lampiran ? (
                           <img
                             src={`http://localhost:8080/${soal.lampiran.path_file}`}
@@ -218,7 +226,7 @@ const SlideTambahSoal = ({ isOpen, onClose, test }) => {
                         ) : (
                           <span className="text-gray-400 text-sm">-</span>
                         )}
-                      </td>
+                      </td> */}
                       <td className="px-6 py-4">
                         {/* ✅ Logika untuk menampilkan kunci jawaban sesuai tipe soal */}
                         {soal.tipe_soal === "bs" ? (

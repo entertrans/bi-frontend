@@ -24,7 +24,7 @@ const ActiveTestsTableTR = ({
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left w-1/3">Judul</th>
+              <th className="px-6 py-3 text-left w-1/3">Judul </th>
               <th className="px-6 py-3 text-left">Mapel</th>
               <th className="px-6 py-3 text-left">Guru</th>
               <th className="px-6 py-3 text-left">Jumlah Soal</th>

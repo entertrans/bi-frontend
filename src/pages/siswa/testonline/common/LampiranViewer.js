@@ -48,17 +48,21 @@ const LampiranViewer = ({
 
   // Handle play/pause
   const togglePlayPause = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play().catch((error) => {
-          console.error("Error playing audio:", error);
-        });
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
+  if (!audioRef.current) return;
+
+  if (isPlaying) {
+    audioRef.current.pause();
+    setIsPlaying(false);
+  } else {
+    audioRef.current.play()
+      .then(() => setIsPlaying(true))
+      .catch((error) => {
+        console.error("Error playing audio:", error);
+        setIsPlaying(false);
+      });
+  }
+};
+
 
   // Handle perubahan progress
   const handleProgressChange = (e) => {
@@ -85,24 +89,35 @@ const LampiranViewer = ({
   };
 
   // Update waktu saat audio diputar
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+ useEffect(() => {
+  const audio = audioRef.current;
+  if (!audio) return;
 
-    const updateTime = () => setCurrentTime(audio.currentTime);
-    const updateDuration = () => setDuration(audio.duration);
-    const handleEnd = () => setIsPlaying(false);
+  const updateTime = () => setCurrentTime(audio.currentTime);
+  const updateDuration = () => setDuration(audio.duration);
+  const handleEnd = () => setIsPlaying(false);
 
-    audio.addEventListener("timeupdate", updateTime);
-    audio.addEventListener("loadedmetadata", updateDuration);
-    audio.addEventListener("ended", handleEnd);
+  audio.addEventListener("timeupdate", updateTime);
+  audio.addEventListener("loadedmetadata", updateDuration);
+  audio.addEventListener("ended", handleEnd);
 
-    return () => {
-      audio.removeEventListener("timeupdate", updateTime);
-      audio.removeEventListener("loadedmetadata", updateDuration);
-      audio.removeEventListener("ended", handleEnd);
-    };
-  }, []);
+  return () => {
+    audio.removeEventListener("timeupdate", updateTime);
+    audio.removeEventListener("loadedmetadata", updateDuration);
+    audio.removeEventListener("ended", handleEnd);
+  };
+}, [lampiran]);
+
+  // Reset audio state setiap kali lampiran berubah
+useEffect(() => {
+  setIsPlaying(false);
+  setCurrentTime(0);
+  setDuration(0);
+  if (audioRef.current) {
+    audioRef.current.pause();
+    audioRef.current.currentTime = 0;
+  }
+}, [lampiran]);
 
   // Early return harus setelah semua hooks
   if (!lampiran) return null;
