@@ -309,7 +309,6 @@ export async function fetchAllkelas() {
   }
   return await response.json();
 }
-
 export const fetchAllSiswaByKelas = async (kelasID) => {
   const res = await axios.get(`http://localhost:8080/lookup/kelas/${kelasID}`);
   return res.data;
@@ -447,32 +446,4 @@ export const getAllKisiKisiByKelas = async (kelasId) => {
   }
 };
 
-export const createKisiKisi = async (kisiKisiData) => {
-  try {
-    const response = await axios.post(`http://localhost:8080/siswa/kisikisi`, kisiKisiData);
-    return response.data;
-  } catch (error) {
-    console.error('Error creating kisi-kisi:', error);
-    throw error;
-  }
-};
 
-export const updateKisiKisi = async (id, kisiKisiData) => {
-  try {
-    const response = await axios.put(`http://localhost:8080/siswa/kisikisi/${id}`, kisiKisiData);
-    return response.data;
-  } catch (error) {
-    console.error('Error updating kisi-kisi:', error);
-    throw error;
-  }
-};
-
-export const deleteKisiKisi = async (id) => {
-  try {
-    const response = await axios.delete(`http://localhost:8080/siswa/kisikisi/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error deleting kisi-kisi:', error);
-    throw error;
-  }
-};
