@@ -446,4 +446,32 @@ export const getAllKisiKisiByKelas = async (kelasId) => {
   }
 };
 
+//keuangan siswa
+
+export const getInvoiceHistory = async (nis) => {
+  try {
+    const response = await fetch(`http://localhost:8080/siswa/invoice/history/${nis}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch invoice history');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching invoice history:', error);
+    throw error;
+  }
+};
+
+// Fungsi untuk mengambil detail invoice
+export const getInvoiceDetail = async (nis, idInvoice) => {
+  try {
+    const response = await fetch(`http://localhost:8080/siswa/invoice/detail/${nis}?idInvoice=${idInvoice}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch invoice detail');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching invoice detail:', error);
+    throw error;
+  }
+};
 
