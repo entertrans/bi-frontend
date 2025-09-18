@@ -6,7 +6,7 @@ export const getAllKisiKisiGuru = async () => {
     // console.log("Fetching kisi-kisi data...");
     const res = await axios.get("/siswa/kisikisi/");
     // console.log("Kisi-kisi response:", res);
-    
+
     // Kembalikan res.data.data (array kisi-kisi) bukan res.data
     return res.data.data || [];
   } catch (err) {
@@ -25,8 +25,8 @@ export const createKisiKisi = async (data) => {
     console.log("Sending data:", data); // Debug
     const res = await axios.post("http://localhost:8080/siswa/kisikisi", data, {
       headers: {
-        'Content-Type': 'application/json',
-      }
+        "Content-Type": "application/json",
+      },
     });
     return res.data;
   } catch (err) {
@@ -61,21 +61,16 @@ export const getAllRekapNilai = async () => {
 };
 
 export const getDetailTest = async (type, kelas_id, mapel_id) => {
-  try {
-    const res = await axios.get(`/guru/nilai/${type}/${kelas_id}/${mapel_id}`);
-    return res.data.data || [];
-  } catch (err) {
-    console.error(`Error fetch detail ${type}:`, err);
-    return [];
-  }
+  const response = await axios.get(
+    `/guru/nilai/${type}/${kelas_id}/${mapel_id}`
+  );
+  return response.data; // response.data sekarang berisi { data: [], kelas: {}, mapel: {} }
 };
 
+// api/guruAPI.js
 export const getDetailPesertaTest = async (type, test_id, kelas_id) => {
-  try {
-    const res = await axios.get(`/guru/nilai/${type}/peserta/${test_id}/${kelas_id}`);
-    return res.data.data || [];
-  } catch (err) {
-    console.error(`Error fetch detail peserta ${type}:`, err);
-    return [];
-  }
+  const response = await axios.get(
+    `/guru/nilai/peserta/${type}/${test_id}/${kelas_id}`
+  );
+  return response.data; // response.data sekarang berisi { test_info: {}, data: [] }
 };

@@ -23,7 +23,7 @@ const RekapNilai = () => {
         const menuElement = document.getElementById(openMenu);
         if (menuElement && !menuElement.contains(event.target)) {
           // Cek jika yang diklik bukan tombol menu itu sendiri
-          const buttonElement = event.target.closest('button');
+          const buttonElement = event.target.closest("button");
           if (!buttonElement || !buttonElement.contains(event.target)) {
             setOpenMenu(null);
           }
@@ -225,7 +225,7 @@ const RekapNilai = () => {
               {currentData.map((row) => {
                 const menuId = `menu-${row.kelas_id}-${row.mapel_id}`;
                 const isMenuOpen = openMenu === menuId;
-                
+
                 return (
                   <tr key={`${row.kelas_id}-${row.mapel_id}`}>
                     <td className="px-6 py-4">
@@ -245,14 +245,16 @@ const RekapNilai = () => {
                         </button>
                         <div
                           id={menuId}
-                          ref={el => menuRefs.current[menuId] = el}
+                          ref={(el) => (menuRefs.current[menuId] = el)}
                           className={`absolute right-0 mt-2 w-40 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded shadow-lg z-10 ${
                             isMenuOpen ? "" : "hidden"
                           }`}
                         >
                           <button
                             onClick={() => {
-                              navigate(`/guru/nilai/ub/${row.kelas_id}/${row.mapel_id}`);
+                              navigate(
+                                `/guru/nilai/ub/${row.kelas_id}/${row.mapel_id}`
+                              );
                               setOpenMenu(null);
                             }}
                             className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600"
@@ -261,7 +263,9 @@ const RekapNilai = () => {
                           </button>
                           <button
                             onClick={() => {
-                              navigate(`/guru/nilai/tr/${row.kelas_id}/${row.mapel_id}`);
+                              navigate(
+                                `/guru/nilai/tr/${row.kelas_id}/${row.mapel_id}`
+                              );
                               setOpenMenu(null);
                             }}
                             className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600"
@@ -270,7 +274,9 @@ const RekapNilai = () => {
                           </button>
                           <button
                             onClick={() => {
-                              navigate(`/guru/nilai/tugas/${row.kelas_id}/${row.mapel_id}`);
+                              navigate(
+                                `/guru/nilai/tugas/${row.kelas_id}/${row.mapel_id}`
+                              );
                               setOpenMenu(null);
                             }}
                             className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600"

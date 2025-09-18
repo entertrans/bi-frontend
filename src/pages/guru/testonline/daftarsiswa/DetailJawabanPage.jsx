@@ -19,7 +19,7 @@ const DetailJawabanPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isOverrideEditing, setIsOverrideEditing] = useState(false);
   const [overrideNilai, setOverrideNilai] = useState(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // Tambahkan refresh trigger
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Ambil nilai dari response backend
   const nilaiAkhir = jawabanData?.test?.nilai || 0;
@@ -37,10 +37,9 @@ const DetailJawabanPage = () => {
         }
 
         setJawabanData(data);
-        // Reset override nilai ketika data di-refresh
         setOverrideNilai(null);
       } catch (err) {
-        console.error("❌ Gagal ambil data:", err);
+        console.error("Gagal ambil data:", err);
         setError(err.message || "Terjadi kesalahan saat mengambil data");
       } finally {
         setIsLoading(false);
@@ -48,29 +47,25 @@ const DetailJawabanPage = () => {
     };
 
     loadData();
-  }, [session_id, refreshTrigger]); // Tambahkan refreshTrigger sebagai dependency
-  // Fungsi untuk refresh data
+  }, [session_id, refreshTrigger]);
+
   const refreshData = async () => {
     try {
       const data = await fetchDetailJawabanBySession(session_id);
       if (data && data.jawaban && Array.isArray(data.jawaban)) {
         setJawabanData(data);
-        setOverrideNilai(null); // Reset override setelah refresh
+        setOverrideNilai(null);
       }
     } catch (err) {
-      console.error("❌ Gagal refresh data:", err);
+      console.error("Gagal refresh data:", err);
       showAlert("Gagal memperbarui data", "error");
     }
   };
-
-  // Hapus fungsi hitungNilaiAkhir karena sudah tidak diperlukan
 
   const handleNilaiChange = (index, nilai) => {
     const newJawabanData = { ...jawabanData };
     newJawabanData.jawaban[index].skor_uraian = parseFloat(nilai) || 0;
     setJawabanData(newJawabanData);
-
-    // Otomatis reset override nilai ketika mengubah nilai uraian
     setOverrideNilai(null);
   };
 
@@ -98,8 +93,6 @@ const DetailJawabanPage = () => {
 
       setIsEditing(false);
       showAlert("Nilai per soal berhasil disimpan!", "success");
-
-      // Refresh data dan trigger re-render
       setRefreshTrigger((prev) => prev + 1);
     } catch (error) {
       console.error("Gagal menyimpan nilai per soal:", error);
@@ -120,7 +113,6 @@ const DetailJawabanPage = () => {
       setIsOverrideEditing(false);
       showAlert("Override nilai berhasil disimpan!", "success");
 
-      // Update local state langsung tanpa refresh dari server
       setJawabanData((prevData) => ({
         ...prevData,
         test: {
@@ -129,7 +121,6 @@ const DetailJawabanPage = () => {
         },
       }));
 
-      // Juga set overrideNilai ke null agar displayedNilai menggunakan nilai dari data
       setOverrideNilai(null);
     } catch (error) {
       console.error("Gagal menyimpan override nilai:", error);
@@ -175,7 +166,7 @@ const DetailJawabanPage = () => {
             href={fullPath}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline text-xs flex items-center"
+            className="text-blue-600 hover:underline text-xs flex items-center dark:text-blue-400"
           >
             <span className="mr-1">📎</span>
             {lampiran_nama_file}
@@ -195,105 +186,145 @@ const DetailJawabanPage = () => {
     }
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   if (isLoading) {
     return (
-      <div className="p-8 flex justify-center items-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">
-            Memuat data jawaban...
-          </p>
+      <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div className="flex items-center mb-6">
+          <button
+            onClick={handleBack}
+            className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-white px-3 py-1 rounded mr-3 hover:bg-gray-400 dark:hover:bg-gray-500"
+          >
+            &larr; Kembali
+          </button>
+          <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            Detail Jawaban Siswa
+          </h1>
         </div>
+        <p className="text-gray-500 dark:text-gray-400">
+          Memuat data jawaban...
+        </p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-8">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div className="flex items-center mb-6">
+          <button
+            onClick={handleBack}
+            className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-white px-3 py-1 rounded mr-3 hover:bg-gray-400 dark:hover:bg-gray-500"
+          >
+            &larr; Kembali
+          </button>
+          <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            Detail Jawaban Siswa
+          </h1>
+        </div>
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 dark:bg-red-900 dark:text-red-200 dark:border-red-700">
           <p className="font-bold">Error</p>
           <p>{error}</p>
         </div>
-        <button
-          onClick={() => navigate(-1)}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Kembali
-        </button>
       </div>
     );
   }
 
   if (!jawabanData) {
     return (
-      <div className="p-8">
-        <p>Data jawaban tidak ditemukan untuk session: {session_id}</p>
-        <button
-          onClick={() => navigate(-1)}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Kembali
-        </button>
+      <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
+        <div className="flex items-center mb-6">
+          <button
+            onClick={handleBack}
+            className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-white px-3 py-1 rounded mr-3 hover:bg-gray-400 dark:hover:bg-gray-500"
+          >
+            &larr; Kembali
+          </button>
+          <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            Detail Jawaban Siswa
+          </h1>
+        </div>
+        <p className="text-gray-500 dark:text-gray-400">
+          Data jawaban tidak ditemukan untuk session: {session_id}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="p-8 bg-white dark:bg-gray-800 shadow rounded-lg">
+    <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            Detail Jawaban Siswa
-          </h1>
-          <div className="mt-2 text-gray-700 dark:text-gray-300">
-            <p>
-              <span className="font-medium">Nama:</span>{" "}
+      <div className="flex items-center mb-6">
+        <button
+          onClick={handleBack}
+          className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-white px-3 py-1 rounded mr-3 hover:bg-gray-400 dark:hover:bg-gray-500"
+        >
+          &larr; Kembali
+        </button>
+        <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+          Detail Jawaban Siswa
+        </h1>
+        <button
+          onClick={refreshData}
+          className="ml-auto bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-white px-3 py-1 rounded hover:bg-gray-400 dark:hover:bg-gray-500"
+          title="Refresh data"
+        >
+          ↻ Refresh
+        </button>
+      </div>
+
+      {/* Info Siswa */}
+      <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">
+              Nama
+            </p>
+            <p className="text-lg font-bold">
               {jawabanData?.siswa?.nama || "Tidak diketahui"}
             </p>
-            <p>
-              <span className="font-medium">NIS:</span>{" "}
+          </div>
+          <div>
+            <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">
+              NIS
+            </p>
+            <p className="text-lg font-bold">
               {jawabanData?.siswa?.nis || "Tidak diketahui"}
             </p>
-            <p>
-              <span className="font-medium">Mata Pelajaran:</span>{" "}
+          </div>
+          <div>
+            <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">
+              Mata Pelajaran
+            </p>
+            <p className="text-lg font-bold">
               {jawabanData?.test?.mapel || "Tidak diketahui"}
             </p>
-            <p>
-              <span className="font-medium">Judul Test:</span>{" "}
+          </div>
+          <div>
+            <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">
+              Judul Test
+            </p>
+            <p className="text-lg font-bold">
               {jawabanData?.test?.judul || "Tidak diketahui"}
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={refreshData}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
-            title="Refresh data"
-          >
-            🔄
-          </button>
-          <button
-            onClick={() => navigate(-1)}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
-          >
-            ← Kembali
-          </button>
-        </div>
       </div>
 
       {/* Info Nilai */}
-      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
-        <div className="flex justify-between items-center">
+      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           {/* Nilai akhir */}
           <div className="flex items-center">
-            <span className="font-medium text-blue-800 dark:text-blue-200">
+            <span className="font-medium text-blue-800 dark:text-blue-200 mr-2">
               Nilai Akhir:
             </span>
 
             {isOverrideEditing ? (
-              <>
+              <div className="flex items-center">
                 <input
                   type="number"
                   min="0"
@@ -305,26 +336,26 @@ const DetailJawabanPage = () => {
                       : Number(parseFloat(nilaiAkhir).toFixed(2))
                   }
                   onChange={(e) => setOverrideNilai(parseFloat(e.target.value))}
-                  className="ml-2 w-24 px-2 py-1 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                  className="w-24 px-2 py-1 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
                 />
                 <button
                   onClick={handleSaveOverrideNilai}
-                  className="ml-2 text-green-600 hover:text-green-800 dark:hover:text-green-400"
+                  className="ml-2 px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
                   title="Simpan override nilai"
                 >
-                  💾
+                  Simpan
                 </button>
                 <button
                   onClick={handleCancelOverride}
-                  className="ml-2 text-red-600 hover:text-red-800"
+                  className="ml-2 px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
                   title="Batal"
                 >
-                  ✖
+                  Batal
                 </button>
-              </>
+              </div>
             ) : (
-              <>
-                <span className="ml-2 text-2xl font-bold text-blue-800 dark:text-blue-200">
+              <div className="flex items-center">
+                <span className="text-2xl font-bold text-blue-800 dark:text-blue-200 mr-2">
                   {displayedNilai.toFixed(2)}
                 </span>
                 <button
@@ -332,35 +363,40 @@ const DetailJawabanPage = () => {
                     setIsOverrideEditing(true);
                     setOverrideNilai(Number(parseFloat(nilaiAkhir).toFixed(2)));
                   }}
-                  className="ml-2 text-yellow-600 hover:text-yellow-800 dark:hover:text-yellow-400"
+                  className="px-2 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
                   title="Edit nilai akhir"
                 >
-                  ✏️
+                  Edit Nilai
                 </button>
-              </>
+              </div>
             )}
           </div>
+
           {/* Aksi */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setIsEditing(!isEditing)}
-              className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+              className={`px-3 py-1 rounded ${
+                isEditing
+                  ? "bg-red-600 hover:bg-red-700 text-white"
+                  : "bg-yellow-500 hover:bg-yellow-600 text-white"
+              }`}
             >
-              {isEditing ? "Batal Edit Jawaban" : "Edit Nilai Per Soal"}
+              {isEditing ? "Batal Edit" : "Edit Nilai Per Soal"}
             </button>
 
             {isEditing && (
               <button
                 onClick={handleSaveNilai}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
               >
-                Simpan Semua Perubahan
+                Simpan Semua
               </button>
             )}
 
             <button
               onClick={handleExport}
-              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
+              className="px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
             >
               Export Jawaban
             </button>
@@ -370,28 +406,48 @@ const DetailJawabanPage = () => {
 
       {/* Tabel Jawaban */}
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left border dark:border-gray-600">
-          <thead className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
-              <th className="px-4 py-3">No</th>
-              <th className="px-4 py-3">Tipe</th>
-              <th className="px-4 py-3">Lampiran</th>
-              <th className="px-4 py-3">Pertanyaan</th>
-              <th className="px-4 py-3">Jawaban Siswa</th>
-              <th className="px-4 py-3">Kunci Jawaban</th>
-              <th className="px-4 py-3">Max Score</th>
-              <th className="px-4 py-3">Nilai</th>
-              {isEditing && <th className="px-4 py-3">Edit Nilai</th>}
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                No
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Tipe
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Lampiran
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Pertanyaan
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Jawaban Siswa
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Kunci Jawaban
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Max Score
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Nilai
+              </th>
+              {isEditing && (
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                  Edit Nilai
+                </th>
+              )}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {jawabanData.jawaban.map((item, index) => (
               <tr
                 key={item.soal_id || index}
-                className="border-b dark:border-gray-600"
+                className="hover:bg-gray-50 dark:hover:bg-gray-700"
               >
-                <td className="px-4 py-3">{index + 1}</td>
-                <td className="px-4 py-3">
+                <td className="px-6 py-4">{index + 1}</td>
+                <td className="px-6 py-4">
                   <span
                     className={`px-2 py-1 rounded text-xs ${getBadgeColor(
                       item.tipe_soal
@@ -401,23 +457,23 @@ const DetailJawabanPage = () => {
                   </span>
                 </td>
 
-                <td className="px-4 py-3">
+                <td className="px-6 py-4">
                   <LampiranDisplay lampiran={item} />
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-6 py-4">
                   <ExpandableText text={item.pertanyaan} limit={25} />
                 </td>
 
-                <td className="px-4 py-3">{renderJawaban(item)}</td>
-                <td className="px-4 py-3">{renderKunci(item)}</td>
-                <td className="px-4 py-3">{item.max_score}</td>
-                <td className="px-4 py-3">
+                <td className="px-6 py-4">{renderJawaban(item)}</td>
+                <td className="px-6 py-4">{renderKunci(item)}</td>
+                <td className="px-6 py-4">{item.max_score}</td>
+                <td className="px-6 py-4 font-bold">
                   {item.skor_uraian !== null
                     ? item.skor_uraian
                     : item.skor_objektif}
                 </td>
                 {isEditing && (
-                  <td className="px-4 py-3">
+                  <td className="px-6 py-4">
                     {(item.tipe_soal === "uraian" ||
                       item.tipe_soal === "isian_singkat") && (
                       <input
