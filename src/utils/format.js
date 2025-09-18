@@ -31,6 +31,30 @@ export const formatTanggalLengkap = (isoDate) => {
     year: "numeric",
   });
 };
+// export const formatTanggalLengkap2 = (isoDate) => {
+//   if (!isoDate) return "-";
+//   return new Date(isoDate).toLocaleDateString("id-ID", {
+//     weekday: "long",
+//     day: "numeric",
+//     month: "long",
+//     year: "numeric",
+//   });
+// };
+
+export const formatTanggalWaktu = (dateString) => {
+  const date = new Date(dateString);
+  return {
+    date: date.toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }),
+    time: date.toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  };
+};
 
 export const terbilang = (angka) => {
   const satuan = [

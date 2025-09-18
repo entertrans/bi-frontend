@@ -426,22 +426,26 @@ export const deleteTagihan = async (id) => {
 // api/siswaAPI.js
 export const getAllKisiKisiByMapel = async (mapelId) => {
   try {
-    const response = await axios.get(`http://localhost:8080/siswa/kisikisi/mapel/${mapelId}`);
+    const response = await axios.get(
+      `http://localhost:8080/siswa/kisikisi/mapel/${mapelId}`
+    );
     // Response langsung array, bukan response.data.data
     return response.data || [];
   } catch (error) {
-    console.error('Error fetching kisi-kisi by mapel:', error);
+    console.error("Error fetching kisi-kisi by mapel:", error);
     throw error;
   }
 };
 
 export const getAllKisiKisiByKelas = async (kelasId) => {
   try {
-    const response = await axios.get(`http://localhost:8080/siswa/kisikisi/kelas/${kelasId}`);
+    const response = await axios.get(
+      `http://localhost:8080/siswa/kisikisi/kelas/${kelasId}`
+    );
     // Response adalah object dengan property data
     return response.data.data || [];
   } catch (error) {
-    console.error('Error fetching kisi-kisi by kelas:', error);
+    console.error("Error fetching kisi-kisi by kelas:", error);
     throw error;
   }
 };
@@ -450,13 +454,15 @@ export const getAllKisiKisiByKelas = async (kelasId) => {
 
 export const getInvoiceHistory = async (nis) => {
   try {
-    const response = await fetch(`http://localhost:8080/siswa/invoice/history/${nis}`);
+    const response = await fetch(
+      `http://localhost:8080/siswa/invoice/history/${nis}`
+    );
     if (!response.ok) {
-      throw new Error('Failed to fetch invoice history');
+      throw new Error("Failed to fetch invoice history");
     }
     return await response.json();
   } catch (error) {
-    console.error('Error fetching invoice history:', error);
+    console.error("Error fetching invoice history:", error);
     throw error;
   }
 };
@@ -464,14 +470,30 @@ export const getInvoiceHistory = async (nis) => {
 // Fungsi untuk mengambil detail invoice
 export const getInvoiceDetail = async (nis, idInvoice) => {
   try {
-    const response = await fetch(`http://localhost:8080/siswa/invoice/detail/${nis}?idInvoice=${idInvoice}`);
+    const response = await fetch(
+      `http://localhost:8080/siswa/invoice/detail/${nis}?idInvoice=${idInvoice}`
+    );
     if (!response.ok) {
-      throw new Error('Failed to fetch invoice detail');
+      throw new Error("Failed to fetch invoice detail");
     }
     return await response.json();
   } catch (error) {
-    console.error('Error fetching invoice detail:', error);
+    console.error("Error fetching invoice detail:", error);
     throw error;
   }
 };
 
+export const getInvoiceTerakhir = async (nis) => {
+  try {
+    const response = await fetch(
+      `http://localhost:8080/siswa/invoice/${nis}/invoice/unpaid-latest`
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch invoice");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching invoice:", error);
+    throw error;
+  }
+};
