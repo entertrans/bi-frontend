@@ -49,3 +49,33 @@ export const deleteKisiKisi = async (id) => {
     throw err;
   }
 };
+
+export const getAllRekapNilai = async () => {
+  try {
+    const res = await axios.get("/guru/nilai/rekap");
+    return res.data;
+  } catch (err) {
+    console.error("Error fetch rekap nilai:", err);
+    return [];
+  }
+};
+
+export const getDetailTest = async (type, kelas_id, mapel_id) => {
+  try {
+    const res = await axios.get(`/guru/nilai/${type}/${kelas_id}/${mapel_id}`);
+    return res.data.data || [];
+  } catch (err) {
+    console.error(`Error fetch detail ${type}:`, err);
+    return [];
+  }
+};
+
+export const getDetailPesertaTest = async (type, test_id, kelas_id) => {
+  try {
+    const res = await axios.get(`/guru/nilai/${type}/peserta/${test_id}/${kelas_id}`);
+    return res.data.data || [];
+  } catch (err) {
+    console.error(`Error fetch detail peserta ${type}:`, err);
+    return [];
+  }
+};

@@ -1,6 +1,5 @@
 import Home from "../pages/guru/Home";
 import Course from "../pages/guru/Course";
-import Nilai from "../pages/guru/Nilai";
 import KisiKisi from "../pages/guru/kisikisi/GuruKisiKisi";
 import TestOnline from "../pages/guru/testonline/TestOnline";
 import Ulangan from "../pages/guru/Ulangan";
@@ -15,11 +14,14 @@ import Penilaian from "../pages/guru/testonline/penilaian/Penilaian";
 import DaftarSiswa from "../pages/guru/testonline/daftarsiswa/DaftarSiswa";
 import JawabanPage from "../pages/guru/testonline/daftarsiswa/JawabanPage";
 import DetailJawabanPage from "../pages/guru/testonline/daftarsiswa/DetailJawabanPage";
+import RekapNilai from "../pages/guru/nilai/RekapNilai";
+import DetailTest from "../pages/guru/nilai/DetailTest";
+import DetailPesertaTest from "../pages/guru/nilai/DetailPesertaTest";
 
 export const guruRoutes = [
   { path: "/guru", element: <Home /> },
   { path: "/guru/course", element: <Course /> },
-  { path: "/guru/nilai", element: <Nilai /> },
+  { path: "/guru/nilai", element: <RekapNilai /> },
   { path: "/guru/kisi-kisi", element: <KisiKisi /> },
   { path: "/guru/test-online", element: <TestOnline /> },
   { path: "/guru/banksoal/trash", element: <BankSoalTrash /> },
@@ -40,6 +42,10 @@ export const guruRoutes = [
     element: <DetailJawabanPage />,
   },
   { path: "/guru/ulangan", element: <Ulangan /> },
+  { path: "/guru/nilai/:type/:kelas_id/:mapel_id", element: <DetailTest /> },
+  { path: "/guru/nilai/:type/peserta/:test_id/:kelas_id", element: <DetailPesertaTest /> },
+//   <Route path="/guru/nilai/:type/:kelas_id/:mapel_id" element={<DetailTest />} />
+// <Route path="/guru/nilai/:type/peserta/:test_id/:kelas_id" element={<DetailPesertaTest />} />
   { path: "/guru/logout", element: <Logout /> },
 ];
 
