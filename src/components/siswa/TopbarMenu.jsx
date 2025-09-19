@@ -6,7 +6,8 @@ import { Link, useLocation } from "react-router-dom";
 const menuItems = [
   { name: "Beranda", path: "/siswa", icon: "🏠" },
   { name: "Kalender", path: "/siswa/kalender", icon: "📅" },
-  { name: "Course", path: "/siswa/course", icon: "📘" },
+  { name: "Kelas Online", path: "/siswa/online", icon: "📘" },
+  { name: "Modul", path: "/siswa/modul", icon: "📘" },
   { name: "Kisi-Kisi", path: "/siswa/kisi-kisi", icon: "📄" },
   { name: "Keuangan", path: "/siswa/keuangan", icon: "💰" },
   { name: "Nilai", path: "/siswa/nilai", icon: "📊" },

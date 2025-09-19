@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getDetailPesertaTest } from "../../../api/guruAPI";
-import { formatTanggalWaktu } from "../../../utils/format";
+import { formatTanggalWaktu,formatDurasi } from "../../../utils/format";
 
 const DetailPesertaTest = () => {
   const { type, test_id, kelas_id } = useParams();
@@ -88,7 +88,7 @@ const DetailPesertaTest = () => {
               <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">
                 Durasi
               </p>
-              <p className="text-lg font-bold">{testInfo.durasi_menit} menit</p>
+              <p className="text-lg font-bold">{formatDurasi(testInfo.durasi_menit)}</p>
             </div>
             <div>
               <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">

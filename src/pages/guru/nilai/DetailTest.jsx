@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { formatDurasi } from "../../../utils/format";
 import { getDetailTest } from "../../../api/guruAPI";
 import { exportToExcel } from "../../../utils/excelExport";
 
@@ -176,7 +177,7 @@ const DetailTest = () => {
                   >
                     <td className="px-6 py-4 font-semibold">{test.judul}</td>
                     <td className="px-6 py-4">{test.guru_nama}</td>
-                    <td className="px-6 py-4">{test.durasi_menit} menit</td>
+                    <td className="px-6 py-4">{formatDurasi(test.durasi_menit)}</td>
                     <td className="px-6 py-4 font-bold">
                       {test.jumlah_soal} soal
                     </td>

@@ -46,6 +46,22 @@ export const formatTanggalWaktu = (dateString) => {
     }),
   };
 };
+export const formatDurasi = (minutes) => {
+  if (!minutes || minutes < 0) return "-";
+
+  const days = Math.floor(minutes / 1440); // 1 hari = 1440 menit
+  const hours = Math.floor((minutes % 1440) / 60);
+  const mins = minutes % 60;
+
+  let result = [];
+
+  if (days > 0) result.push(`${days} hari`);
+  if (hours > 0) result.push(`${hours} jam`);
+  if (mins > 0 && days === 0) result.push(`${mins} menit`); 
+  // kalau udah ada hari, menit seringkali ga penting
+
+  return result.join(" ");
+};
 
 export const terbilang = (angka) => {
   const satuan = [
