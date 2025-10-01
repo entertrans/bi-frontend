@@ -1,6 +1,8 @@
 import React from "react";
 import { HiPlay, HiRefresh, HiClock } from "react-icons/hi";
 import Countdown from "react-countdown";
+import Swal from "sweetalert2";
+import { fetchNilaiBySession } from "../../../../api/testOnlineAPI"; // samakan path API
 
 const ActiveTestsTableTR = ({
   tests,
@@ -8,6 +10,54 @@ const ActiveTestsTableTR = ({
   onKerjakan,
   onLanjutkan,
 }) => {
+  // Fungsi untuk lihat nilai
+  const handleLihatNilai = async (sessionID, testJudul) => {
+    try {
+      Swal.fire({
+        title: "Memuat nilai...",
+        text: "Sedang mengambil data nilai",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      const response = await fetchNilaiBySession(sessionID);
+
+      Swal.close();
+
+      Swal.fire({
+        title: `Nilai Ujian`,
+        html: `
+          <div class="text-center">
+            <h3 class="text-xl font-bold mb-2">${testJudul}</h3>
+            <div class="text-4xl font-bold text-blue-600 mb-4">${response.nilai_akhir.toFixed(
+              2
+            )}</div>
+          </div>
+        `,
+        icon: "info",
+        confirmButtonText: "Tutup",
+        confirmButtonColor: "#3B82F6",
+        buttonsStyling: false,
+        customClass: {
+          popup: "rounded-lg",
+          actions: "flex justify-center",
+          confirmButton:
+            "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching nilai:", error);
+      Swal.fire({
+        title: "Error",
+        text: "Gagal mengambil data nilai",
+        icon: "error",
+        confirmButtonText: "Tutup",
+      });
+    }
+  };
+
   if (tests.length === 0) {
     return (
       <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 text-center">
@@ -36,7 +86,6 @@ const ActiveTestsTableTR = ({
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {tests.map((test) => {
               const session = activeSessions[test.test_id];
-              const isSubmitted = !!session?.SubmittedAt;
               const endTime = session?.EndTime
                 ? new Date(session.EndTime)
                 : null;
@@ -61,7 +110,7 @@ const ActiveTestsTableTR = ({
                   <td className="px-6 py-4">{test.jumlah_soal_tampil}</td>
                   <td className="px-6 py-4">{test.durasi_menit} menit</td>
                   <td className="px-6 py-4">
-                    {session && session.Status !== "submitted" && endTime ? ( // Tambahkan kondisi Status
+                    {session && session.Status !== "submitted" && endTime ? (
                       <div className="flex items-center gap-2">
                         <HiClock className="text-yellow-500" />
                         <Countdown
@@ -96,10 +145,15 @@ const ActiveTestsTableTR = ({
 
                   <td className="px-6 py-4 text-center">
                     {session ? (
-                      session.Status === "submitted" ? ( // Periksa Status
-                        <span className="px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded">
+                      session.Status === "submitted" ? (
+                        <button
+                          onClick={() =>
+                            handleLihatNilai(session.SessionID, test.judul)
+                          }
+                          className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg"
+                        >
                           📊 Lihat Nilai
-                        </span>
+                        </button>
                       ) : (
                         <button
                           onClick={() => onLanjutkan(session)}

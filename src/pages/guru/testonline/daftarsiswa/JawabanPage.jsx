@@ -323,7 +323,10 @@ const JawabanPage = () => {
                         <button
                           onClick={() =>
                             navigate(
-                              `/guru/jawaban/siswa/detail/${t.session_id}`
+                              `/guru/jawaban/siswa/detail/${t.session_id}`,
+                              {
+                                state: { jenis: t.jenis }, // 👈 kirim jenis lewat state
+                              }
                             )
                           }
                           className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 p-1"
@@ -331,6 +334,7 @@ const JawabanPage = () => {
                         >
                           <HiOutlineDocumentMagnifyingGlass size={20} />
                         </button>
+
                         <button
                           onClick={() => handleResetTest(t.session_id)}
                           className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-1"

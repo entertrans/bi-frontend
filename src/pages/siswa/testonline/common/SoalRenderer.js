@@ -1,6 +1,7 @@
 import React from "react";
 import { getOriginalAnswerValue, getOriginalIndex } from "./shuffleUtils";
 import LampiranViewer from "./LampiranViewer";
+import './SoalRenderer.css'; // Pindahkan CSS ke file terpisah
 
 const SoalRenderer = ({
   soal,
@@ -439,7 +440,7 @@ const SoalRenderer = ({
 
       <div className="mb-6 p-4 bg-gray-750 rounded-lg border border-gray-600">
         <div
-          className="text-white text-lg leading-relaxed prose prose-invert max-w-none"
+          className="soal-content text-white text-lg leading-relaxed prose prose-invert max-w-none"
           dangerouslySetInnerHTML={{ __html: soal.pertanyaan }}
         />
         {soal.lampiran && (

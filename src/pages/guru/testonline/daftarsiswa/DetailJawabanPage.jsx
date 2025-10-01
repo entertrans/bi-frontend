@@ -1,6 +1,6 @@
 // src/pages/guru/DetailJawabanPage.jsx
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   fetchDetailJawabanBySession,
   updateJawabanFinal,
@@ -13,6 +13,9 @@ import { showAlert } from "../../../../utils/toast";
 const DetailJawabanPage = () => {
   const { session_id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  // ambil jenis dari state navigate
+  const jenis = location.state?.jenis || jawabanData?.test?.jenis;
   const [isLoading, setIsLoading] = useState(true);
   const [jawabanData, setJawabanData] = useState(null);
   const [error, setError] = useState(null);
@@ -30,7 +33,7 @@ const DetailJawabanPage = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await fetchDetailJawabanBySession(session_id);
+        const data = await fetchDetailJawabanBySession(session_id,jenis);
 
         if (!data || !data.jawaban || !Array.isArray(data.jawaban)) {
           throw new Error("Format data jawaban tidak valid");

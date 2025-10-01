@@ -20,12 +20,15 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
       loadPeserta();
       loadSiswaKelas(test.kelas_id);
     }
+   
+    
   }, [isOpen, test]);
 
   const loadPeserta = async () => {
     try {
       const data = await getPesertaByTest(test.test_id);
       setPeserta(data);
+      //  console.log(test.kelas.kelas_nama);
     } catch (err) {
       console.error("Gagal memuat peserta:", err);
       Swal.fire({
@@ -167,7 +170,7 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
                     Kelola Peserta Test
                   </h2>
                   <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                    {test?.judul} • {test?.mapel?.nm_mapel || "Mata Pelajaran"}
+                    {test?.judul} • {test?.mapel?.nm_mapel || "Mata Pelajaran"} • {test?.kelas?.kelas_nama || "Kelas"}
                   </p>
                 </div>
               </div>
@@ -188,7 +191,7 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                 <HiUserAdd className="w-5 h-5 text-green-600" />
-                Daftar Peserta
+                Daftar Peserta Test
                 <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full ml-2">
                   {peserta.length} siswa
                 </span>
@@ -242,7 +245,7 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center gap-2">
                 <HiPlus className="w-5 h-5 text-blue-600" />
-                Tambahkan Siswa
+                Daftar Siswa {test?.kelas?.kelas_nama}
                 <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full ml-2">
                   {calonSiswa.length} tersedia
                 </span>

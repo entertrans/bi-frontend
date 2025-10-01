@@ -1,0 +1,7 @@
+.soal-content img[src^="data:image/png;base64"] {
+  filter: invert(1) brightness(2);
+  background: transparent !important;
+}
+
+
+/* Tambahkan styling lainnya */

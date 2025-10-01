@@ -271,10 +271,10 @@ export const fetchSiswaDetail = async (siswaNis) => {
     throw error;
   }
 };
-export const fetchDetailJawabanBySession = async (sessionID) => {
+export const fetchDetailJawabanBySession = async (sessionID,jenis) => {
   try {
     const response = await axios.get(
-      `${BASE_URL}/guru/session/${sessionID}/jawaban`
+      `${BASE_URL}/guru/session/${sessionID}/${jenis}/jawaban`
     );
 
     // Pastikan response structure sesuai
