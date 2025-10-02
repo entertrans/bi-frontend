@@ -1,10 +1,25 @@
 // utils/renderKunci.js
+import ExpandableText from "../../../../utils/ExpandableText";
 
-// helper untuk hilangkan html tags
-function stripHtml(html) {
-  if (!html) return "-";
-  return html.replace(/<[^>]*>/g, "").trim();
-}
+// Komponen untuk menampilkan konten HTML dengan rumus dan expandable
+const HtmlContentWithMath = ({ html, className = "", isExpandable = true, limit = 25 }) => {
+  if (!html || html === "-") return "-";
+  
+  if (isExpandable) {
+    return (
+      <div className={`html-content ${className}`}>
+        <ExpandableText text={html} limit={limit} />
+      </div>
+    );
+  }
+  
+  return (
+    <div 
+      className={`soal-content html-content ${className}`}
+      dangerouslySetInnerHTML={{ __html: html }} 
+    />
+  );
+};
 
 // Komponen untuk menampilkan lampiran
 const LampiranDisplay = ({ lampiran }) => {
@@ -45,34 +60,47 @@ export function renderKunci(item) {
 
     switch (item.tipe_soal) {
       case "pg":
-        return stripHtml(pilihan[parseInt(kunci[0])] || "-");
+        return <HtmlContentWithMath html={pilihan[parseInt(kunci[0])] || "-"} />;
 
       case "pg_kompleks":
         return (
           <div className="space-y-1">
             {kunci.map((idx, i) => (
-              <div key={i}>
-                {i + 1} | {stripHtml(pilihan[parseInt(idx)] || "-")}
+              <div key={i} className="flex items-start">
+                <span className="mr-2 min-w-[20px]">{i + 1}.</span>
+                <HtmlContentWithMath 
+                  html={pilihan[parseInt(idx)] || "-"} 
+                  limit={15} // Limit lebih kecil untuk pilihan ganda kompleks
+                />
               </div>
             ))}
           </div>
         );
 
       case "bs":
-        return kunci
-          .map((val, i) => `[${val}] ${stripHtml(pilihan[i]?.teks)}`)
-          .join(" | ");
+        return (
+          <div className="space-y-1">
+            {kunci.map((val, i) => (
+              <div key={i} className="flex items-center">
+                <span className="mr-2 font-mono">[{val}]</span>
+                <HtmlContentWithMath html={pilihan[i]?.tejs} limit={10} />
+              </div>
+            ))}
+          </div>
+        );
 
       case "matching":
         return (
           <div className="space-y-1">
             {pilihan.map((pair, index) => (
               <div key={index} className="flex items-center">
-                <span className="mr-2">{stripHtml(pair.left)} →</span>
+                <span className="mr-2">
+                  <HtmlContentWithMath html={pair.left} limit={8} /> →
+                </span>
                 {pair.rightLampiran ? (
                   <LampiranDisplay lampiran={pair.rightLampiran} />
                 ) : (
-                  <span>{stripHtml(pair.right) || "-"}</span>
+                  <HtmlContentWithMath html={pair.right} limit={8} />
                 )}
               </div>
             ))}
@@ -81,12 +109,13 @@ export function renderKunci(item) {
 
       case "uraian":
       case "isian_singkat":
-        return "-"; // biasanya kunci uraian/isian kosong
+        return "-"; // kunci uraian/isian biasanya kosong
 
       default:
         return "-";
     }
   } catch (e) {
+    console.error("Error rendering kunci:", e);
     return "-";
   }
 }
@@ -96,29 +125,32 @@ export function renderJawaban(item) {
     const pilihan = JSON.parse(item.pilihan_jawaban || "[]");
     let jawaban = JSON.parse(item.jawaban_siswa || "[]");
 
+    // Handle case where jawaban_siswa is a string (for uraian/isian_singkat)
+    if (typeof jawaban === 'string') {
+      return <HtmlContentWithMath html={jawaban} />;
+    }
+
     switch (item.tipe_soal) {
       case "pg":
-        // jawaban siswa kadang langsung teks HTML
         if (typeof jawaban[0] === "string") {
-          return stripHtml(jawaban[0]);
+          return <HtmlContentWithMath html={jawaban[0]} />;
         }
-        return stripHtml(pilihan[parseInt(jawaban[0])] || "-");
+        return <HtmlContentWithMath html={pilihan[parseInt(jawaban[0])] || "-"} />;
 
       case "pg_kompleks":
         return (
           <div className="space-y-1">
             {jawaban.map((val, i) => {
-              let teksJawaban;
-
+              let content;
               if (typeof val === "string" && isNaN(val)) {
-                teksJawaban = stripHtml(val);
+                content = <HtmlContentWithMath html={val} limit={15} />;
               } else {
-                teksJawaban = stripHtml(pilihan[parseInt(val)] || val);
+                content = <HtmlContentWithMath html={pilihan[parseInt(val)] || val} limit={15} />;
               }
-
               return (
-                <div key={i}>
-                  {i + 1} | {teksJawaban}
+                <div key={i} className="flex items-start">
+                  <span className="mr-2 min-w-[20px]">{i + 1}.</span>
+                  {content}
                 </div>
               );
             })}
@@ -126,16 +158,19 @@ export function renderJawaban(item) {
         );
 
       case "bs":
-        // urutkan berdasarkan index
         jawaban = jawaban.sort((a, b) => a.index - b.index);
-        return jawaban
-          .map(
-            (ans) => `[${ans.jawaban}] ${stripHtml(pilihan[ans.index]?.teks)}`
-          )
-          .join(" | ");
+        return (
+          <div className="space-y-1">
+            {jawaban.map((ans, i) => (
+              <div key={i} className="flex items-center">
+                <span className="mr-2 font-mono">[{ans.jawaban}]</span>
+                <HtmlContentWithMath html={pilihan[ans.index]?.teks} limit={10} />
+              </div>
+            ))}
+          </div>
+        );
 
       case "matching":
-        // urutkan berdasarkan leftIndex
         jawaban = jawaban.sort((a, b) => a.leftIndex - b.leftIndex);
         return (
           <div className="space-y-1">
@@ -144,12 +179,12 @@ export function renderJawaban(item) {
               return (
                 <div key={index} className="flex items-center">
                   <span className="mr-2">
-                    {stripHtml(pilihan[map.leftIndex]?.left)} →
+                    <HtmlContentWithMath html={pilihan[map.leftIndex]?.left} limit={8} /> →
                   </span>
                   {pilihanKanan?.rightLampiran ? (
                     <LampiranDisplay lampiran={pilihanKanan.rightLampiran} />
                   ) : (
-                    <span>{stripHtml(pilihanKanan?.right) || "-"}</span>
+                    <HtmlContentWithMath html={pilihanKanan?.right} limit={8} />
                   )}
                 </div>
               );
@@ -159,12 +194,14 @@ export function renderJawaban(item) {
 
       case "uraian":
       case "isian_singkat":
-        return stripHtml(item.jawaban_siswa);
+        // Untuk uraian dan isian singkat, gunakan expandable dengan limit default
+        return <HtmlContentWithMath html={item.jawaban_siswa} />;
 
       default:
         return "-";
     }
   } catch (e) {
+    console.error("Error rendering jawaban:", e);
     return "-";
   }
 }

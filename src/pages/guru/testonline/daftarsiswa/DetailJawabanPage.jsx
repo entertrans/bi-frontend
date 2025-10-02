@@ -33,7 +33,7 @@ const DetailJawabanPage = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await fetchDetailJawabanBySession(session_id,jenis);
+        const data = await fetchDetailJawabanBySession(session_id, jenis);
 
         if (!data || !data.jawaban || !Array.isArray(data.jawaban)) {
           throw new Error("Format data jawaban tidak valid");
@@ -468,6 +468,7 @@ const DetailJawabanPage = () => {
                 </td>
 
                 <td className="px-6 py-4">{renderJawaban(item)}</td>
+
                 <td className="px-6 py-4">{renderKunci(item)}</td>
                 <td className="px-6 py-4">{item.max_score}</td>
                 <td className="px-6 py-4 font-bold">

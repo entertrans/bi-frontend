@@ -404,8 +404,13 @@ export const updateOverrideNilai = async (sessionID, scoreload) => {
   }
 };
 
-export const resetTestSession = async (sessionId) => {
-  const res = await axios.delete(`${BASE_URL}/guru/test/reset/${sessionId}`);
+// api/testOnlineAPI.js
+export const resetTestSession = async (sessionId, additionalData = {}) => {
+  // console.log("Data reset:", { sessionId, ...additionalData });
+  
+  const res = await axios.delete(`${BASE_URL}/guru/test/reset/${sessionId}`, {
+    data: additionalData // Kirim data tambahan di body
+  });
   return res.data;
 };
 
@@ -420,3 +425,6 @@ export const fetchNilaiBySession = async (sessionID) => {
     throw error;
   }
 };
+
+
+

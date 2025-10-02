@@ -1,43 +1,320 @@
 import React, { useEffect, useState } from "react";
-import { getInvoiceTerakhir } from "../../api/siswaAPI";
+import { getInvoiceTerakhir, getNotStartedTests } from "../../api/siswaAPI";
+import {
+  startTest
+} from "../../api/testOnlineAPI";
 import { useAuth } from "../../contexts/AuthContext";
 import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
+import { HiPlay, HiClock, HiBookOpen, HiUser } from "react-icons/hi";
 
 const Dashboard = () => {
   const [invoice, setInvoice] = useState(null);
+  const [notStartedTests, setNotStartedTests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedSections, setExpandedSections] = useState({
+    tests: true,
+    invoice: true
+  });
   const { user } = useAuth();
   const nis = user?.siswa?.siswa_nis;
 
-  // ===== Fetch Invoice Terakhir =====
+  // ===== Fetch Data =====
   useEffect(() => {
-    const fetchInvoice = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getInvoiceTerakhir(nis);
+        setLoading(true);
+        const [invoiceData, testsData] = await Promise.all([
+          getInvoiceTerakhir(nis),
+          getNotStartedTests(nis)
+        ]);
 
-        // Validasi: jika response berupa object dengan property 'message'
-        if (data && typeof data === "object" && data.message) {
-          console.log("Tidak ada tagihan aktif:", data.message);
-          setInvoice(null); // Set invoice ke null untuk menampilkan pesan tidak ada tagihan
+        // Handle invoice data
+        if (invoiceData && typeof invoiceData === "object" && invoiceData.message) {
+          setInvoice(null);
         } else {
-          setInvoice(data);
+          setInvoice(invoiceData);
         }
+
+        // Handle tests data
+        setNotStartedTests(testsData?.data || []);
       } catch (err) {
-        console.error("Gagal ambil invoice:", err);
-        setInvoice(null); // Pastikan invoice null jika error
+        console.error("Gagal ambil data:", err);
+        setInvoice(null);
+        setNotStartedTests([]);
       } finally {
         setLoading(false);
       }
     };
 
     if (nis) {
-      fetchInvoice();
+      fetchData();
     } else {
       setLoading(false);
     }
   }, [nis]);
 
-  // ===== Format Helpers =====
+  // ===== Handle Kerjakan Test =====
+  const handleKerjakan = async (testId, testJudul, testDurasi) => {
+    try {
+      if (!nis) {
+        Swal.fire("Error", "NIS tidak ditemukan", "error");
+        return;
+      }
+
+      const session = await startTest(testId, nis);
+      
+      if (!session?.SessionID) {
+        Swal.fire("Error", "Session ID tidak ditemukan", "error");
+        return;
+      }
+
+      // Buka test di tab baru
+      window.open(`/siswa/ujian/${session.SessionID}`, "_blank");
+
+      // Update local state - hapus test yang dikerjakan
+      setNotStartedTests(prev => prev.filter(test => test.test_id !== testId));
+
+      Swal.fire({
+        title: "Test Dimulai!",
+        html: `
+          <div class="text-center">
+            <p class="font-semibold text-lg mb-2">${testJudul}</p>
+            <p>Durasi: ${testDurasi} menit</p>
+            <p class="text-sm text-gray-600 mt-2">Test telah dibuka di tab baru</p>
+          </div>
+        `,
+        icon: "success",
+        confirmButtonText: "Mengerti",
+      });
+    } catch (err) {
+      console.error("Error mulai test:", err);
+      Swal.fire(
+        "Error",
+        err.response?.data?.error || "Gagal memulai test",
+        "error"
+      );
+    }
+  };
+
+  // ===== Toggle Accordion =====
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  // ===== Loading State =====
+  if (loading) {
+    return (
+      <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm">
+        <p className="text-gray-500 dark:text-gray-400 text-center">
+          Memuat data dashboard...
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header Welcome */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-800 dark:to-purple-800 rounded-2xl p-6 text-white shadow-sm">
+        <h1 className="text-2xl font-bold mb-2">
+          Selamat datang, {user?.siswa?.siswa_nama}!
+        </h1>
+        <p className="opacity-90 text-sm">
+          {notStartedTests.length > 0 
+            ? `Ada ${notStartedTests.length} test/tugas menunggu untuk dikerjakan` 
+            : "Tidak ada test/tugas baru"}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Kolom Kiri: Test/Tugas Baru */}
+        <div className="space-y-6">
+          <AccordionSection
+            title="📚 Test & Tugas Terbaru"
+            count={notStartedTests.length}
+            isExpanded={expandedSections.tests}
+            onToggle={() => toggleSection('tests')}
+          >
+            {notStartedTests.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {notStartedTests.slice(0, 4).map((test) => (
+                    <TestCard 
+                      key={test.test_id} 
+                      test={test} 
+                      onKerjakan={handleKerjakan}
+                    />
+                  ))}
+                </div>
+                {notStartedTests.length > 4 && (
+                  <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+                    <Link
+                      to="/siswa/test"
+                      className="block w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg text-center transition-colors duration-200 text-sm"
+                    >
+                      Lihat Semua Test ({notStartedTests.length})
+                    </Link>
+                  </div>
+                )}
+              </>
+            ) : (
+              <EmptyState 
+                icon="🎉"
+                title="Tidak ada test baru"
+                message="Semua test/tugas telah dikerjakan atau belum ada penugasan baru"
+              />
+            )}
+          </AccordionSection>
+        </div>
+
+        {/* Kolom Kanan: Tagihan */}
+        <div className="space-y-6">
+          <AccordionSection
+            title="💰 Tagihan Terakhir"
+            count={invoice ? 1 : 0}
+            isExpanded={expandedSections.invoice}
+            onToggle={() => toggleSection('invoice')}
+          >
+            <InvoiceCard invoice={invoice} />
+          </AccordionSection>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ===== Komponen Accordion =====
+const AccordionSection = ({ title, count, isExpanded, onToggle, children }) => {
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full px-5 py-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+      >
+        <div className="flex items-center space-x-3">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+            {title}
+          </h2>
+          {count !== undefined && count > 0 && (
+            <span className="px-2.5 py-1 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 text-xs font-medium rounded-full">
+              {count}
+            </span>
+          )}
+        </div>
+        <svg
+          className={`w-4 h-4 text-gray-500 dark:text-gray-400 transform transition-transform ${
+            isExpanded ? 'rotate-180' : ''
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      
+      {isExpanded && (
+        <div className="px-5 pb-5">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ===== Komponen Empty State =====
+const EmptyState = ({ icon, title, message }) => (
+  <div className="text-center py-6">
+    <div className="text-3xl mb-2">{icon}</div>
+    <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">
+      {title}
+    </h3>
+    <p className="text-gray-600 dark:text-gray-400 text-xs">
+      {message}
+    </p>
+  </div>
+);
+
+// ===== Komponen Test Card (Versi Baru) =====
+const TestCard = ({ test, onKerjakan }) => {
+  const getTestConfig = (type) => {
+    switch (type) {
+      case "tr":
+        return {
+          badge: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+          icon: "📝",
+          type: "Tugas"
+        };
+      case "ub":
+        return {
+          badge: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+          icon: "📚",
+          type: "Test Review"
+        };
+      default:
+        return {
+          badge: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+          icon: "📄",
+          type: "Test"
+        };
+    }
+  };
+
+  const config = getTestConfig(test.type_test);
+
+  return (
+    <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-5 border border-gray-200 dark:border-gray-600">
+      {/* Status Badge */}
+      <div className="mb-4">
+        <span className={`px-3 py-1.5 text-xs rounded-full font-semibold ${config.badge}`}>
+          {config.icon} {config.type}
+        </span>
+      </div>
+
+      {/* Test Info */}
+      <div className="flex-1 mb-4">
+        <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-3 line-clamp-2">
+          {test.judul}
+        </h3>
+
+        <div className="space-y-2">
+          <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+            <HiBookOpen className="w-4 h-4 mr-2 text-blue-500" />
+            <span className="truncate">{test.mapel}</span>
+          </div>
+
+          <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+            <HiUser className="w-4 h-4 mr-2 text-green-500" />
+            <span className="truncate">{test.guru}</span>
+          </div>
+
+          <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+            <HiClock className="w-4 h-4 mr-2 text-purple-500" />
+            <span>{test.durasi_menit} menit • {test.jumlah_soal_tampil} soal</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Button */}
+      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => onKerjakan(test.test_id, test.judul, test.durasi_menit)}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-semibold transition-colors flex items-center justify-center"
+        >
+          <HiPlay className="w-5 h-5 mr-2" />
+          Kerjakan Sekarang
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ===== Komponen Invoice Card (Dengan Footer) =====
+const InvoiceCard = ({ invoice }) => {
   const formatCurrency = (amount) =>
     amount
       ? new Intl.NumberFormat("id-ID", {
@@ -51,24 +328,12 @@ const Dashboard = () => {
     dateString
       ? new Date(dateString).toLocaleDateString("id-ID", {
           year: "numeric",
-          month: "long",
+          month: "short",
           day: "numeric",
         })
       : "-";
 
-  // ===== Loading State =====
-  if (loading) {
-    return (
-      <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md">
-        <p className="text-gray-500 dark:text-gray-400">
-          Memuat data tagihan...
-        </p>
-      </div>
-    );
-  }
-
-  // ===== Validasi: Jika Tidak Ada Invoice Aktif =====
-  // Cek jika invoice null, undefined, atau memiliki property message
+  // Validasi: Jika Tidak Ada Invoice Aktif
   const shouldShowNoInvoice =
     !invoice ||
     (typeof invoice === "object" && invoice.message) ||
@@ -76,20 +341,15 @@ const Dashboard = () => {
 
   if (shouldShowNoInvoice) {
     return (
-      <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md flex flex-col items-center justify-center text-center">
-        <div className="text-4xl mb-3">🎉</div>
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">
-          Tidak ada tagihan aktif
-        </h3>
-        <p className="text-gray-600 dark:text-gray-400 text-sm">
-          {invoice?.message || "Semua tagihan Anda telah lunas"}
-        </p>
-      </div>
+      <EmptyState 
+        icon="🎉"
+        title="Tidak ada tagihan aktif"
+        message={invoice?.message || "Semua tagihan Anda telah lunas"}
+      />
     );
   }
 
-  // ===== Data Invoice =====
-  // Pastikan properti yang diperlukan ada sebelum diakses
+  // Data Invoice
   const isLunas =
     invoice.status === "Lunas" || invoice.total_bayar >= invoice.total_tagihan;
 
@@ -102,112 +362,116 @@ const Dashboard = () => {
       ? Math.min(100, Math.round((totalBayar / totalTagihan) * 100))
       : 0;
 
-  // ===== Tampilan Utama =====
   return (
-    <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-100 dark:border-gray-700">
-      {/* Header */}
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h2 className="text-xl font-bold text-blue-600 dark:text-blue-400">
-            {invoice.invoice_id || "No Invoice ID"}
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-            {invoice.deskripsi || "Tagihan terakhir"}
-          </p>
-        </div>
-        <span
-          className={`px-3 py-1 text-xs font-medium rounded-full ${
-            isLunas
-              ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200"
-              : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200"
-          }`}
-        >
-          {isLunas ? "LUNAS" : "BELUM LUNAS"}
-        </span>
-      </div>
-
-      {/* Informasi Tanggal */}
-      <div className="grid grid-cols-2 gap-4 mb-5 text-sm">
-        <div>
-          <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide mb-1">
-            Tanggal Invoice
-          </p>
-          <p className="text-gray-800 dark:text-gray-200">
-            {formatDate(invoice.tgl_invoice)}
-          </p>
-        </div>
-        <div>
-          <p className="text-red-500 dark:text-red-400 text-xs uppercase tracking-wide mb-1">
-            Jatuh Tempo
-          </p>
-          <p className="text-red-600 dark:text-red-300 font-medium">
-            {formatDate(invoice.tgl_jatuh_tempo)}
-          </p>
-        </div>
-      </div>
-
-      {/* Progress Bar */}
-      {!isLunas && (
-        <div className="mb-5">
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-            <span>Progress Pembayaran</span>
-            <span>{persentase}%</span>
+    <div className="flex flex-col h-full">
+      {/* Content */}
+      <div className="space-y-4 flex-1">
+        {/* Header */}
+        <div className="flex justify-between items-start">
+          <div className="flex-1 mr-3">
+            <h3 className="text-base font-semibold text-blue-600 dark:text-blue-400 truncate">
+              {invoice.invoice_id || "No Invoice ID"}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 text-xs mt-0.5 truncate">
+              {invoice.deskripsi || "Tagihan terakhir"}
+            </p>
           </div>
-          <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div
-              className={`h-2 ${
-                isLunas ? "bg-green-500" : "bg-blue-500"
-              } transition-all duration-300`}
-              style={{ width: `${persentase}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Informasi Keuangan */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="text-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-            Total Tagihan
-          </p>
-          <p className="text-lg font-bold text-gray-800 dark:text-gray-200">
-            {formatCurrency(totalTagihan)}
-          </p>
-        </div>
-        <div className="text-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-            Total Bayar
-          </p>
-          <p className="text-lg font-bold text-green-600 dark:text-green-400">
-            {formatCurrency(totalBayar)}
-          </p>
-        </div>
-        <div className="text-center">
-          <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
-            Sisa Tagihan
-          </p>
-          <p className="text-lg font-bold text-red-600 dark:text-red-400">
-            {formatCurrency(sisaTagihan)}
-          </p>
-        </div>
-      </div>
-
-      {/* Tombol Aksi */}
-      <Link
-        to={`/siswa/keuangan`}
-        className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium rounded-lg text-center transition-colors duration-200 shadow-md hover:shadow-lg"
-      >
-        Lihat Detail Keuangan
-      </Link>
-
-      {/* Reminder Jatuh Tempo */}
-      {!isLunas && (
-        <div className="mt-4 flex justify-center">
-          <span className="px-3 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 text-xs rounded-full">
-            ⚠️ Segera lakukan pembayaran
+          <span
+            className={`px-2.5 py-1 text-xs font-medium rounded-full shrink-0 ${
+              isLunas
+                ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200"
+                : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200"
+            }`}
+          >
+            {isLunas ? "LUNAS" : "BELUM LUNAS"}
           </span>
         </div>
-      )}
+
+        {/* Informasi Tanggal */}
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <p className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide mb-1">
+              Tanggal Invoice
+            </p>
+            <p className="text-gray-800 dark:text-gray-200 text-sm">
+              {formatDate(invoice.tgl_invoice)}
+            </p>
+          </div>
+          <div>
+            <p className="text-red-500 dark:text-red-400 text-xs uppercase tracking-wide mb-1">
+              Jatuh Tempo
+            </p>
+            <p className="text-red-600 dark:text-red-300 font-medium text-sm">
+              {formatDate(invoice.tgl_jatuh_tempo)}
+            </p>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        {!isLunas && (
+          <div>
+            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
+              <span>Progress Pembayaran</span>
+              <span>{persentase}%</span>
+            </div>
+            <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div
+                className={`h-1.5 ${
+                  isLunas ? "bg-green-500" : "bg-blue-500"
+                } transition-all duration-300`}
+                style={{ width: `${persentase}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Informasi Keuangan */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+              Total
+            </p>
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+              {formatCurrency(totalTagihan)}
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+              Dibayar
+            </p>
+            <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+              {formatCurrency(totalBayar)}
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
+              Sisa
+            </p>
+            <p className="text-sm font-semibold text-red-600 dark:text-red-400">
+              {formatCurrency(sisaTagihan)}
+            </p>
+          </div>
+        </div>
+
+        {/* Reminder Jatuh Tempo */}
+        {!isLunas && (
+          <div className="flex justify-center">
+            <span className="px-2.5 py-1 bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 text-xs rounded-full">
+              ⚠️ Segera lakukan pembayaran
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Footer - Tombol Aksi */}
+      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <Link
+          to={`/siswa/keuangan`}
+          className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium rounded-lg text-center transition-colors duration-200 text-sm shadow-sm hover:shadow-md block"
+        >
+          Lihat Detail Keuangan
+        </Link>
+      </div>
     </div>
   );
 };

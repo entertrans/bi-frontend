@@ -90,6 +90,10 @@ const ActiveTestsTableTR = ({
                 ? new Date(session.EndTime)
                 : null;
 
+              // Cek apakah test sudah selesai (baik submitted atau graded)
+              const isCompleted = session && 
+                (session.Status === "submitted" || session.Status === "graded");
+
               return (
                 <tr
                   key={test.test_id}
@@ -110,7 +114,7 @@ const ActiveTestsTableTR = ({
                   <td className="px-6 py-4">{test.jumlah_soal_tampil}</td>
                   <td className="px-6 py-4">{test.durasi_menit} menit</td>
                   <td className="px-6 py-4">
-                    {session && session.Status !== "submitted" && endTime ? (
+                    {session && !isCompleted && endTime ? (
                       <div className="flex items-center gap-2">
                         <HiClock className="text-yellow-500" />
                         <Countdown
@@ -145,7 +149,8 @@ const ActiveTestsTableTR = ({
 
                   <td className="px-6 py-4 text-center">
                     {session ? (
-                      session.Status === "submitted" ? (
+                      isCompleted ? (
+                        // Tampilkan tombol Lihat Nilai untuk submitted DAN graded
                         <button
                           onClick={() =>
                             handleLihatNilai(session.SessionID, test.judul)
@@ -155,6 +160,7 @@ const ActiveTestsTableTR = ({
                           📊 Lihat Nilai
                         </button>
                       ) : (
+                        // Status aktif (belum selesai)
                         <button
                           onClick={() => onLanjutkan(session)}
                           className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg"
@@ -164,6 +170,7 @@ const ActiveTestsTableTR = ({
                         </button>
                       )
                     ) : test.aktif === 1 ? (
+                      // Belum ada session, test aktif
                       <button
                         onClick={() =>
                           onKerjakan(
@@ -178,6 +185,7 @@ const ActiveTestsTableTR = ({
                         Kerjakan
                       </button>
                     ) : (
+                      // Test tidak aktif
                       <span className="text-gray-400 text-sm">
                         Tidak tersedia
                       </span>

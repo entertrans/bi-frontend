@@ -497,3 +497,14 @@ export const getInvoiceTerakhir = async (nis) => {
     throw error;
   }
 };
+
+export const getNotStartedTests = async (nis) => {
+  try {
+    const response = await fetch(`http://localhost:8080/siswa/not-started-tests?nis=${nis}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching not started tests:', error);
+    return { data: [] };
+  }
+};

@@ -25,3 +25,14 @@ body {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
 }
+.question-content img,
+.html-content img {
+  vertical-align: middle;
+  max-width: 100%;
+  height: auto;
+}
+
+.preview-content {
+  max-height: 100px;
+  overflow: hidden;
+}

@@ -99,7 +99,7 @@ const JawabanPage = () => {
     loadData();
   }, [loadData]);
 
-  const handleResetTest = async (sessionId) => {
+  const handleResetTest = async (sessionId, testId, nisSiswa) => {
     const result = await Swal.fire({
       title: "Yakin reset test ini?",
       text: "Semua jawaban & data sesi akan dihapus permanen!",
@@ -109,14 +109,27 @@ const JawabanPage = () => {
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Ya, reset!",
       cancelButtonText: "Batal",
+      buttonsStyling: false,
+      customClass: {
+        actions: "flex justify-center",
+        confirmButton:
+          "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        cancelButton:
+          "bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 ml-2 rounded",
+      }
     });
 
     if (result.isConfirmed) {
       try {
-        await resetTestSession(sessionId);
+        // Kirim semua data yang diperlukan ke API
+        await resetTestSession(sessionId, {
+          test_id: testId,
+          siswa_nis: nisSiswa
+        });
         showAlert("Test berhasil direset", "success");
         loadData();
       } catch (err) {
+        console.error("Error reset test:", err);
         showAlert("Terjadi kesalahan saat mereset test", "error");
       }
     }
@@ -325,7 +338,7 @@ const JawabanPage = () => {
                             navigate(
                               `/guru/jawaban/siswa/detail/${t.session_id}`,
                               {
-                                state: { jenis: t.jenis }, // 👈 kirim jenis lewat state
+                                state: { jenis: t.jenis },
                               }
                             )
                           }
@@ -336,7 +349,9 @@ const JawabanPage = () => {
                         </button>
 
                         <button
-                          onClick={() => handleResetTest(t.session_id)}
+                          onClick={() =>
+                            handleResetTest(t.session_id, t.test_id, siswa_nis)
+                          }
                           className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-1"
                           title="Reset Test"
                         >

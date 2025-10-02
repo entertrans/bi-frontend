@@ -1,7 +1,8 @@
 import React from "react";
 import { getOriginalAnswerValue, getOriginalIndex } from "./shuffleUtils";
 import LampiranViewer from "./LampiranViewer";
-import './SoalRenderer.css'; // Pindahkan CSS ke file terpisah
+import "./SoalRenderer.css"; // Pindahkan CSS ke file terpisah
+import TinyMCEWrapper from "../../../guru/banksoal/TinyMCEWrapper";
 
 const SoalRenderer = ({
   soal,
@@ -105,12 +106,19 @@ const SoalRenderer = ({
 
       case "uraian":
         return (
-          <textarea
-            rows="6"
-            className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          // <textarea
+          //   rows="6"
+          //   className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          //   value={jawaban[s.soal_id] || ""}
+          //   onChange={(e) => onJawab(s.soal_id, e.target.value)}
+          //   placeholder="Tulis Jawaban Disini..."
+          // />
+          <TinyMCEWrapper
             value={jawaban[s.soal_id] || ""}
-            onChange={(e) => onJawab(s.soal_id, e.target.value)}
-            placeholder="Tulis Jawaban Disini..."
+            onChange={(content) => onJawab(s.soal_id, content)} // ✅ langsung ambil content
+            height={200}
+            placeholder="Tulis jawaban di sini..."
+            toolbar="bold italic underline | bullist numlist | removeformat"
           />
         );
 
