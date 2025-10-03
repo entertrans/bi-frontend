@@ -1,8 +1,10 @@
 import React from "react";
-import { HiPlay, HiRefresh, HiClock } from "react-icons/hi";
+import { HiPlay, HiRefresh, HiClock, HiBookOpen, HiUser, HiExclamationCircle } from "react-icons/hi";
 import Countdown from "react-countdown";
 import Swal from "sweetalert2";
-import { fetchNilaiBySession } from "../../../../api/testOnlineAPI"; // Sesuaikan path API
+import { fetchNilaiBySession } from "../../../../api/testOnlineAPI";
+import { cardStyles } from "../../../../utils/CardStyles";
+import { getRowColor } from "../../../../utils/TableStyles";
 
 const ActiveTestsTable = ({
   tests,
@@ -10,15 +12,13 @@ const ActiveTestsTable = ({
   onKerjakan,
   onLanjutkan,
 }) => {
-  // cek apakah ada ujian in progress
-  const currentActiveTest = Object.values(activeSessions).find(
-    (s) => s && s.Status === "in_progress"
+  // Cek apakah ada test yang sedang dikerjakan
+  const currentActiveSession = Object.values(activeSessions).find(
+    session => session && session.Status === "in_progress"
   );
 
-  // Fungsi untuk menampilkan nilai dengan SweetAlert
   const handleLihatNilai = async (sessionID, testJudul) => {
     try {
-      // Tampilkan loading
       Swal.fire({
         title: "Memuat nilai...",
         text: "Sedang mengambil data nilai",
@@ -28,32 +28,24 @@ const ActiveTestsTable = ({
         },
       });
 
-      // Panggil API untuk mendapatkan nilai
       const response = await fetchNilaiBySession(sessionID);
-
-      // Tutup loading
       Swal.close();
 
-      // Tampilkan nilai dengan SweetAlert
       Swal.fire({
         title: `Nilai Ujian`,
         html: `
           <div class="text-center">
             <h3 class="text-xl font-bold mb-2">${testJudul}</h3>
-            <div class="text-4xl font-bold text-blue-600 mb-4">${response.nilai_akhir.toFixed(
-              2
-            )}</div>
+            <div class="text-4xl font-bold text-blue-600 mb-4">${response.nilai_akhir.toFixed(2)}</div>
           </div>
         `,
-        icon: "info",
+        icon: "success",
         confirmButtonText: "Tutup",
-        confirmButtonColor: "#3B82F6",
         buttonsStyling: false,
         customClass: {
-          popup: "rounded-lg",
           actions: "flex justify-center",
           confirmButton:
-            "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+            "bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 mr-2 rounded",
         },
       });
     } catch (error) {
@@ -62,98 +54,173 @@ const ActiveTestsTable = ({
         title: "Error",
         text: "Gagal mengambil data nilai",
         icon: "error",
-        confirmButtonText: "Tutup",
       });
+    }
+  };
+
+  const handleKerjakanClick = (test, session) => {
+    // Jika ada test lain yang sedang dikerjakan
+    if (currentActiveSession && currentActiveSession.SessionID !== session?.SessionID) {
+      Swal.fire({
+        title: "Ujian Sedang Berlangsung",
+        html: `
+          <div class="text-center">
+            <div class="text-4xl mb-3">⏳</div>
+            <p class="text-lg font-semibold mb-2">Anda sedang mengerjakan ujian lain</p>
+            <p class="text-gray-600">Selesaikan ujian yang sedang berjalan terlebih dahulu sebelum memulai ujian baru.</p>
+          </div>
+        `,
+        icon: "warning",
+        confirmButtonText: "Mengerti",
+        buttonsStyling: false,
+        customClass: {
+          confirmButton: "bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg",
+        },
+      });
+      return;
+    }
+
+    if (session) {
+      onLanjutkan(session);
+    } else {
+      onKerjakan(test.test_id, test.judul, test.durasi_menit);
     }
   };
 
   if (tests.length === 0) {
     return (
-      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 text-center">
-        <p className="text-gray-500 dark:text-gray-400">
+      <div className={`${cardStyles.base} ${cardStyles.blue.container} border-l-4 p-6 text-center`}>
+        <div className="text-3xl mb-2">📚</div>
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">
           Tidak ada ujian aktif
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 text-sm">
+          Semua ujian telah selesai atau belum ada jadwal ujian
         </p>
       </div>
     );
   }
 
   return (
-    <div className="mb-8">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-100 dark:bg-gray-700">
-            <tr>
-              <th className="px-6 py-3 text-left w-1/3">Judul Ujian</th>
-              <th className="px-6 py-3 text-left">Mata Pelajaran</th>
-              <th className="px-6 py-3 text-left">Jumlah Soal</th>
-              <th className="px-6 py-3 text-left">Durasi</th>
-              <th className="px-6 py-3 text-left">Status</th>
-              <th className="px-6 py-3 text-left">Sisa Waktu</th>
-              <th className="px-6 py-3 text-left">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {tests.map((test) => {
-              const session = activeSessions[test.test_id];
-              const hasActiveSession = !!session;
-              const isOtherActive =
-                currentActiveTest &&
-                currentActiveTest.TestID !== test.test_id &&
-                currentActiveTest.Status === "in_progress";
+    <div className={`${cardStyles.base} ${cardStyles.blue.container} border-l-4`}>
+      {/* Info jumlah data */}
+      <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+        <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+          📊 Menampilkan {tests.length} ujian aktif
+          {currentActiveSession && " • Ada ujian yang sedang dikerjakan"}
+        </span>
+      </div>
 
-              return (
-                <tr
-                  key={test.test_id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <td className="px-6 py-4 font-medium">
-                    <div>
-                      <div className="font-semibold">{test.judul}</div>
-                      {test.deskripsi && (
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {test.deskripsi}
-                        </div>
-                      )}
+      {/* Table */}
+      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+        {/* Table Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700">
+          <div className="grid grid-cols-12 gap-4 px-6 py-4">
+            <div className="col-span-5 text-left text-xs font-semibold text-white uppercase tracking-wider">
+              UJIAN
+            </div>
+            <div className="col-span-2 text-left text-xs font-semibold text-white uppercase tracking-wider">
+              MAPEL
+            </div>
+            <div className="col-span-1 text-center text-xs font-semibold text-white uppercase tracking-wider">
+              SOAL
+            </div>
+            <div className="col-span-1 text-center text-xs font-semibold text-white uppercase tracking-wider">
+              DURASI
+            </div>
+            <div className="col-span-3 text-center text-xs font-semibold text-white uppercase tracking-wider">
+              STATUS & AKSI
+            </div>
+          </div>
+        </div>
+
+        {/* Table Body */}
+        <div className="divide-y divide-gray-200 dark:divide-gray-700">
+          {tests.map((test, index) => {
+            const session = activeSessions[test.test_id];
+            const endTime = session?.EndTime ? new Date(session.EndTime) : null;
+            const isCompleted = session && (session.Status === "submitted" || session.Status === "graded");
+            const isActive = session && session.Status === "in_progress";
+            const isOtherActive = currentActiveSession && currentActiveSession.SessionID !== session?.SessionID;
+
+            const getStatusColor = () => {
+              if (!session) return "blue";
+              if (isCompleted) return "purple";
+              return "orange";
+            };
+
+            const statusColor = getStatusColor();
+            const style = cardStyles[statusColor];
+
+            return (
+              <div
+                key={test.test_id}
+                className={`transition-all duration-200 ${getRowColor(index)}`}
+              >
+                <div className="grid grid-cols-12 gap-4 px-6 py-4 items-center">
+                  {/* Judul dan Deskripsi */}
+                  <div className="col-span-5">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm leading-tight mb-1">
+                          {test.judul}
+                        </h3>
+                        {test.deskripsi && (
+                          <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+                            {test.deskripsi}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">{test?.mapel?.nm_mapel || "-"}</td>
-                  <td className="px-6 py-4">
-                    {test.jumlah_soal_tampil || 0} soal
-                  </td>
-                  <td className="px-6 py-4">{test.durasi_menit} menit</td>
-                  <td className="px-6 py-4">
-                    {hasActiveSession ? (
-                      session.Status === "in_progress" ? (
-                        <span className="text-green-600 font-semibold">
-                          Dalam Proses
-                        </span>
-                      ) : (
-                        <span className="text-gray-600 font-semibold">
-                          Test Selesai
-                        </span>
-                      )
-                    ) : (
-                      <span className="text-blue-600">Belum Dimulai</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    {hasActiveSession && session.Status === "in_progress" && (
-                      <div className="flex items-center gap-2">
-                        <HiClock className="text-yellow-500" />
+                  </div>
+
+                  {/* Mapel */}
+                  <div className="col-span-2">
+                    <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                      <HiBookOpen className="w-4 h-4 mr-2 text-blue-500 flex-shrink-0" />
+                      <span className="truncate">{test.mapel?.nm_mapel}</span>
+                    </div>
+                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      <HiUser className="w-3 h-3 mr-1 text-green-500 flex-shrink-0" />
+                      <span className="truncate">{test.guru?.guru_nama}</span>
+                    </div>
+                  </div>
+
+                  {/* Jumlah Soal */}
+                  <div className="col-span-1 text-center">
+                    <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-bold">
+                      {test.jumlah_soal_tampil}
+                    </span>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">soal</div>
+                  </div>
+
+                  {/* Durasi */}
+                  <div className="col-span-1 text-center">
+                    <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                      {test.durasi_menit}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">menit</div>
+                  </div>
+
+                  {/* Status & Aksi */}
+                  <div className="col-span-3">
+                    {/* Status Badge */}
+                    <div className="flex items-center justify-center mb-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${style.badge}`}>
+                        {!session ? "⏳ Belum Dimulai" : isCompleted ? "✅ Selesai" : "🟠 Dalam Proses"}
+                      </span>
+                    </div>
+
+                    {/* Countdown Timer */}
+                    {isActive && (
+                      <div className="flex items-center justify-center text-xs text-orange-600 dark:text-orange-400 mb-2">
+                        <HiClock className="w-3 h-3 mr-1" />
                         <Countdown
-                          date={new Date(session.EndTime)}
-                          renderer={({
-                            hours,
-                            minutes,
-                            seconds,
-                            completed,
-                          }) => {
-                            if (completed)
-                              return (
-                                <span className="text-red-500">Selesai</span>
-                              );
+                          date={endTime}
+                          renderer={({ hours, minutes, seconds, completed }) => {
+                            if (completed) return <span className="text-red-500 font-semibold">Waktu Habis!</span>;
                             return (
-                              <span className="text-green-400">
+                              <span className="font-mono font-semibold">
                                 {hours > 0 ? `${hours}:` : ""}
                                 {minutes.toString().padStart(2, "0")}:
                                 {seconds.toString().padStart(2, "0")}
@@ -163,60 +230,74 @@ const ActiveTestsTable = ({
                         />
                       </div>
                     )}
-                  </td>
 
-                  <td className="px-6 py-4">
-                    {hasActiveSession ? (
-                      session.Status === "in_progress" ? (
+                    {/* Action Buttons */}
+                    <div className="flex justify-center space-x-2">
+                      {session ? (
+                        isCompleted ? (
+                          <button
+                            onClick={() => handleLihatNilai(session.SessionID, test.judul)}
+                            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md"
+                          >
+                            <HiBookOpen className="w-4 h-4" />
+                            Lihat Nilai
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleKerjakanClick(test, session)}
+                            className={`flex items-center gap-2 ${style.button} px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md`}
+                          >
+                            <HiRefresh className="w-4 h-4" />
+                            Lanjutkan
+                          </button>
+                        )
+                      ) : test.aktif === 1 ? (
                         <button
-                          onClick={() => onLanjutkan(test.test_id)}
-                          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+                          onClick={() => handleKerjakanClick(test, null)}
+                          disabled={isOtherActive}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md ${
+                            isOtherActive
+                              ? "bg-gray-400 text-gray-200 cursor-not-allowed"
+                              : "bg-green-600 hover:bg-green-700 text-white"
+                          }`}
                         >
-                          <HiRefresh className="text-lg" />
-                          Lanjutkan
+                          <HiPlay className="w-4 h-4" />
+                          {isOtherActive ? "Sedang Ujian" : "Kerjakan"}
                         </button>
                       ) : (
-                        <button
-                          onClick={() =>
-                            handleLihatNilai(session.SessionID, test.judul)
-                          }
-                          className="flex items-center gap-2 bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg"
-                        >
-                          📊 Lihat Nilai
-                        </button>
-                      )
-                    ) : (
-                      <button
-                        onClick={() => {
-                          if (isOtherActive) {
-                            alert(
-                              `Sedang mengerjakan ${currentActiveTest.NamaMapel}, selesaikan dulu sebelum memulai ujian lain.`
-                            );
-                            return;
-                          }
-                          onKerjakan(
-                            test.test_id,
-                            test.judul,
-                            test.durasi_menit
-                          );
-                        }}
-                        disabled={isOtherActive}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
-                          isOtherActive
-                            ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-green-500 hover:bg-green-600 text-white"
-                        }`}
-                      >
-                        <HiPlay className="text-lg" />
-                        Kerjakan
-                      </button>
+                        <div className="flex items-center gap-2 px-4 py-2 bg-gray-400 text-gray-200 rounded-lg text-sm font-medium cursor-not-allowed shadow-sm">
+                          <HiExclamationCircle className="w-4 h-4" />
+                          Tidak tersedia
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Warning jika ada test lain yang aktif */}
+                    {isOtherActive && !session && (
+                      <div className="mt-2 text-xs text-orange-600 dark:text-orange-400 text-center flex items-center justify-center">
+                        <HiExclamationCircle className="w-3 h-3 mr-1" />
+                        Selesaikan ujian yang sedang berjalan
+                      </div>
                     )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Info Footer */}
+        {tests.length > 0 && (
+          <div className="px-6 py-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
+            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+              📚 Total {tests.length} ujian aktif • 
+              {currentActiveSession 
+                ? " 📝 Ada ujian yang sedang dikerjakan" 
+                : " ✅ Semua ujian siap dikerjakan"
+              }
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

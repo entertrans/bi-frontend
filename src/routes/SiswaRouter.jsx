@@ -1,4 +1,3 @@
-import SiswaDashboard from "../pages/siswa/Dashboard";
 import ListTugas from "../pages/siswa/tugas/ListTugas";
 import ListUjian from "../pages/siswa/testonline/ListUjian";
 import TestReview from "../pages/siswa/testreview/TestReview";
@@ -7,9 +6,10 @@ import DetailKeuangan from "../pages/siswa/keuangan/InvoiceHistory";
 import InvoiceDetail from "../pages/siswa/keuangan/InvoiceDetail";
 import OnlineClassDashboard from "../pages/siswa/kelasonline/OnlineClassDashboard";
 import OnlineLibrary from "../pages/siswa/Modul/OnlineLibrary";
+import Dashboard from "../pages/siswa/Dashboard/mainDashboard";
 
 const siswaRoutes = [
-  { path: "/siswa", element: <SiswaDashboard /> },
+  { path: "/siswa", element: <Dashboard /> },
   { path: "/siswa/online", element: <OnlineClassDashboard /> },
   { path: "/siswa/test", element: <ListUjian /> },
   { path: "/siswa/tugas", element: <ListTugas /> },

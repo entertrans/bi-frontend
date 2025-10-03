@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { HiChevronLeft, HiChevronRight, HiTrash } from "react-icons/hi";
 import Swal from "sweetalert2";
 import {
@@ -31,12 +31,8 @@ const GuruKisiKisi = () => {
 
   const itemsPerPage = 10;
 
-  useEffect(() => {
-    loadData();
-    loadKelas();
-  }, []);
-
-  const loadData = async () => {
+  // Wrap functions with useCallback to fix useEffect dependencies
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -48,9 +44,9 @@ const GuruKisiKisi = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const loadKelas = async () => {
+  const loadKelas = useCallback(async () => {
     try {
       const data = await fetchAllkelas();
       const kelasAktif = data.aktif || [];
@@ -59,9 +55,9 @@ const GuruKisiKisi = () => {
       setError("Gagal memuat data kelas");
       console.error(err);
     }
-  };
+  }, []);
 
-  const loadMapel = async (kelasId, forForm = false) => {
+  const loadMapel = useCallback(async (kelasId, forForm = false) => {
     if (!kelasId) {
       if (forForm) {
         setFormMapelList([]);
@@ -83,7 +79,12 @@ const GuruKisiKisi = () => {
       setError("Gagal memuat data mapel");
       console.error(err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+    loadKelas();
+  }, [loadData, loadKelas]); // ✅ Now all dependencies are included
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
@@ -109,12 +110,9 @@ const GuruKisiKisi = () => {
       try {
         await deleteKisiKisi(id);
         showAlert("Kisi-kisi berhasil dihapus.", "success");
-        // Tampilkan notifikasi sukses
-
         loadData();
         setCurrentPage(1);
       } catch (err) {
-        // Tampilkan notifikasi error
         showAlert("Gagal menghapus kisi-kisi.", "error");
         console.error(err);
       }
@@ -124,6 +122,12 @@ const GuruKisiKisi = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Validation
+    if (!formData.kisikisi_kelas_id || !formData.kisikisi_mapel || !formData.kisikisi_ub || !formData.kisikisi_semester) {
+      setError("Harap lengkapi semua field yang wajib diisi");
+      return;
+    }
 
     try {
       await createKisiKisi({
@@ -135,6 +139,7 @@ const GuruKisiKisi = () => {
       });
       setIsSlideOpen(false);
       showAlert("Kisi-kisi berhasil ditambahkan.", "success");
+      
       // ✅ Reset form
       setFormData({
         kisikisi_kelas_id: "",
@@ -209,6 +214,20 @@ const GuruKisiKisi = () => {
     return range;
   };
 
+  // Fix equality checks throughout the component
+  const handleKelasChange = (e) => {
+    const kelasId = e.target.value;
+    setSelectedKelas(kelasId);
+    setSelectedMapel("");
+    setCurrentPage(1);
+    loadMapel(kelasId, false);
+  };
+
+  const handleMapelChange = (e) => {
+    setSelectedMapel(e.target.value);
+    setCurrentPage(1);
+  };
+
   if (loading) {
     return (
       <div className="p-4 bg-white dark:bg-gray-800 rounded shadow flex justify-center items-center h-64">
@@ -239,7 +258,7 @@ const GuruKisiKisi = () => {
 
       {/* Error Message */}
       {error && (
-        <div className="mb-6 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div className="mb-6 p-3 bg-red-100 border border-red-400 text-red-700 rounded dark:bg-red-900 dark:border-red-700 dark:text-red-100">
           {error}
         </div>
       )}
@@ -249,13 +268,7 @@ const GuruKisiKisi = () => {
         <div className="flex flex-wrap gap-2">
           <select
             value={selectedKelas}
-            onChange={(e) => {
-              const kelasId = e.target.value;
-              setSelectedKelas(kelasId);
-              setSelectedMapel("");
-              setCurrentPage(1);
-              loadMapel(kelasId, false);
-            }}
+            onChange={handleKelasChange}
             className="p-2 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
           >
             <option value="">Semua Kelas</option>
@@ -268,10 +281,7 @@ const GuruKisiKisi = () => {
 
           <select
             value={selectedMapel}
-            onChange={(e) => {
-              setSelectedMapel(e.target.value);
-              setCurrentPage(1);
-            }}
+            onChange={handleMapelChange}
             className="p-2 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
             disabled={!selectedKelas}
           >

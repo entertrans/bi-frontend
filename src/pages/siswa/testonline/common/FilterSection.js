@@ -9,9 +9,10 @@ const FilterSection = ({
 }) => {
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-      <h1 className="text-2xl font-bold text-purple-600 mb-4 md:mb-0">
-        {judul}
+      <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+        🎯 {judul}
       </h1>
+      {/* <h1 className="text-2xl font-bold text-purple-600 mb-4 md:mb-0"></h1> */}
 
       <div className="flex items-center gap-3">
         <HiFilter className="text-gray-600 text-xl" />
