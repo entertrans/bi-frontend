@@ -116,7 +116,7 @@ const JawabanPage = () => {
           "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 mr-2 rounded",
         cancelButton:
           "bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 ml-2 rounded",
-      }
+      },
     });
 
     if (result.isConfirmed) {
@@ -124,7 +124,7 @@ const JawabanPage = () => {
         // Kirim semua data yang diperlukan ke API
         await resetTestSession(sessionId, {
           test_id: testId,
-          siswa_nis: nisSiswa
+          siswa_nis: nisSiswa,
         });
         showAlert("Test berhasil direset", "success");
         loadData();
@@ -331,7 +331,8 @@ const JawabanPage = () => {
                     {t.tanggal ? formatTanggalIndo(t.tanggal) : "-"}
                   </td>
                   <td className="px-6 py-4 flex gap-2">
-                    {t.submited || t.butuh_review ? (
+                    {/* Tampilkan aksi hanya jika test sudah submitted */}
+                    {t.submited ? (
                       <>
                         <button
                           onClick={() =>

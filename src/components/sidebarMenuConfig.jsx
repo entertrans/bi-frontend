@@ -203,6 +203,33 @@ export const menuConfig = {
       ],
     },
     {
+      label: "Roll Back TO",
+      icon: <FaLaptopCode className="mr-3" />,
+      key: "rb-test-online",
+      children: [
+        {
+          label: "Ulangan Bulanan",
+          path: "/rb/test-online/UB",
+          key: "rb-test-ub",
+        },
+        {
+          label: "Test Review",
+          path: "/rb/test-online/TR",
+          key: "rb-test-review",
+        },
+        {
+          label: "Tugas",
+          path: "/rb/test-online/tugas",
+          key: "rb-tugas",
+        },
+        {
+          label: "Daftar Siswa",
+          path: "/rb/siswa",
+          key: "rb-siswa",
+        },
+      ],
+    },
+    {
       label: "Logout",
       icon: <FaSignOutAlt className="mr-3 text-red-500" />,
       path: "/logout",
