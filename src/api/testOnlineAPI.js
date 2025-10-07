@@ -202,11 +202,11 @@ export const getActiveTestSession = async (testId, nis) => {
 };
 
 // Mulai session baru + ambil soal fix
-export const startTest = async (testId, nis) => {
+export const startTest = async (testId, nis, kelasId) => {
   const res = await axios.post(
-    `${BASE_URL}/siswa/test/start/${testId}?nis=${nis}`
+    `${BASE_URL}/siswa/test/start/${testId}?nis=${nis}&kelas_id=${kelasId}`
   );
-  return res.data; // session + soal fix
+  return res.data;
 };
 // Load soal fix + jawaban lama berdasarkan session
 export const continueTest = async (sessionId) => {

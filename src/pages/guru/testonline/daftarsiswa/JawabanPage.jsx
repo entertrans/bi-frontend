@@ -72,6 +72,7 @@ const JawabanPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [siswa, setSiswa] = useState(null);
   const [tests, setTests] = useState([]);
+  const [kelasSnapshot, setKelasSnapshot] = useState(null);
 
   // 🔎 filter & pagination state
   const [filterJenis, setFilterJenis] = useState("all");
@@ -85,8 +86,10 @@ const JawabanPage = () => {
         fetchJawabanSiswaDetail(siswa_nis),
         fetchJawabanBySiswa(siswa_nis),
       ]);
+
       setSiswa(siswaData);
       setTests(testData?.results || []);
+      setKelasSnapshot(testData?.kelas || null); // ✅ ambil dari response root
     } catch (err) {
       console.error("Gagal ambil data:", err);
       showAlert("Gagal memuat data jawaban", "error");
@@ -242,7 +245,7 @@ const JawabanPage = () => {
               Kelas
             </p>
             <p className="text-lg font-bold">
-              {siswa.kelas?.kelas_nama || "-"}
+              {kelasSnapshot || siswa.kelas?.kelas_nama || "-"}
             </p>
           </div>
           <div>
