@@ -97,12 +97,12 @@ const CBTTugas = () => {
           });
 
           setJawaban(savedJawaban);
-          console.log("Jawaban tersimpan yang di-load:", savedJawaban);
+          // console.log("Jawaban tersimpan yang di-load:", savedJawaban);
 
           // Simpan session_id jika ada
-          if (response.session_id) {
-            console.log("Session ID dari soal:", response.session_id);
-          }
+          // if (response.session_id) {
+          //   console.log("Session ID dari soal:", response.session_id);
+          // }
 
           if (!judul && sessionData.test?.judul) {
             setJudul(sessionData.test.judul);

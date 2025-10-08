@@ -42,6 +42,7 @@ const ListUjian = () => {
   const refreshAll = async () => {
     try {
       if (!kelasId) return;
+      // console.log(kelasId);
 
       setLoading(true);
       const data = await gettestbykelas(typeTest, kelasId);
@@ -97,7 +98,7 @@ const ListUjian = () => {
         return;
       }
 
-      const session = await startTest(testId, nis);
+      const session = await startTest(testId, nis, kelasId);
 
       if (!session || !session.SessionID) {
         Swal.fire("Error", "Session aktif tidak ditemukan", "error");
@@ -162,7 +163,7 @@ const ListUjian = () => {
         return;
       }
 
-      const session = await startTest(testId, nis,kelasId);
+      const session = await startTest(testId, nis, kelasId);
       setActiveSessions((prev) => ({ ...prev, [testId]: session }));
 
       if (!session.SessionID) {

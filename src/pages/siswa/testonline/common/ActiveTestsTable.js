@@ -1,5 +1,12 @@
 import React from "react";
-import { HiPlay, HiRefresh, HiClock, HiBookOpen, HiUser, HiExclamationCircle } from "react-icons/hi";
+import {
+  HiPlay,
+  HiRefresh,
+  HiClock,
+  HiBookOpen,
+  HiUser,
+  HiExclamationCircle,
+} from "react-icons/hi";
 import Countdown from "react-countdown";
 import Swal from "sweetalert2";
 import { fetchNilaiBySession } from "../../../../api/testOnlineAPI";
@@ -14,7 +21,7 @@ const ActiveTestsTable = ({
 }) => {
   // Cek apakah ada test yang sedang dikerjakan
   const currentActiveSession = Object.values(activeSessions).find(
-    session => session && session.Status === "in_progress"
+    (session) => session && session.Status === "in_progress"
   );
 
   const handleLihatNilai = async (sessionID, testJudul) => {
@@ -36,7 +43,9 @@ const ActiveTestsTable = ({
         html: `
           <div class="text-center">
             <h3 class="text-xl font-bold mb-2">${testJudul}</h3>
-            <div class="text-4xl font-bold text-blue-600 mb-4">${response.nilai_akhir.toFixed(2)}</div>
+            <div class="text-4xl font-bold text-blue-600 mb-4">${response.nilai_akhir.toFixed(
+              2
+            )}</div>
           </div>
         `,
         icon: "success",
@@ -60,7 +69,10 @@ const ActiveTestsTable = ({
 
   const handleKerjakanClick = (test, session) => {
     // Jika ada test lain yang sedang dikerjakan
-    if (currentActiveSession && currentActiveSession.SessionID !== session?.SessionID) {
+    if (
+      currentActiveSession &&
+      currentActiveSession.SessionID !== session?.SessionID
+    ) {
       Swal.fire({
         title: "Ujian Sedang Berlangsung",
         html: `
@@ -74,7 +86,8 @@ const ActiveTestsTable = ({
         confirmButtonText: "Mengerti",
         buttonsStyling: false,
         customClass: {
-          confirmButton: "bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg",
+          confirmButton:
+            "bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg",
         },
       });
       return;
@@ -94,9 +107,11 @@ const ActiveTestsTable = ({
     // 2. Test memiliki jumlah_soal_tampil > 0
     // 3. (Opsional) Cek deadline jika ada
     const hasQuestions = test.jumlah_soal_tampil > 0;
-    const isNotActiveForOtherTest = !currentActiveSession || 
-      activeSessions[test.test_id]?.SessionID === currentActiveSession.SessionID;
-    
+    const isNotActiveForOtherTest =
+      !currentActiveSession ||
+      activeSessions[test.test_id]?.SessionID ===
+        currentActiveSession.SessionID;
+
     // Cek deadline jika ada
     const now = new Date();
     const deadline = test.deadline ? new Date(test.deadline) : null;
@@ -107,7 +122,9 @@ const ActiveTestsTable = ({
 
   if (tests.length === 0) {
     return (
-      <div className={`${cardStyles.base} ${cardStyles.blue.container} border-l-4 p-6 text-center`}>
+      <div
+        className={`${cardStyles.base} ${cardStyles.blue.container} border-l-4 p-6 text-center`}
+      >
         <div className="text-3xl mb-2">📚</div>
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">
           Tidak ada ujian aktif
@@ -120,7 +137,9 @@ const ActiveTestsTable = ({
   }
 
   return (
-    <div className={`${cardStyles.base} ${cardStyles.blue.container} border-l-4`}>
+    <div
+      className={`${cardStyles.base} ${cardStyles.blue.container} border-l-4`}
+    >
       {/* Info jumlah data */}
       <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
         <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
@@ -157,9 +176,13 @@ const ActiveTestsTable = ({
           {tests.map((test, index) => {
             const session = activeSessions[test.test_id];
             const endTime = session?.EndTime ? new Date(session.EndTime) : null;
-            const isCompleted = session && (session.Status === "submitted" || session.Status === "graded");
+            const isCompleted =
+              session &&
+              (session.Status === "submitted" || session.Status === "graded");
             const isActive = session && session.Status === "in_progress";
-            const isOtherActive = currentActiveSession && currentActiveSession.SessionID !== session?.SessionID;
+            const isOtherActive =
+              currentActiveSession &&
+              currentActiveSession.SessionID !== session?.SessionID;
             const canTake = canTakeTest(test);
 
             const getStatusColor = () => {
@@ -193,7 +216,10 @@ const ActiveTestsTable = ({
                         {test.deadline && (
                           <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
                             <HiClock className="w-3 h-3 mr-1" />
-                            Deadline: {new Date(test.deadline).toLocaleDateString('id-ID')}
+                            Deadline:{" "}
+                            {new Date(test.deadline).toLocaleDateString(
+                              "id-ID"
+                            )}
                           </div>
                         )}
                       </div>
@@ -214,14 +240,18 @@ const ActiveTestsTable = ({
 
                   {/* Jumlah Soal */}
                   <div className="col-span-1 text-center">
-                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
-                      test.jumlah_soal_tampil > 0 
-                        ? "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
-                        : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-                    }`}>
+                    <span
+                      className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold ${
+                        test.jumlah_soal_tampil > 0
+                          ? "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+                      }`}
+                    >
                       {test.jumlah_soal_tampil}
                     </span>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">soal</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      soal
+                    </div>
                   </div>
 
                   {/* Durasi */}
@@ -229,15 +259,23 @@ const ActiveTestsTable = ({
                     <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                       {test.durasi_menit}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">menit</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      menit
+                    </div>
                   </div>
 
                   {/* Status & Aksi */}
                   <div className="col-span-3">
                     {/* Status Badge */}
                     <div className="flex items-center justify-center mb-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${style.badge}`}>
-                        {!session ? "⏳ Belum Dimulai" : isCompleted ? "✅ Selesai" : "🟠 Dalam Proses"}
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${style.badge}`}
+                      >
+                        {!session
+                          ? "⏳ Belum Dimulai"
+                          : isCompleted
+                          ? "✅ Selesai"
+                          : "🟠 Dalam Proses"}
                       </span>
                     </div>
 
@@ -247,8 +285,18 @@ const ActiveTestsTable = ({
                         <HiClock className="w-3 h-3 mr-1" />
                         <Countdown
                           date={endTime}
-                          renderer={({ hours, minutes, seconds, completed }) => {
-                            if (completed) return <span className="text-red-500 font-semibold">Waktu Habis!</span>;
+                          renderer={({
+                            hours,
+                            minutes,
+                            seconds,
+                            completed,
+                          }) => {
+                            if (completed)
+                              return (
+                                <span className="text-red-500 font-semibold">
+                                  Waktu Habis!
+                                </span>
+                              );
                             return (
                               <span className="font-mono font-semibold">
                                 {hours > 0 ? `${hours}:` : ""}
@@ -266,7 +314,9 @@ const ActiveTestsTable = ({
                       {session ? (
                         isCompleted ? (
                           <button
-                            onClick={() => handleLihatNilai(session.SessionID, test.judul)}
+                            onClick={() =>
+                              handleLihatNilai(session.SessionID, test.judul)
+                            }
                             className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md"
                           >
                             <HiBookOpen className="w-4 h-4" />
@@ -274,7 +324,7 @@ const ActiveTestsTable = ({
                           </button>
                         ) : (
                           <button
-                            onClick={() => handleKerjakanClick(test, session)}
+                            onClick={() => onLanjutkan(test.test_id)}
                             className={`flex items-center gap-2 ${style.button} px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md`}
                           >
                             <HiRefresh className="w-4 h-4" />
@@ -325,11 +375,10 @@ const ActiveTestsTable = ({
         {tests.length > 0 && (
           <div className="px-6 py-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
             <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              📚 Total {tests.length} ujian aktif • 
-              {currentActiveSession 
-                ? " 📝 Ada ujian yang sedang dikerjakan" 
-                : " ✅ Semua ujian siap dikerjakan"
-              }
+              📚 Total {tests.length} ujian aktif •
+              {currentActiveSession
+                ? " 📝 Ada ujian yang sedang dikerjakan"
+                : " ✅ Semua ujian siap dikerjakan"}
             </div>
           </div>
         )}

@@ -120,7 +120,7 @@ const ListTugas = () => {
 
       // Kalau sudah ada session, langsung buka lagi
       if (!session) {
-        session = await startTest(taskId, nis);
+        session = await startTest(taskId, nis, kelasId);
         setSubmissions((prev) => ({ ...prev, [taskId]: session }));
       }
 

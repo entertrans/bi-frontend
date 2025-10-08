@@ -11,6 +11,7 @@ const InfoTestDashboard = ({ tests, onTestsUpdate }) => {
   const [expanded, setExpanded] = useState(true);
   const { user } = useAuth();
   const nis = user?.siswa?.siswa_nis;
+  const kelas = user?.siswa?.kelas?.kelas_id;
 
   // ===== Handle Kerjakan Test =====
   const handleKerjakan = async (testId, testJudul, testDurasi) => {
@@ -20,8 +21,8 @@ const InfoTestDashboard = ({ tests, onTestsUpdate }) => {
         return;
       }
 
-      const session = await startTest(testId, nis);
-      
+      const session = await startTest(testId, nis, kelas);
+
       if (!session?.SessionID) {
         Swal.fire("Error", "Session ID tidak ditemukan", "error");
         return;
@@ -31,7 +32,7 @@ const InfoTestDashboard = ({ tests, onTestsUpdate }) => {
       window.open(`/siswa/ujian/${session.SessionID}`, "_blank");
 
       // Update parent state - hapus test yang dikerjakan
-      onTestsUpdate(prev => prev.filter(test => test.test_id !== testId));
+      onTestsUpdate((prev) => prev.filter((test) => test.test_id !== testId));
 
       Swal.fire({
         title: "Test Dimulai!",
@@ -66,9 +67,9 @@ const InfoTestDashboard = ({ tests, onTestsUpdate }) => {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {tests.slice(0, 4).map((test) => (
-              <TestCard 
-                key={test.test_id} 
-                test={test} 
+              <TestCard
+                key={test.test_id}
+                test={test}
                 onKerjakan={handleKerjakan}
               />
             ))}
@@ -85,7 +86,7 @@ const InfoTestDashboard = ({ tests, onTestsUpdate }) => {
           )}
         </>
       ) : (
-        <EmptyState 
+        <EmptyState
           icon="🎉"
           title="Tidak ada test baru"
           message="Semua test/tugas telah dikerjakan atau belum ada penugasan baru"

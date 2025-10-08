@@ -20,8 +20,6 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
       loadPeserta();
       loadSiswaKelas(test.kelas_id);
     }
-   
-    
   }, [isOpen, test]);
 
   const loadPeserta = async () => {
@@ -32,11 +30,11 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
     } catch (err) {
       console.error("Gagal memuat peserta:", err);
       Swal.fire({
-        icon: 'error',
-        title: 'Gagal memuat peserta',
-        text: 'Terjadi kesalahan saat memuat data peserta',
+        icon: "error",
+        title: "Gagal memuat peserta",
+        text: "Terjadi kesalahan saat memuat data peserta",
         timer: 3000,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
     }
   };
@@ -48,11 +46,11 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
     } catch (err) {
       console.error("Gagal memuat siswa kelas:", err);
       Swal.fire({
-        icon: 'error',
-        title: 'Gagal memuat siswa',
-        text: 'Terjadi kesalahan saat memuat data siswa',
+        icon: "error",
+        title: "Gagal memuat siswa",
+        text: "Terjadi kesalahan saat memuat data siswa",
         timer: 3000,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
     }
   };
@@ -63,9 +61,10 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
       await addPeserta({
         test_id: test.test_id,
         siswa_nis: siswa.siswa_nis,
+        kelas_id: test.kelas_id,
       });
       showAlert("Peserta berhasil ditambahka", "success");
-      
+
       loadPeserta();
     } catch (err) {
       console.error("Gagal menambahkan peserta:", err);
@@ -77,14 +76,14 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
 
   const handleDeletePeserta = async (pesertaId) => {
     const result = await Swal.fire({
-      title: 'Hapus Peserta?',
+      title: "Hapus Peserta?",
       text: "Apakah Anda yakin ingin menghapus peserta ini?",
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Ya, Hapus!',
-      cancelButtonText: 'Batal',
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Ya, Hapus!",
+      cancelButtonText: "Batal",
       buttonsStyling: false,
       customClass: {
         actions: "flex justify-center",
@@ -92,30 +91,30 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
           "bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 mr-1 rounded",
         cancelButton:
           "bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 ml-1 rounded",
-      }
+      },
     });
 
     if (result.isConfirmed) {
       try {
         await deletePeserta(pesertaId);
-        
+
         Swal.fire({
-          icon: 'success',
-          title: 'Terhapus!',
-          text: 'Peserta berhasil dihapus',
+          icon: "success",
+          title: "Terhapus!",
+          text: "Peserta berhasil dihapus",
           timer: 2000,
-          showConfirmButton: false
+          showConfirmButton: false,
         });
-        
+
         loadPeserta();
       } catch (err) {
         console.error("Gagal menghapus peserta:", err);
         Swal.fire({
-          icon: 'error',
-          title: 'Gagal!',
-          text: 'Gagal menghapus peserta',
+          icon: "error",
+          title: "Gagal!",
+          text: "Gagal menghapus peserta",
           timer: 3000,
-          showConfirmButton: false
+          showConfirmButton: false,
         });
       }
     }
@@ -129,7 +128,9 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
 
   // Filter siswa yang belum jadi peserta
   const pesertaNIS = peserta.map((p) => p.siswa_nis);
-  const calonSiswa = siswaKelas.filter((s) => !pesertaNIS.includes(s.siswa_nis));
+  const calonSiswa = siswaKelas.filter(
+    (s) => !pesertaNIS.includes(s.siswa_nis)
+  );
 
   return (
     <Transition show={isOpen}>
@@ -145,7 +146,7 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
         className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40"
         onClick={handleClose}
       />
-      
+
       {/* Panel */}
       <Transition.Child
         as="div"
@@ -170,7 +171,8 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
                     Kelola Peserta Test
                   </h2>
                   <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                    {test?.judul} • {test?.mapel?.nm_mapel || "Mata Pelajaran"} • {test?.kelas?.kelas_nama || "Kelas"}
+                    {test?.judul} • {test?.mapel?.nm_mapel || "Mata Pelajaran"}{" "}
+                    • {test?.kelas?.kelas_nama || "Kelas"}
                   </p>
                 </div>
               </div>
@@ -197,26 +199,30 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
                 </span>
               </h3>
             </div>
-            <div className="overflow-y-auto" style={{ maxHeight: '40vh' }}>
+            <div className="overflow-y-auto" style={{ maxHeight: "40vh" }}>
               {peserta.length > 0 ? (
                 peserta.map((p, index) => (
                   <div
                     key={p.peserta_id}
                     className={`flex justify-between items-center p-4 ${
-                      index !== peserta.length - 1 ? 'border-b border-gray-100 dark:border-gray-700' : ''
+                      index !== peserta.length - 1
+                        ? "border-b border-gray-100 dark:border-gray-700"
+                        : ""
                     } hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
                         <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                          {p.siswa?.siswa_nama?.charAt(0) || 'S'}
+                          {p.siswa?.siswa_nama?.charAt(0) || "S"}
                         </span>
                       </div>
                       <div>
                         <p className="font-medium text-gray-900 dark:text-white text-sm">
-                          {p.siswa?.siswa_nama || 'Nama tidak tersedia'}
+                          {p.siswa?.siswa_nama || "Nama tidak tersedia"}
                         </p>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs">NIS: {p.siswa_nis}</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-xs">
+                          NIS: {p.siswa_nis}
+                        </p>
                       </div>
                     </div>
                     <button
@@ -251,26 +257,30 @@ const SlidePeserta = ({ isOpen, onClose, test }) => {
                 </span>
               </h3>
             </div>
-            <div className="overflow-y-auto" style={{ maxHeight: '40vh' }}>
+            <div className="overflow-y-auto" style={{ maxHeight: "40vh" }}>
               {calonSiswa.length > 0 ? (
                 calonSiswa.map((s, index) => (
                   <div
                     key={s.siswa_id}
                     className={`flex justify-between items-center p-4 ${
-                      index !== calonSiswa.length - 1 ? 'border-b border-gray-100 dark:border-gray-700' : ''
+                      index !== calonSiswa.length - 1
+                        ? "border-b border-gray-100 dark:border-gray-700"
+                        : ""
                     } hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
                         <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                          {s.siswa_nama?.charAt(0) || 'S'}
+                          {s.siswa_nama?.charAt(0) || "S"}
                         </span>
                       </div>
                       <div>
                         <p className="font-medium text-gray-900 dark:text-white text-sm">
                           {s.siswa_nama}
                         </p>
-                        <p className="text-gray-500 dark:text-gray-400 text-xs">NIS: {s.siswa_nis}</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-xs">
+                          NIS: {s.siswa_nis}
+                        </p>
                       </div>
                     </div>
                     <button

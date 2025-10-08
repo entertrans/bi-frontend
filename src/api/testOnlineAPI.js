@@ -34,13 +34,13 @@ const BASE_URL = "http://localhost:8080";
 
 //pilih bank soal
 // ambil soal dari bank soal berdasarkan kelas + mapel
-export const fetchBankSoalByKelasMapel= async (kelasID, mapelID, testID) => {
+export const fetchBankSoalByKelasMapel = async (kelasID, mapelID, testID) => {
   try {
     const res = await axios.get(`${BASE_URL}/guru/by-kelas-mapel`, {
-      params: { 
-        kelas_id: kelasID, 
+      params: {
+        kelas_id: kelasID,
         mapel_id: mapelID,
-        test_id: testID
+        test_id: testID,
       },
     });
     return res.data;
@@ -60,12 +60,10 @@ export const removeSoalFromTest = async (testId, soalId) => {
   }
 };
 
-
-
 // tambah soal ke test
 export const addSoalToTest = async (testID, soalIDs) => {
-  console.log(testID,soalIDs);
-  
+  console.log(testID, soalIDs);
+
   try {
     const res = await axios.post(`${BASE_URL}/guru/tests/${testID}/add-soal`, {
       soal_ids: soalIDs,
@@ -77,9 +75,7 @@ export const addSoalToTest = async (testID, soalIDs) => {
   }
 };
 
-
 // end of pilih
-
 
 export const getTestsByType = async (type) => {
   const res = await axios.get(`${BASE_URL}/guru/test/type/${type}`);
@@ -114,6 +110,8 @@ export const getPesertaByTest = async (testID) => {
 
 // tambah peserta
 export const addPeserta = async (pesertaData) => {
+  console.log(pesertaData);
+
   const res = await axios.post(`${BASE_URL}/testreview/peserta`, pesertaData);
   return res.data;
 };
@@ -203,6 +201,7 @@ export const getActiveTestSession = async (testId, nis) => {
 
 // Mulai session baru + ambil soal fix
 export const startTest = async (testId, nis, kelasId) => {
+  // console.log(testId);
   const res = await axios.post(
     `${BASE_URL}/siswa/test/start/${testId}?nis=${nis}&kelas_id=${kelasId}`
   );
@@ -242,6 +241,8 @@ export const getSoalByTestId = async (testId) => {
 
 // Simpan jawaban siswa
 export const saveJawaban = async (jawabanData) => {
+  // console.log(jawabanData);
+
   const res = await axios.post(`${BASE_URL}/siswa/jawaban/save`, jawabanData);
   return res.data;
 };
@@ -271,7 +272,7 @@ export const fetchSiswaDetail = async (siswaNis) => {
     throw error;
   }
 };
-export const fetchDetailJawabanBySession = async (sessionID,jenis) => {
+export const fetchDetailJawabanBySession = async (sessionID, jenis) => {
   try {
     const response = await axios.get(
       `${BASE_URL}/guru/session/${sessionID}/${jenis}/jawaban`
@@ -407,9 +408,9 @@ export const updateOverrideNilai = async (sessionID, scoreload) => {
 // api/testOnlineAPI.js
 export const resetTestSession = async (sessionId, additionalData = {}) => {
   // console.log("Data reset:", { sessionId, ...additionalData });
-  
+
   const res = await axios.delete(`${BASE_URL}/guru/test/reset/${sessionId}`, {
-    data: additionalData // Kirim data tambahan di body
+    data: additionalData, // Kirim data tambahan di body
   });
   return res.data;
 };
@@ -425,6 +426,3 @@ export const fetchNilaiBySession = async (sessionID) => {
     throw error;
   }
 };
-
-
-

@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getInvoiceTerakhir, getNotStartedTests } from "../../api/siswaAPI";
-import {
-  startTest
-} from "../../api/testOnlineAPI";
+import { startTest } from "../../api/testOnlineAPI";
 import { useAuth } from "../../contexts/AuthContext";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -14,7 +12,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [expandedSections, setExpandedSections] = useState({
     tests: true,
-    invoice: true
+    invoice: true,
   });
   const { user } = useAuth();
   const nis = user?.siswa?.siswa_nis;
@@ -23,14 +21,19 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log(user?.siswa);
         setLoading(true);
         const [invoiceData, testsData] = await Promise.all([
           getInvoiceTerakhir(nis),
-          getNotStartedTests(nis)
+          getNotStartedTests(nis),
         ]);
 
         // Handle invoice data
-        if (invoiceData && typeof invoiceData === "object" && invoiceData.message) {
+        if (
+          invoiceData &&
+          typeof invoiceData === "object" &&
+          invoiceData.message
+        ) {
           setInvoice(null);
         } else {
           setInvoice(invoiceData);
@@ -62,8 +65,8 @@ const Dashboard = () => {
         return;
       }
 
-      const session = await startTest(testId, nis);
-      
+      const session = await startTest(testId, nis, kelasId);
+
       if (!session?.SessionID) {
         Swal.fire("Error", "Session ID tidak ditemukan", "error");
         return;
@@ -73,7 +76,9 @@ const Dashboard = () => {
       window.open(`/siswa/ujian/${session.SessionID}`, "_blank");
 
       // Update local state - hapus test yang dikerjakan
-      setNotStartedTests(prev => prev.filter(test => test.test_id !== testId));
+      setNotStartedTests((prev) =>
+        prev.filter((test) => test.test_id !== testId)
+      );
 
       Swal.fire({
         title: "Test Dimulai!",
@@ -99,9 +104,9 @@ const Dashboard = () => {
 
   // ===== Toggle Accordion =====
   const toggleSection = (section) => {
-    setExpandedSections(prev => ({
+    setExpandedSections((prev) => ({
       ...prev,
-      [section]: !prev[section]
+      [section]: !prev[section],
     }));
   };
 
@@ -124,8 +129,8 @@ const Dashboard = () => {
           Selamat datang, {user?.siswa?.siswa_nama}!
         </h1>
         <p className="opacity-90 text-sm">
-          {notStartedTests.length > 0 
-            ? `Ada ${notStartedTests.length} test/tugas menunggu untuk dikerjakan` 
+          {notStartedTests.length > 0
+            ? `Ada ${notStartedTests.length} test/tugas menunggu untuk dikerjakan`
             : "Tidak ada test/tugas baru"}
         </p>
       </div>
@@ -137,15 +142,15 @@ const Dashboard = () => {
             title="📚 Test & Tugas Terbaru"
             count={notStartedTests.length}
             isExpanded={expandedSections.tests}
-            onToggle={() => toggleSection('tests')}
+            onToggle={() => toggleSection("tests")}
           >
             {notStartedTests.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {notStartedTests.slice(0, 4).map((test) => (
-                    <TestCard 
-                      key={test.test_id} 
-                      test={test} 
+                    <TestCard
+                      key={test.test_id}
+                      test={test}
                       onKerjakan={handleKerjakan}
                     />
                   ))}
@@ -162,7 +167,7 @@ const Dashboard = () => {
                 )}
               </>
             ) : (
-              <EmptyState 
+              <EmptyState
                 icon="🎉"
                 title="Tidak ada test baru"
                 message="Semua test/tugas telah dikerjakan atau belum ada penugasan baru"
@@ -177,7 +182,7 @@ const Dashboard = () => {
             title="💰 Tagihan Terakhir"
             count={invoice ? 1 : 0}
             isExpanded={expandedSections.invoice}
-            onToggle={() => toggleSection('invoice')}
+            onToggle={() => toggleSection("invoice")}
           >
             <InvoiceCard invoice={invoice} />
           </AccordionSection>
@@ -207,21 +212,22 @@ const AccordionSection = ({ title, count, isExpanded, onToggle, children }) => {
         </div>
         <svg
           className={`w-4 h-4 text-gray-500 dark:text-gray-400 transform transition-transform ${
-            isExpanded ? 'rotate-180' : ''
+            isExpanded ? "rotate-180" : ""
           }`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
-      
-      {isExpanded && (
-        <div className="px-5 pb-5">
-          {children}
-        </div>
-      )}
+
+      {isExpanded && <div className="px-5 pb-5">{children}</div>}
     </div>
   );
 };
@@ -233,9 +239,7 @@ const EmptyState = ({ icon, title, message }) => (
     <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">
       {title}
     </h3>
-    <p className="text-gray-600 dark:text-gray-400 text-xs">
-      {message}
-    </p>
+    <p className="text-gray-600 dark:text-gray-400 text-xs">{message}</p>
   </div>
 );
 
@@ -245,21 +249,24 @@ const TestCard = ({ test, onKerjakan }) => {
     switch (type) {
       case "tr":
         return {
-          badge: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-           icon: "📚 ",
-          type: "Test Review"
+          badge:
+            "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+          icon: "📚 ",
+          type: "Test Review",
         };
       case "tugas":
         return {
-          badge: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+          badge:
+            "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
           icon: "📝 ",
-          type: "Tugas"
+          type: "Tugas",
         };
       default:
         return {
-          badge: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+          badge:
+            "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
           icon: "📄",
-          type: "Test"
+          type: "Test",
         };
     }
   };
@@ -270,7 +277,9 @@ const TestCard = ({ test, onKerjakan }) => {
     <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 p-5 border border-gray-200 dark:border-gray-600">
       {/* Status Badge */}
       <div className="mb-4">
-        <span className={`px-3 py-1.5 text-xs rounded-full font-semibold ${config.badge}`}>
+        <span
+          className={`px-3 py-1.5 text-xs rounded-full font-semibold ${config.badge}`}
+        >
           {config.icon} {config.type}
         </span>
       </div>
@@ -294,7 +303,9 @@ const TestCard = ({ test, onKerjakan }) => {
 
           <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
             <HiClock className="w-4 h-4 mr-2 text-purple-500" />
-            <span>{test.durasi_menit} menit • {test.jumlah_soal_tampil} soal</span>
+            <span>
+              {test.durasi_menit} menit • {test.jumlah_soal_tampil} soal
+            </span>
           </div>
         </div>
       </div>
@@ -302,7 +313,9 @@ const TestCard = ({ test, onKerjakan }) => {
       {/* Action Button */}
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
         <button
-          onClick={() => onKerjakan(test.test_id, test.judul, test.durasi_menit)}
+          onClick={() =>
+            onKerjakan(test.test_id, test.judul, test.durasi_menit)
+          }
           className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-semibold transition-colors flex items-center justify-center"
         >
           <HiPlay className="w-5 h-5 mr-2" />
@@ -341,7 +354,7 @@ const InvoiceCard = ({ invoice }) => {
 
   if (shouldShowNoInvoice) {
     return (
-      <EmptyState 
+      <EmptyState
         icon="🎉"
         title="Tidak ada tagihan aktif"
         message={invoice?.message || "Semua tagihan Anda telah lunas"}

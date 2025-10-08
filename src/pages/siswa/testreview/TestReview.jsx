@@ -104,7 +104,7 @@ const TestReview = () => {
         return;
       }
 
-      const session = await startTest(testId, nis);
+      const session = await startTest(testId, nis, kelasId);
       setActiveSessions((prev) => ({ ...prev, [testId]: session }));
 
       if (!session?.SessionID) {

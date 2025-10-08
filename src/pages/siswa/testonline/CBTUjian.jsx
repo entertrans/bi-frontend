@@ -40,7 +40,7 @@ const CBTUjian = () => {
         setLoading(true);
         const sessionData = await getTestSession(sessionId);
         setSession(sessionData);
-
+        // console.log(sessionData?.test?.type_test);
         if (sessionData?.EndTime) {
           setTargetDate(new Date(sessionData.EndTime).getTime());
         }
@@ -96,11 +96,11 @@ const CBTUjian = () => {
           });
 
           setJawaban(savedJawaban);
-          console.log("Jawaban tersimpan yang di-load:", savedJawaban);
+          // console.log("Jawaban tersimpan yang di-load:", savedJawaban);
 
           // Simpan session_id jika ada
           if (response.session_id) {
-            console.log("Session ID dari soal:", response.session_id);
+            // console.log("Session ID dari soal:", response.session_id);
           }
 
           if (!judul && sessionData.test?.judul) {
@@ -192,21 +192,15 @@ const CBTUjian = () => {
 
       // Update state lokal
       setJawaban((prev) => ({ ...prev, [soalId]: payload }));
-
+      const tipeUjian = session?.test?.type_test || "default";
       // Data yang akan dikirim ke backend
       const requestData = {
+        tipe_ujian: tipeUjian,
         session_id: parseInt(sessionId),
         soal_id: soalId,
         jawaban_siswa: JSON.stringify(payload),
         skor_objektif: 0,
       };
-
-      // console.log("Data yang dikirim ke backend:", requestData);
-      // console.log("Detail soal:", {
-      //   tipe_soal: soalItem.tipe_soal,
-      //   payload_asli: payload,
-      //   payload_stringified: JSON.stringify(payload),
-      // });
 
       // Simpan ke backend
       await saveJawaban(requestData);
