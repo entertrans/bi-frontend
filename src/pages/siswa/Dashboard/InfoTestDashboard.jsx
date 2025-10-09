@@ -45,6 +45,12 @@ const InfoTestDashboard = ({ tests, onTestsUpdate }) => {
         `,
         icon: "success",
         confirmButtonText: "Mengerti",
+        buttonsStyling: false,
+        customClass: {
+          actions: "flex justify-center",
+          confirmButton:
+            "bg-purple-600 hover:bg-purple-700 text-white font-semibold px-4 py-2 mr-2 rounded",
+        },
       });
     } catch (err) {
       console.error("Error mulai test:", err);

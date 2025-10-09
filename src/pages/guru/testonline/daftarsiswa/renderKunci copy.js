@@ -69,12 +69,18 @@ export function renderKunci(item) {
       pilihan = [];
     }
 
+    // Fungsi untuk menghilangkan tag HTML
+    const cleanHTML = (html) => {
+      if (!html) return "";
+      return html.replace(/<[^>]*>/g, '');
+    };
+
     switch (item.tipe_soal) {
       case "pg":
         if (Array.isArray(kunci) && kunci.length > 0) {
           const idx = parseInt(kunci[0]);
           if (!isNaN(idx) && pilihan[idx]) {
-            return <HtmlContentWithMath html={pilihan[idx]} />;
+            return <span>{cleanHTML(pilihan[idx])}</span>;
           } else {
             return <span className="text-green-600 dark:text-green-400 font-medium">{kunci[0]}</span>;
           }
@@ -88,7 +94,7 @@ export function renderKunci(item) {
               {kunci.map((idx, i) => {
                 const parsedIdx = parseInt(idx);
                 const content = (!isNaN(parsedIdx) && pilihan[parsedIdx]) 
-                  ? <HtmlContentWithMath html={pilihan[parsedIdx]} />
+                  ? <span>{cleanHTML(pilihan[parsedIdx])}</span>
                   : <span className="text-green-600 dark:text-green-400 font-medium">{idx}</span>;
                 
                 return (
@@ -103,6 +109,7 @@ export function renderKunci(item) {
         }
         return "-";
 
+      // ... cases lainnya tetap sama ...
       case "bs":
         if (Array.isArray(kunci) && kunci.length > 0) {
           return (
@@ -112,7 +119,7 @@ export function renderKunci(item) {
                 const isBenar = val === "benar";
                 return (
                   <div key={i} className="flex items-center justify-between">
-                    <HtmlContentWithMath html={pernyataan} />
+                    <span>{cleanHTML(pernyataan)}</span>
                     <span className={`ml-3 px-2 py-1 rounded text-xs font-medium ${
                       isBenar 
                         ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" 
@@ -134,12 +141,12 @@ export function renderKunci(item) {
             <div className="space-y-2">
               {kunci.map((pair, index) => (
                 <div key={index} className="flex items-center">
-                  <HtmlContentWithMath html={pair.left || ""} />
+                  <span>{cleanHTML(pair.left || "")}</span>
                   <span className="mx-3 text-gray-500 dark:text-gray-400">→</span>
                   {pair.rightLampiran ? (
                     <LampiranDisplay lampiran={pair.rightLampiran} />
                   ) : (
-                    <HtmlContentWithMath html={pair.right || ""} />
+                    <span>{cleanHTML(pair.right || "")}</span>
                   )}
                 </div>
               ))}
@@ -177,8 +184,14 @@ export function renderJawaban(item) {
       pilihan = [];
     }
 
+    // Fungsi untuk menghilangkan tag HTML
+    const cleanHTML = (html) => {
+      if (!html) return "";
+      return html.replace(/<[^>]*>/g, '');
+    };
+
     if (typeof jawaban === "string") {
-      return <HtmlContentWithMath html={jawaban} />;
+      return <span>{cleanHTML(jawaban)}</span>;
     }
 
     if (!jawaban || (Array.isArray(jawaban) && jawaban.length === 0)) {
@@ -191,9 +204,9 @@ export function renderJawaban(item) {
           const val = jawaban[0];
           const idx = parseInt(val);
           if (!isNaN(idx) && pilihan[idx]) {
-            return <HtmlContentWithMath html={pilihan[idx]} />;
+            return <span>{cleanHTML(pilihan[idx])}</span>;
           }
-          return <span className="text-blue-600 dark:text-blue-400 font-medium">{val}</span>;
+          return <span className="text-blue-600 dark:text-blue-400 font-medium">{cleanHTML(val)}</span>;
         }
         return "-";
 
@@ -204,8 +217,8 @@ export function renderJawaban(item) {
               {jawaban.map((val, i) => {
                 const idx = parseInt(val);
                 const content = (!isNaN(idx) && pilihan[idx]) 
-                  ? <HtmlContentWithMath html={pilihan[idx]} />
-                  : <span className="text-blue-600 dark:text-blue-400 font-medium">{val}</span>;
+                  ? <span>{cleanHTML(pilihan[idx])}</span>
+                  : <span className="text-blue-600 dark:text-blue-400 font-medium">{cleanHTML(val)}</span>;
                 
                 return (
                   <div key={i} className="flex items-start">
@@ -221,14 +234,16 @@ export function renderJawaban(item) {
 
       case "bs":
         if (Array.isArray(jawaban) && jawaban.length > 0) {
+          // Urutkan berdasarkan index
+          const sortedJawaban = [...jawaban].sort((a, b) => a.index - b.index);
           return (
             <div className="space-y-2">
-              {jawaban.map((ans, i) => {
+              {sortedJawaban.map((ans, i) => {
                 const pernyataan = pilihan[ans.index]?.teks || `Pernyataan ${ans.index + 1}`;
                 const isBenar = ans.jawaban === "benar";
                 return (
                   <div key={i} className="flex items-center justify-between">
-                    <HtmlContentWithMath html={pernyataan} />
+                    <span>{cleanHTML(pernyataan)}</span>
                     <span className={`ml-3 px-2 py-1 rounded text-xs font-medium ${
                       isBenar 
                         ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" 
@@ -246,19 +261,21 @@ export function renderJawaban(item) {
 
       case "matching":
         if (Array.isArray(jawaban) && jawaban.length > 0) {
+          // URUTKAN berdasarkan leftIndex agar sesuai urutan
+          const sortedJawaban = [...jawaban].sort((a, b) => a.leftIndex - b.leftIndex);
           return (
             <div className="space-y-2">
-              {jawaban.map((map, index) => {
+              {sortedJawaban.map((map, index) => {
                 const leftItem = pilihan[map.leftIndex];
                 const rightItem = pilihan[map.rightIndex];
                 return (
                   <div key={index} className="flex items-center">
-                    <HtmlContentWithMath html={leftItem?.left || ""} />
+                    <span>{cleanHTML(leftItem?.left || "")}</span>
                     <span className="mx-3 text-gray-500 dark:text-gray-400">→</span>
                     {rightItem?.rightLampiran ? (
                       <LampiranDisplay lampiran={rightItem.rightLampiran} />
                     ) : (
-                      <HtmlContentWithMath html={rightItem?.right || ""} />
+                      <span>{cleanHTML(rightItem?.right || "")}</span>
                     )}
                   </div>
                 );
@@ -270,10 +287,10 @@ export function renderJawaban(item) {
 
       case "uraian":
       case "isian_singkat":
-        return <HtmlContentWithMath html={String(jawaban)} />;
+        return <span>{cleanHTML(String(jawaban))}</span>;
 
       default:
-        return <HtmlContentWithMath html={String(jawaban)} />;
+        return <span>{cleanHTML(String(jawaban))}</span>;
     }
   } catch (e) {
     console.error("Error rendering jawaban:", e, item);

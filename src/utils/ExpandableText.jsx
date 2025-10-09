@@ -26,43 +26,25 @@ const truncateWords = (html, wordLimit = 20) => {
   return words.slice(0, wordLimit).join(" ") + " ...";
 };
 
-const ExpandableText = ({ text, limit = 20 }) => {
-  const [expanded, setExpanded] = useState(false);
+const ExpandableText = ({ text, limit = 100 }) => {
+  // Pastikan text selalu string
+  const textString = String(text || '');
+  const [isExpanded, setIsExpanded] = useState(false);
 
-  if (!text) {
-    return <span className="italic text-gray-500">[Tidak ada konten]</span>;
-  }
-
-  // Cek apakah ada gambar/rumus dalam konten
-  const hasMathFormula = text.includes('data:image/png;base64');
-  const plainText = text.replace(/<[^>]+>/g, "");
-  const isTooLong = plainText.trim().split(/\s+/).length > limit;
+  const shouldTruncate = textString.length > limit;
+  const displayText = isExpanded || !shouldTruncate 
+    ? textString 
+    : textString.substring(0, limit) + '...';
 
   return (
-    <div className="prose prose-sm max-w-none dark:prose-invert">
-      {expanded ? (
-        // Expanded → tampilkan HTML asli dengan rumus
-        <div 
-          className="soal-content question-content text-base leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: text }} 
-        />
-      ) : (
-        // Collapsed → tampilkan preview
-        <div className="preview-content">
-          {truncateWords(text, limit) || (
-            <span className="italic text-gray-500">
-              {hasMathFormula ? '[Berisi rumus matematika]' : '[Berisi konten khusus]'}
-            </span>
-          )}
-        </div>
-      )}
-
-      {(isTooLong || hasMathFormula) && (
+    <div className="expandable-text">
+      <div dangerouslySetInnerHTML={{ __html: displayText }} />
+      {shouldTruncate && (
         <button
-          onClick={() => setExpanded(!expanded)}
-          className="text-blue-600 text-sm hover:underline ml-1 mt-1 dark:text-blue-400"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-blue-600 hover:text-blue-800 text-sm mt-1 focus:outline-none"
         >
-          {expanded ? "Sembunyikan" : "Lihat detail"}
+          {isExpanded ? 'Tutup' : 'Baca Selengkapnya'}
         </button>
       )}
     </div>

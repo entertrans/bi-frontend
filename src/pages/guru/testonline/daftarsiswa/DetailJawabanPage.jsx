@@ -9,6 +9,7 @@ import {
 import ExpandableText from "../../../../utils/ExpandableText";
 import { renderJawaban, renderKunci } from "./renderKunci";
 import { showAlert } from "../../../../utils/toast";
+import { exportJawabanToExcel } from "./exportToExcel"; // Import fungsi export
 
 const DetailJawabanPage = () => {
   const { session_id } = useParams();
@@ -28,7 +29,7 @@ const DetailJawabanPage = () => {
   const nilaiAkhir = jawabanData?.test?.nilai || 0;
   const displayedNilai = overrideNilai !== null ? overrideNilai : nilaiAkhir;
 
-  useEffect(() => {
+   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
@@ -52,7 +53,7 @@ const DetailJawabanPage = () => {
     loadData();
   }, [session_id, refreshTrigger]);
 
-  const refreshData = async () => {
+   const refreshData = async () => {
     try {
       const data = await fetchDetailJawabanBySession(session_id);
       if (data && data.jawaban && Array.isArray(data.jawaban)) {
@@ -70,6 +71,8 @@ const DetailJawabanPage = () => {
     newJawabanData.jawaban[index].skor_uraian = parseFloat(nilai) || 0;
     setJawabanData(newJawabanData);
     setOverrideNilai(null);
+
+    
   };
 
   const handleSaveNilai = async () => {
@@ -137,7 +140,18 @@ const DetailJawabanPage = () => {
   };
 
   const handleExport = () => {
-    showAlert("Export belum diimplementasikan", "info");
+    if (!jawabanData) {
+      showAlert("Tidak ada data untuk diexport", "warning");
+      return;
+    }
+
+    try {
+      const fileName = exportJawabanToExcel(jawabanData, displayedNilai);
+      showAlert(`Export berhasil! File ${fileName} telah didownload.`, "success");
+    } catch (error) {
+      console.error("Error saat export:", error);
+      showAlert("Gagal melakukan export: " + error.message, "error");
+    }
   };
 
   const LampiranDisplay = ({ lampiran }) => {
@@ -469,7 +483,10 @@ const DetailJawabanPage = () => {
 
                 <td className="px-6 py-4">{renderJawaban(item)}</td>
 
-                <td className="px-6 py-4">{renderKunci(item)}</td>
+                <td className="px-6 py-4">
+                  {/* {item.jawaban_benar} */}
+                  {renderKunci(item)}
+                </td>
                 <td className="px-6 py-4">{item.max_score}</td>
                 <td className="px-6 py-4 font-bold">
                   {item.skor_uraian !== null
