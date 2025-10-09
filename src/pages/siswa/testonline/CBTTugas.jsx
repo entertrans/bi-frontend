@@ -4,7 +4,7 @@ import {
   getTestSession,
   getSoalByTestId,
   saveJawaban,
-  submitTugas,
+  submitSession,
 } from "../../../api/testOnlineAPI";
 import { showAlert } from "../../../utils/toast";
 import Swal from "sweetalert2";
@@ -42,8 +42,16 @@ const CBTTugas = () => {
         const sessionData = await getTestSession(sessionId);
         setSession(sessionData);
 
-        if (sessionData?.EndTime) {
+        if (sessionData?.test?.type_test === "tugas") {
+          if (sessionData.test.deadline) {
+            setTargetDate(new Date(sessionData.test.deadline).getTime());
+          } else {
+            console.warn("Deadline tugas tidak ditemukan di sessionData");
+          }
+        } else if (sessionData?.EndTime) {
           setTargetDate(new Date(sessionData.EndTime).getTime());
+        } else {
+          console.warn("EndTime atau Deadline tidak ditemukan di sessionData");
         }
 
         if (sessionData?.test?.judul) {
@@ -254,13 +262,19 @@ const CBTTugas = () => {
   // Submit final
   const handleSubmitFinal = async () => {
     try {
-      await submitTugas(sessionId);
+      const tipeUjian = session?.test?.type_test || "default";
+      await submitSession(tipeUjian, sessionId);
       Swal.fire({
         title: "Tugas Dikumpulkan!",
-        text: "Jawaban Anda tersimpan. Status akan otomatis berubah menjadi 'submitted' setelah deadline.",
+        text: "Jawaban Anda tersimpan. Silahkan Hubungi Guru / Admin Untuk Mendapatkan Penilaian",
         icon: "success",
         confirmButtonColor: "#3085d6",
         confirmButtonText: "Tutup",
+        buttonsStyling: false,
+        customClass: {
+          confirmButton:
+            "bg-green-600 hover:bg-green-700 text-white font-semibold mr-4 px-4 py-2 rounded",
+        },
       }).then(() => {
         if (window.opener) {
           window.opener.postMessage({ type: "TUGAS_ONQUEUE", sessionId }, "*");

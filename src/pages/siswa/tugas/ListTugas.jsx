@@ -26,6 +26,22 @@ const ListTugas = () => {
   const kelasId = user?.siswa?.kelas?.kelas_id;
   const typeTest = "tugas"; // 👉 bedain dari ujian
 
+  // 📨 Listener untuk event dari CBTTugas
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event.data?.type === "TUGAS_ONQUEUE") {
+        console.log("📩 Event diterima dari CBTTugas:", event.data);
+        refreshAll(); // 🔄 Refresh ulang daftar tugas agar status berubah
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, []);
+
   // 🔄 Refresh daftar tugas
   const refreshAll = async () => {
     try {

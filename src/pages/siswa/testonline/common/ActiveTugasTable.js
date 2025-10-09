@@ -1,5 +1,12 @@
 import React from "react";
-import { HiPlay, HiPencilAlt, HiEye, HiBookOpen, HiUser, HiExclamationCircle } from "react-icons/hi";
+import {
+  HiPlay,
+  HiPencilAlt,
+  HiEye,
+  HiBookOpen,
+  HiUser,
+  HiExclamationCircle,
+} from "react-icons/hi";
 import dayjs from "dayjs";
 import Swal from "sweetalert2";
 import { fetchNilaiBySession } from "../../../../api/testOnlineAPI";
@@ -7,10 +14,7 @@ import { cardStyles } from "../../../../utils/CardStyles";
 import { getRowColor } from "../../../../utils/TableStyles";
 
 const ActiveTugasTable = ({ tasks, submissions, onKerjakan, onView }) => {
-  // Cek apakah ada tugas yang sedang dikerjakan
-  const currentActiveSubmission = Object.values(submissions).find(
-    submission => submission && (submission.Status === "draft" || submission.Status === "in_progress")
-  );
+  // Cek apakah ada yang sudah
 
   const handleLihatNilai = async (sessionID, judulTugas) => {
     try {
@@ -32,12 +36,12 @@ const ActiveTugasTable = ({ tasks, submissions, onKerjakan, onView }) => {
           <div class="text-center">
             <h3 class="text-xl font-bold mb-2">${judulTugas}</h3>
             <div class="text-4xl font-bold ${
-              response.nilai_akhir >= 80 
-                ? 'text-green-600' 
-                : response.nilai_akhir >= 60 
-                ? 'text-yellow-600' 
-                : 'text-red-600'
-            } mb-4">${response.nilai_akhir?.toFixed(2) || '0.00'}</div>
+              response.nilai_akhir >= 80
+                ? "text-green-600"
+                : response.nilai_akhir >= 60
+                ? "text-yellow-600"
+                : "text-red-600"
+            } mb-4">${response.nilai_akhir?.toFixed(2) || "0.00"}</div>
           </div>
         `,
         icon: "success",
@@ -60,31 +64,29 @@ const ActiveTugasTable = ({ tasks, submissions, onKerjakan, onView }) => {
   };
 
   const handleKerjakanClick = (task, submission) => {
-    // Jika ada tugas lain yang sedang dikerjakan
-    if (currentActiveSubmission && currentActiveSubmission.SessionID !== submission?.SessionID) {
-      Swal.fire({
-        title: "Tugas Sedang Dikerjakan",
-        html: `
-          <div class="text-center">
-            <div class="text-4xl mb-3">✏️</div>
-            <p class="text-lg font-semibold mb-2">Anda sedang mengerjakan tugas lain</p>
-            <p class="text-gray-600">Selesaikan tugas yang sedang dikerjakan terlebih dahulu sebelum memulai tugas baru.</p>
-          </div>
-        `,
-        icon: "warning",
-        confirmButtonText: "Mengerti",
-        buttonsStyling: false,
-        customClass: {
-          confirmButton: "bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg",
-        },
-      });
-      return;
-    }
+    // Cegah buka tugas baru kalau sedang ada in_progress lain
 
-    if (submission && (submission.Status === "draft" || submission.Status === "in_progress")) {
-      onView(task.test_id);
+    // Logika berdasarkan status
+    if (submission) {
+      switch (submission.Status) {
+        case "in_progress":
+          onView(task.test_id); // lanjutkan kerja
+          break;
+        case "onqueue":
+          onKerjakan(task.test_id, task.judul); // revisi tugas
+          break;
+        case "submitted":
+          Swal.fire({
+            title: "Tugas Sudah Dikumpulkan",
+            text: "Tugas ini sudah dikumpulkan dan tidak dapat diubah lagi.",
+            icon: "info",
+          });
+          break;
+        default:
+          onKerjakan(task.test_id, task.judul); // tugas baru
+      }
     } else {
-      onKerjakan(task.test_id, task.judul);
+      onKerjakan(task.test_id, task.judul); // belum ada submission
     }
   };
 
@@ -94,15 +96,16 @@ const ActiveTugasTable = ({ tasks, submissions, onKerjakan, onView }) => {
     const now = dayjs();
 
     const isLate = now.isAfter(deadline);
-    const isSubmitted = submission?.Status === "submitted" || submission?.Status === "graded";
+    const isSubmitted = submission?.Status === "submitted";
     const isGraded = submission?.Status === "graded";
     const isInProgress = submission?.Status === "in_progress";
+    const isOnQueue = submission?.Status === "onqueue";
 
     if (isGraded) return cardStyles.purple;
     if (isSubmitted) return cardStyles.blue;
-    if (isInProgress) return cardStyles.orange;
+    if (isInProgress || isOnQueue) return cardStyles.orange;
     if (isLate) return cardStyles.red;
-    return cardStyles.blue; // default untuk belum dikumpulkan
+    return cardStyles.blue; // default untuk belum dikerjakan sama sekali
   };
 
   // Fungsi untuk mendapatkan teks status
@@ -111,20 +114,40 @@ const ActiveTugasTable = ({ tasks, submissions, onKerjakan, onView }) => {
     const now = dayjs();
 
     const isLate = now.isAfter(deadline);
-    const isSubmitted = submission?.Status === "submitted" || submission?.Status === "graded";
+    const isSubmitted = submission?.Status === "submitted";
     const isGraded = submission?.Status === "graded";
     const isInProgress = submission?.Status === "in_progress";
+    const isOnQueue = submission?.Status === "onqueue";
 
     if (isGraded) return "✅ Sudah Dinilai";
     if (isSubmitted) return "📤 Sudah Dikumpulkan";
     if (isInProgress) return "📝 Sedang Dikerjakan";
+    if (isOnQueue) return "✏️ Sudah Dikumpulkan";
     if (isLate) return "⛔ Terlambat";
     return "🕒 Belum Ditutup";
   };
 
+  // Fungsi untuk mendapatkan teks button
+  const getButtonText = (task, submission) => {
+    const deadline = dayjs(task.deadline);
+    const now = dayjs();
+    const isLate = now.isAfter(deadline);
+
+    if (isLate) return "Tidak tersedia";
+
+    const status = submission?.Status;
+    if (status === "graded") return "Lihat Nilai";
+    if (status === "submitted") return "Sudah Dikumpulkan";
+    if (status === "in_progress") return "Lanjutkan";
+    if (status === "onqueue") return "Revisi";
+    return "Kerjakan";
+  };
+
   if (tasks.length === 0) {
     return (
-      <div className={`${cardStyles.base} ${cardStyles.blue.container} border-l-4 p-6 text-center`}>
+      <div
+        className={`${cardStyles.base} ${cardStyles.blue.container} border-l-4 p-6 text-center`}
+      >
         <div className="text-3xl mb-2">📋</div>
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">
           Tidak ada tugas aktif
@@ -137,12 +160,13 @@ const ActiveTugasTable = ({ tasks, submissions, onKerjakan, onView }) => {
   }
 
   return (
-    <div className={`${cardStyles.base} ${cardStyles.blue.container} border-l-4`}>
+    <div
+      className={`${cardStyles.base} ${cardStyles.blue.container} border-l-4`}
+    >
       {/* Info jumlah data */}
       <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
         <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
           📊 Menampilkan {tasks.length} tugas aktif
-          {currentActiveSubmission && " • Ada tugas yang sedang dikerjakan"}
         </span>
       </div>
 
@@ -174,13 +198,17 @@ const ActiveTugasTable = ({ tasks, submissions, onKerjakan, onView }) => {
             const now = dayjs();
 
             const isLate = now.isAfter(deadline);
-            const isSubmitted = submission?.Status === "submitted" || submission?.Status === "graded";
+            const isSubmitted = submission?.Status === "submitted";
             const isGraded = submission?.Status === "graded";
             const isInProgress = submission?.Status === "in_progress";
-            const isOtherActive = currentActiveSubmission && currentActiveSubmission.SessionID !== submission?.SessionID;
+            const isOnQueue = submission?.Status === "onqueue";
+            // const isOtherActive =
+            //   currentActiveSubmission &&
+            //   currentActiveSubmission.SessionID !== submission?.SessionID;
 
             const style = getStatusStyle(task, submission);
             const statusText = getStatusText(task, submission);
+            const buttonText = getButtonText(task, submission);
 
             return (
               <div
@@ -221,7 +249,13 @@ const ActiveTugasTable = ({ tasks, submissions, onKerjakan, onView }) => {
                     <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                       {deadline.format("DD MMM YYYY")}
                     </div>
-                    <div className={`text-xs ${isLate ? "text-red-600 font-medium" : "text-gray-500 dark:text-gray-400"}`}>
+                    <div
+                      className={`text-xs ${
+                        isLate
+                          ? "text-red-600 font-medium"
+                          : "text-gray-500 dark:text-gray-400"
+                      }`}
+                    >
                       {deadline.format("HH:mm")}
                       {isLate && " ⚠️ Terlambat"}
                     </div>
@@ -231,7 +265,9 @@ const ActiveTugasTable = ({ tasks, submissions, onKerjakan, onView }) => {
                   <div className="col-span-3">
                     {/* Status Badge */}
                     <div className="flex items-center justify-center mb-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${style.badge}`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${style.badge}`}
+                      >
                         {statusText}
                       </span>
                     </div>
@@ -240,11 +276,13 @@ const ActiveTugasTable = ({ tasks, submissions, onKerjakan, onView }) => {
                     <div className="flex justify-center space-x-2">
                       {isGraded ? (
                         <button
-                          onClick={() => handleLihatNilai(submission.SessionID, task.judul)}
+                          onClick={() =>
+                            handleLihatNilai(submission.SessionID, task.judul)
+                          }
                           className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md"
                         >
                           <HiEye className="w-4 h-4" />
-                          Lihat Nilai
+                          {buttonText}
                         </button>
                       ) : isSubmitted ? (
                         <button
@@ -252,44 +290,39 @@ const ActiveTugasTable = ({ tasks, submissions, onKerjakan, onView }) => {
                           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md"
                         >
                           <HiPencilAlt className="w-4 h-4" />
-                          Revisi
+                          {buttonText}
                         </button>
-                      ) : isInProgress ? (
+                      ) : isInProgress || isOnQueue ? (
                         <button
                           onClick={() => handleKerjakanClick(task, submission)}
                           className={`flex items-center gap-2 ${style.button} px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md`}
                         >
                           <HiPlay className="w-4 h-4" />
-                          Lanjutkan
+                          {buttonText}
                         </button>
                       ) : !isLate ? (
                         <button
                           onClick={() => handleKerjakanClick(task, null)}
-                          disabled={isOtherActive}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md ${
-                            isOtherActive
-                              ? "bg-gray-400 text-gray-200 cursor-not-allowed"
-                              : "bg-green-600 hover:bg-green-700 text-white"
-                          }`}
+                          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md bg-green-600 hover:bg-green-700 text-white"
                         >
                           <HiPlay className="w-4 h-4" />
-                          {isOtherActive ? "Sedang Kerjakan" : "Kerjakan"}
+                          {buttonText}
                         </button>
                       ) : (
                         <div className="flex items-center gap-2 px-4 py-2 bg-gray-400 text-gray-200 rounded-lg text-sm font-medium cursor-not-allowed shadow-sm">
                           <HiExclamationCircle className="w-4 h-4" />
-                          Tidak tersedia
+                          {buttonText}
                         </div>
                       )}
                     </div>
 
                     {/* Warning jika ada tugas lain yang aktif */}
-                    {isOtherActive && !submission && (
+                    {/* {isOtherActive && !submission && (
                       <div className="mt-2 text-xs text-orange-600 dark:text-orange-400 text-center flex items-center justify-center">
                         <HiExclamationCircle className="w-3 h-3 mr-1" />
                         Selesaikan tugas yang sedang dikerjakan
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>
@@ -301,11 +334,8 @@ const ActiveTugasTable = ({ tasks, submissions, onKerjakan, onView }) => {
         {tasks.length > 0 && (
           <div className="px-6 py-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
             <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              📋 Total {tasks.length} tugas aktif • 
-              {currentActiveSubmission 
-                ? " ✏️ Ada tugas yang sedang dikerjakan" 
-                : " ✅ Semua tugas siap dikerjakan"
-              }
+              📋 Total {tasks.length} tugas aktif • ✅ Semua tugas siap
+              dikerjakan
             </div>
           </div>
         )}

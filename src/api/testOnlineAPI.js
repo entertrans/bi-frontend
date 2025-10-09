@@ -222,6 +222,14 @@ export const submitTugas = async (sessionId) => {
   const res = await axios.post(`${BASE_URL}/siswa/tugas/submit/${sessionId}`);
   return res.data;
 };
+export const submitSession = async (tipe_ujian, sessionId) => {
+  // console.log(tipe_ujian);
+
+  const res = await axios.post(
+    `${BASE_URL}/siswa/test/submit/${tipe_ujian}/${sessionId}`
+  );
+  return res.data;
+};
 
 // Ambil semua test UB (Ujian Blok)
 export const getAllUBTests = async () => {

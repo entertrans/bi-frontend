@@ -4,7 +4,7 @@ import {
   getTestSession,
   getSoalByTestId,
   saveJawaban,
-  submitTest,
+  submitSession,
 } from "../../../api/testOnlineAPI";
 import Swal from "sweetalert2";
 import { showAlert } from "../../../utils/toast";
@@ -264,8 +264,8 @@ const CBTUjian = () => {
   const handleSubmitFinal = async () => {
     try {
       console.log("Mengirim permintaan submit untuk session:", sessionId);
-
-      const response = await submitTest(sessionId);
+      const tipeUjian = session?.test?.type_test || "default";
+      const response = await submitSession(tipeUjian, sessionId);
 
       console.log("Response dari submit:", response);
 

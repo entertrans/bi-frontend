@@ -1,5 +1,12 @@
 import React from "react";
-import { HiPlay, HiRefresh, HiClock, HiBookOpen, HiUser, HiExclamationCircle } from "react-icons/hi";
+import {
+  HiPlay,
+  HiRefresh,
+  HiClock,
+  HiBookOpen,
+  HiUser,
+  HiExclamationCircle,
+} from "react-icons/hi";
 import Countdown from "react-countdown";
 import Swal from "sweetalert2";
 import { fetchNilaiBySession } from "../../../../api/testOnlineAPI";
@@ -14,10 +21,14 @@ const ActiveTestsTableTR = ({
 }) => {
   // Cek apakah ada test yang sedang dikerjakan
   const currentActiveSession = Object.values(activeSessions).find(
-    session => session && session.Status === "in_progress"
+    (session) =>
+      session &&
+      (session.Status === "in_progress" ||
+        session.Status === "ongoing" || // jaga-jaga naming lain
+        session.Status === "started") // jaga-jaga naming lain
   );
 
-  const handleLihatNilai = async (sessionID, testJudul) => {
+  const handleLihatNilai = async (sessionID, testJudul, status) => {
     try {
       Swal.fire({
         title: "Memuat nilai...",
@@ -31,15 +42,43 @@ const ActiveTestsTableTR = ({
       const response = await fetchNilaiBySession(sessionID);
       Swal.close();
 
+      // Tentukan konten berdasarkan status
+      let content = "";
+
+      if (status === "submitted") {
+        content = `
+        <div class="text-center">
+          <h3 class="text-xl font-bold mb-2">${testJudul}</h3>
+          <div class="text-4xl font-bold text-blue-600 mb-2">${
+            response.nilai_akhir?.toFixed(2) || "0.00"
+          }</div>
+          <div class="text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg mt-2">
+            <div class="flex items-center justify-center gap-2 mb-1">
+              <svg class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+              </svg>
+              <span class="font-medium text-gray-800">Menunggu Review Guru</span>
+            </div>
+            <p class="text-xs text-gray-800">Nilai sementara ini akan diverifikasi dan disesuaikan oleh guru</p>
+          </div>
+        </div>
+      `;
+      } else {
+        // Fallback untuk status lainnya
+        content = `
+        <div class="text-center">
+          <h3 class="text-xl font-bold mb-2">${testJudul}</h3>
+          <div class="text-4xl font-bold text-blue-600 mb-4">${
+            response.nilai_akhir?.toFixed(2) || "0.00"
+          }</div>
+        </div>
+      `;
+      }
+
       Swal.fire({
         title: `Nilai Test Review`,
-        html: `
-          <div class="text-center">
-            <h3 class="text-xl font-bold mb-2">${testJudul}</h3>
-            <div class="text-4xl font-bold text-blue-600 mb-4">${response.nilai_akhir.toFixed(2)}</div>
-          </div>
-        `,
-        icon: "success",
+        html: content,
+        icon: status === "graded" ? "success" : "info",
         confirmButtonText: "Tutup",
         buttonsStyling: false,
         customClass: {
@@ -60,7 +99,11 @@ const ActiveTestsTableTR = ({
 
   const handleKerjakanClick = (test, session) => {
     // Jika ada test lain yang sedang dikerjakan
-    if (currentActiveSession && currentActiveSession.SessionID !== session?.SessionID) {
+    if (
+      currentActiveSession &&
+      currentActiveSession.Status === "in_progress" &&
+      currentActiveSession.SessionID !== session?.SessionID
+    ) {
       Swal.fire({
         title: "Test Sedang Berlangsung",
         html: `
@@ -83,11 +126,11 @@ const ActiveTestsTableTR = ({
     }
   };
 
-  // Get alternating colors for rows
-
   if (tests.length === 0) {
     return (
-      <div className={`${cardStyles.base} ${cardStyles.blue.container} border-l-4 p-6 text-center`}>
+      <div
+        className={`${cardStyles.base} ${cardStyles.blue.container} border-l-4 p-6 text-center`}
+      >
         <div className="text-3xl mb-2">📝</div>
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">
           Tidak ada Test Review
@@ -100,9 +143,9 @@ const ActiveTestsTableTR = ({
   }
 
   return (
-    <div className={`${cardStyles.base} ${cardStyles.blue.container} border-l-4`}>
-
-
+    <div
+      className={`${cardStyles.base} ${cardStyles.blue.container} border-l-4`}
+    >
       {/* Info jumlah data */}
       <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
         <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
@@ -139,9 +182,13 @@ const ActiveTestsTableTR = ({
           {tests.map((test, index) => {
             const session = activeSessions[test.test_id];
             const endTime = session?.EndTime ? new Date(session.EndTime) : null;
-            const isCompleted = session && (session.Status === "submitted" || session.Status === "graded");
+            const isCompleted =
+              session &&
+              (session.Status === "submitted" || session.Status === "graded");
             const isActive = session && session.Status === "in_progress";
-            const isOtherActive = currentActiveSession && currentActiveSession.SessionID !== session?.SessionID;
+            const isOtherActive =
+              currentActiveSession &&
+              currentActiveSession.SessionID !== session?.SessionID;
 
             const getStatusColor = () => {
               if (!session) return "blue";
@@ -161,7 +208,6 @@ const ActiveTestsTableTR = ({
                   {/* Judul dan Deskripsi */}
                   <div className="col-span-5">
                     <div className="flex items-start space-x-3">
-                      {/* <div className={`w-2 h-12 rounded-full ${style.container.split(' ')[1]}`}></div> */}
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm leading-tight mb-1">
                           {test.judul}
@@ -192,7 +238,9 @@ const ActiveTestsTableTR = ({
                     <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-bold">
                       {test.jumlah_soal_tampil}
                     </span>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">soal</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      soal
+                    </div>
                   </div>
 
                   {/* Durasi */}
@@ -200,15 +248,25 @@ const ActiveTestsTableTR = ({
                     <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                       {test.durasi_menit}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">menit</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      menit
+                    </div>
                   </div>
 
                   {/* Status & Aksi */}
                   <div className="col-span-3">
                     {/* Status Badge */}
                     <div className="flex items-center justify-center mb-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${style.badge}`}>
-                        {!session ? "⏳ Belum Dimulai" : isCompleted ? "✅ Selesai" : "🟠 Dalam Proses"}
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${style.badge}`}
+                      >
+                        {!session
+                          ? "⏳ Belum Dimulai"
+                          : session.Status === "submitted"
+                          ? "📤 Menunggu Review"
+                          : session.Status === "graded"
+                          ? "✅ Sudah Dinilai"
+                          : "🟠 Dalam Proses"}
                       </span>
                     </div>
 
@@ -218,8 +276,18 @@ const ActiveTestsTableTR = ({
                         <HiClock className="w-3 h-3 mr-1" />
                         <Countdown
                           date={endTime}
-                          renderer={({ hours, minutes, seconds, completed }) => {
-                            if (completed) return <span className="text-red-500 font-semibold">Waktu Habis!</span>;
+                          renderer={({
+                            hours,
+                            minutes,
+                            seconds,
+                            completed,
+                          }) => {
+                            if (completed)
+                              return (
+                                <span className="text-red-500 font-semibold">
+                                  Waktu Habis!
+                                </span>
+                              );
                             return (
                               <span className="font-mono font-semibold">
                                 {hours > 0 ? `${hours}:` : ""}
@@ -237,7 +305,13 @@ const ActiveTestsTableTR = ({
                       {session ? (
                         isCompleted ? (
                           <button
-                            onClick={() => handleLihatNilai(session.SessionID, test.judul)}
+                            onClick={() =>
+                              handleLihatNilai(
+                                session.SessionID,
+                                test.judul,
+                                session.Status // INI YANG DITAMBAHKAN - kirim status session
+                              )
+                            }
                             className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md"
                           >
                             <HiBookOpen className="w-4 h-4" />
@@ -291,11 +365,10 @@ const ActiveTestsTableTR = ({
         {tests.length > 0 && (
           <div className="px-6 py-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
             <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              🎯 Total {tests.length} test review aktif • 
-              {currentActiveSession 
-                ? " 📝 Ada test yang sedang dikerjakan" 
-                : " ✅ Semua test siap dikerjakan"
-              }
+              🎯 Total {tests.length} test review aktif •
+              {currentActiveSession
+                ? " 📝 Ada test yang sedang dikerjakan"
+                : " ✅ Semua test siap dikerjakan"}
             </div>
           </div>
         )}
