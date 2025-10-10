@@ -29,7 +29,7 @@ const DetailJawabanPage = () => {
   const nilaiAkhir = jawabanData?.test?.nilai || 0;
   const displayedNilai = overrideNilai !== null ? overrideNilai : nilaiAkhir;
 
-   useEffect(() => {
+  useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
@@ -53,7 +53,7 @@ const DetailJawabanPage = () => {
     loadData();
   }, [session_id, refreshTrigger]);
 
-   const refreshData = async () => {
+  const refreshData = async () => {
     try {
       const data = await fetchDetailJawabanBySession(session_id);
       if (data && data.jawaban && Array.isArray(data.jawaban)) {
@@ -71,8 +71,6 @@ const DetailJawabanPage = () => {
     newJawabanData.jawaban[index].skor_uraian = parseFloat(nilai) || 0;
     setJawabanData(newJawabanData);
     setOverrideNilai(null);
-
-    
   };
 
   const handleSaveNilai = async () => {
@@ -147,7 +145,10 @@ const DetailJawabanPage = () => {
 
     try {
       const fileName = exportJawabanToExcel(jawabanData, displayedNilai);
-      showAlert(`Export berhasil! File ${fileName} telah didownload.`, "success");
+      showAlert(
+        `Export berhasil! File ${fileName} telah didownload.`,
+        "success"
+      );
     } catch (error) {
       console.error("Error saat export:", error);
       showAlert("Gagal melakukan export: " + error.message, "error");
@@ -477,13 +478,15 @@ const DetailJawabanPage = () => {
                 <td className="px-6 py-4">
                   <LampiranDisplay lampiran={item} />
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 dark-invert-base64">
                   <ExpandableText text={item.pertanyaan} limit={25} />
                 </td>
 
-                <td className="px-6 py-4">{renderJawaban(item)}</td>
+                <td className="px-6 py-4 dark-invert-base64">
+                  {renderJawaban(item)}
+                </td>
 
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 dark-invert-base64">
                   {/* {item.jawaban_benar} */}
                   {renderKunci(item)}
                 </td>

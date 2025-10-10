@@ -2,9 +2,14 @@
 import ExpandableText from "../../../../utils/ExpandableText";
 
 // Komponen untuk menampilkan konten HTML dengan rumus dan expandable
-const HtmlContentWithMath = ({ html, className = "", isExpandable = true, limit = 25 }) => {
+const HtmlContentWithMath = ({
+  html,
+  className = "",
+  isExpandable = true,
+  limit = 25,
+}) => {
   if (!html || html === "-") return "-";
-  
+
   if (isExpandable) {
     return (
       <div className={`html-content ${className}`}>
@@ -12,11 +17,11 @@ const HtmlContentWithMath = ({ html, className = "", isExpandable = true, limit 
       </div>
     );
   }
-  
+
   return (
-    <div 
+    <div
       className={`soal-content html-content ${className}`}
-      dangerouslySetInnerHTML={{ __html: html }} 
+      dangerouslySetInnerHTML={{ __html: html }}
     />
   );
 };
@@ -44,7 +49,7 @@ const LampiranDisplay = ({ lampiran }) => {
         href={fullPath}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-600 hover:underline text-xs"
+        className=" hover:underline text-xs"
         title={nama_file}
       >
         📎 {nama_file}
@@ -52,6 +57,21 @@ const LampiranDisplay = ({ lampiran }) => {
     );
   }
 };
+
+const cleanHTML = (html) => {
+    if (!html) return "";
+    return html
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\n/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
 
 export function renderKunci(item) {
   try {
@@ -69,14 +89,44 @@ export function renderKunci(item) {
       pilihan = [];
     }
 
+    // Fungsi helper untuk mengekstrak teks dari HTML
+    const extractTextFromHtml = (html) => {
+      if (!html) return "";
+      // Jika sudah berupa teks biasa, return langsung
+      if (typeof html === "string" && !html.includes("<")) return html;
+
+      // Buat element sementara untuk mengekstrak teks
+      const temp = document.createElement("div");
+      temp.innerHTML = html;
+      return temp.textContent || temp.innerText || html;
+    };
+
+    // Fungsi helper untuk render content
+    const renderContent = (content, isKunci = true) => {
+      const textContent = extractTextFromHtml(content);
+      const colorClass = isKunci
+        ? " dark: font-medium"
+        : " dark: font-medium";
+
+      // Jika content sudah berupa HTML yang valid, render dengan HtmlContentWithMath
+      if (
+        typeof content === "string" &&
+        (content.includes("<") || content.includes("$$"))
+      ) {
+        return <HtmlContentWithMath html={content} />;
+      }
+      // Jika hanya teks biasa, tampilkan dengan span
+      return <span className={colorClass}>{textContent}</span>;
+    };
+
     switch (item.tipe_soal) {
       case "pg":
         if (Array.isArray(kunci) && kunci.length > 0) {
           const idx = parseInt(kunci[0]);
           if (!isNaN(idx) && pilihan[idx]) {
-            return <HtmlContentWithMath html={pilihan[idx]} />;
+            return renderContent(pilihan[idx], true);
           } else {
-            return <span className="text-green-600 dark:text-green-400 font-medium">{kunci[0]}</span>;
+            return renderContent(kunci[0], true);
           }
         }
         return "-";
@@ -87,13 +137,16 @@ export function renderKunci(item) {
             <div className="space-y-1">
               {kunci.map((idx, i) => {
                 const parsedIdx = parseInt(idx);
-                const content = (!isNaN(parsedIdx) && pilihan[parsedIdx]) 
-                  ? <HtmlContentWithMath html={pilihan[parsedIdx]} />
-                  : <span className="text-green-600 dark:text-green-400 font-medium">{idx}</span>;
-                
+                const content =
+                  !isNaN(parsedIdx) && pilihan[parsedIdx]
+                    ? renderContent(pilihan[parsedIdx], true)
+                    : renderContent(idx, true);
+
                 return (
                   <div key={i} className="flex items-start">
-                    <span className="mr-2 text-green-600 dark:text-green-400 font-medium">{i + 1}.</span>
+                    <span className="mr-2  dark: font-medium">
+                      {i + 1}.
+                    </span>
                     {content}
                   </div>
                 );
@@ -113,11 +166,13 @@ export function renderKunci(item) {
                 return (
                   <div key={i} className="flex items-center justify-between">
                     <HtmlContentWithMath html={pernyataan} />
-                    <span className={`ml-3 px-2 py-1 rounded text-xs font-medium ${
-                      isBenar 
-                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" 
-                        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-                    }`}>
+                    <span
+                      className={`ml-3 px-2 py-1 rounded text-xs font-medium ${
+                        isBenar
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                          : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                      }`}
+                    >
                       {isBenar ? "BENAR" : "SALAH"}
                     </span>
                   </div>
@@ -135,7 +190,9 @@ export function renderKunci(item) {
               {kunci.map((pair, index) => (
                 <div key={index} className="flex items-center">
                   <HtmlContentWithMath html={pair.left || ""} />
-                  <span className="mx-3 text-gray-500 dark:text-gray-400">→</span>
+                  <span className="mx-3 text-gray-500 dark:text-gray-400">
+                    →
+                  </span>
                   {pair.rightLampiran ? (
                     <LampiranDisplay lampiran={pair.rightLampiran} />
                   ) : (
@@ -150,7 +207,11 @@ export function renderKunci(item) {
 
       case "uraian":
       case "isian_singkat":
-        return <span className="text-gray-400 dark:text-gray-500 italic">Tidak tersedia</span>;
+        return (
+          <span className="text-gray-400 dark:text-gray-500 italic">
+            Tidak tersedia
+          </span>
+        );
 
       default:
         return "-";
@@ -177,12 +238,43 @@ export function renderJawaban(item) {
       pilihan = [];
     }
 
+    // Fungsi helper untuk mengekstrak teks dari HTML
+    const extractTextFromHtml = (html) => {
+      if (!html) return "";
+      // Jika sudah berupa teks biasa, return langsung
+      if (typeof html === "string" && !html.includes("<")) return html;
+
+      // Buat element sementara untuk mengekstrak teks
+      const temp = document.createElement("div");
+      temp.innerHTML = html;
+      return temp.textContent || temp.innerText || html;
+    };
+
+    // Fungsi helper untuk render content jawaban
+    const renderJawabanContent = (content) => {
+      const textContent = extractTextFromHtml(content);
+
+      // Jika content sudah berupa HTML yang valid, render dengan HtmlContentWithMath
+      if (
+        typeof content === "string" &&
+        (content.includes("<") || content.includes("$$"))
+      ) {
+        return <HtmlContentWithMath html={content} />;
+      }
+      // Jika hanya teks biasa, tampilkan dengan span
+      return <span className=" dark: font-medium">{textContent}</span>;
+    };
+
     if (typeof jawaban === "string") {
-      return <HtmlContentWithMath html={jawaban} />;
+      return renderJawabanContent(jawaban);
     }
 
     if (!jawaban || (Array.isArray(jawaban) && jawaban.length === 0)) {
-      return <span className="text-gray-400 dark:text-gray-500 italic">Tidak dijawab</span>;
+      return (
+        <span className="text-gray-400 dark:text-gray-500 italic">
+          Tidak dijawab
+        </span>
+      );
     }
 
     switch (item.tipe_soal) {
@@ -191,9 +283,9 @@ export function renderJawaban(item) {
           const val = jawaban[0];
           const idx = parseInt(val);
           if (!isNaN(idx) && pilihan[idx]) {
-            return <HtmlContentWithMath html={pilihan[idx]} />;
+            return renderJawabanContent(pilihan[idx]);
           }
-          return <span className="text-blue-600 dark:text-blue-400 font-medium">{val}</span>;
+          return renderJawabanContent(val);
         }
         return "-";
 
@@ -203,13 +295,14 @@ export function renderJawaban(item) {
             <div className="space-y-1">
               {jawaban.map((val, i) => {
                 const idx = parseInt(val);
-                const content = (!isNaN(idx) && pilihan[idx]) 
-                  ? <HtmlContentWithMath html={pilihan[idx]} />
-                  : <span className="text-blue-600 dark:text-blue-400 font-medium">{val}</span>;
-                
+                const content =
+                  !isNaN(idx) && pilihan[idx]
+                    ? renderJawabanContent(pilihan[idx])
+                    : renderJawabanContent(val);
+
                 return (
                   <div key={i} className="flex items-start">
-                    <span className="mr-2 text-blue-600 dark:text-blue-400 font-medium">{i + 1}.</span>
+                    <span className="mr-2  dark: font-medium">{i + 1}.</span>
                     {content}
                   </div>
                 );
@@ -224,16 +317,19 @@ export function renderJawaban(item) {
           return (
             <div className="space-y-2">
               {jawaban.map((ans, i) => {
-                const pernyataan = pilihan[ans.index]?.teks || `Pernyataan ${ans.index + 1}`;
+                const pernyataan =
+                  pilihan[ans.index]?.teks || `Pernyataan ${ans.index + 1}`;
                 const isBenar = ans.jawaban === "benar";
                 return (
                   <div key={i} className="flex items-center justify-between">
                     <HtmlContentWithMath html={pernyataan} />
-                    <span className={`ml-3 px-2 py-1 rounded text-xs font-medium ${
-                      isBenar 
-                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" 
-                        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-                    }`}>
+                    <span
+                      className={`ml-3 px-2 py-1 rounded text-xs font-medium ${
+                        isBenar
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                          : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                      }`}
+                    >
                       {isBenar ? "BENAR" : "SALAH"}
                     </span>
                   </div>
@@ -245,35 +341,73 @@ export function renderJawaban(item) {
         return "-";
 
       case "matching":
-        if (Array.isArray(jawaban) && jawaban.length > 0) {
+  if (Array.isArray(jawaban) && jawaban.length > 0) {
+    // Parse jawaban_benar untuk mendapatkan urutan yang benar
+    let kunciMatching = [];
+    try {
+      kunciMatching = JSON.parse(item.jawaban_benar || "[]");
+    } catch {
+      kunciMatching = [];
+    }
+
+    // Buat array hasil yang diurutkan berdasarkan urutan kunci
+    const hasilDiurutkan = [];
+    
+    // Untuk setiap item di kunci (urutan yang benar), cari jawaban siswa yang sesuai
+    kunciMatching.forEach((kunciItem) => {
+      // Cari jawaban siswa yang leftIndex-nya sama dengan kunci
+      const jawabanSiswa = jawaban.find(j => j.leftIndex === kunciItem.leftIndex);
+      
+      if (jawabanSiswa) {
+        hasilDiurutkan.push({
+          leftIndex: kunciItem.leftIndex,  // Gunakan leftIndex dari kunci untuk urutan
+          rightIndex: jawabanSiswa.rightIndex, // Tapi rightIndex dari jawaban siswa
+          leftText: kunciItem.left // Teks kiri dari kunci
+        });
+      }
+    });
+
+    // Jika ada jawaban siswa yang tidak match dengan kunci, tambahkan di akhir
+    jawaban.forEach(j => {
+      if (!hasilDiurutkan.find(item => item.leftIndex === j.leftIndex)) {
+        const kunciItem = kunciMatching.find(k => k.leftIndex === j.leftIndex);
+        hasilDiurutkan.push({
+          leftIndex: j.leftIndex,
+          rightIndex: j.rightIndex,
+          leftText: kunciItem?.left || `Item ${j.leftIndex + 1}`
+        });
+      }
+    });
+
+    return (
+      <div className="space-y-2">
+        {hasilDiurutkan.map((map, index) => {
+          const leftItem = pilihan[map.leftIndex];
+          const rightItem = pilihan[map.rightIndex]; // rightIndex dari jawaban siswa
+          
           return (
-            <div className="space-y-2">
-              {jawaban.map((map, index) => {
-                const leftItem = pilihan[map.leftIndex];
-                const rightItem = pilihan[map.rightIndex];
-                return (
-                  <div key={index} className="flex items-center">
-                    <HtmlContentWithMath html={leftItem?.left || ""} />
-                    <span className="mx-3 text-gray-500 dark:text-gray-400">→</span>
-                    {rightItem?.rightLampiran ? (
-                      <LampiranDisplay lampiran={rightItem.rightLampiran} />
-                    ) : (
-                      <HtmlContentWithMath html={rightItem?.right || ""} />
-                    )}
-                  </div>
-                );
-              })}
+            <div key={index} className="flex items-center">
+              <span>{cleanHTML(map.leftText || leftItem?.left || "")}</span>
+              <span className="mx-3 text-gray-500 dark:text-gray-400">→</span>
+              {rightItem?.rightLampiran ? (
+                <LampiranDisplay lampiran={rightItem.rightLampiran} />
+              ) : (
+                <span>{cleanHTML(rightItem?.right || "")}</span>
+              )}
             </div>
           );
-        }
-        return "-";
+        })}
+      </div>
+    );
+  }
+  return "-";
 
       case "uraian":
       case "isian_singkat":
-        return <HtmlContentWithMath html={String(jawaban)} />;
+        return renderJawabanContent(String(jawaban));
 
       default:
-        return <HtmlContentWithMath html={String(jawaban)} />;
+        return renderJawabanContent(String(jawaban));
     }
   } catch (e) {
     console.error("Error rendering jawaban:", e, item);

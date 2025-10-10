@@ -36,3 +36,10 @@ body {
   max-height: 100px;
   overflow: hidden;
 }
+
+/* Di CSS global */
+@layer utilities {
+  .dark-invert-base64 img[src^="data:image/png;base64"] {
+    @apply dark:invert dark:brightness-50;
+  }
+}

@@ -1,22 +1,28 @@
-// utils/ExpandableText.jsx
 import { useState } from "react";
+
+function cleanHtml(html) {
+  if (typeof html !== "string") return html;
+  return html
+    .replace(/<p[^>]*>(.*?)<\/p>/gi, "$1") // ambil isi dalam <p>...</p>
+    .replace(/&nbsp;/gi, " ")
+    .trim();
+}
 
 const truncateWords = (html, wordLimit = 20) => {
   if (!html) return "";
 
-  // Untuk preview, kita ambil teks saja tapi pertahankan struktur dasar
-  const tempDiv = document.createElement('div');
+  const tempDiv = document.createElement("div");
   tempDiv.innerHTML = html;
-  
-  // Hapus elemen gambar rumus untuk preview teks
-  const images = tempDiv.getElementsByTagName('img');
+
+  // Hapus gambar rumus base64 untuk preview
+  const images = tempDiv.getElementsByTagName("img");
   for (let i = images.length - 1; i >= 0; i--) {
-    if (images[i].src.includes('data:image/png;base64')) {
+    if (images[i].src.includes("data:image/png;base64")) {
       images[i].parentNode.removeChild(images[i]);
     }
   }
-  
-  const plainText = tempDiv.textContent || tempDiv.innerText || '';
+
+  const plainText = tempDiv.textContent || tempDiv.innerText || "";
   const words = plainText.trim().split(/\s+/);
 
   if (words.length <= wordLimit) {
@@ -27,14 +33,16 @@ const truncateWords = (html, wordLimit = 20) => {
 };
 
 const ExpandableText = ({ text, limit = 100 }) => {
-  // Pastikan text selalu string
-  const textString = String(text || '');
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const shouldTruncate = textString.length > limit;
-  const displayText = isExpanded || !shouldTruncate 
-    ? textString 
-    : textString.substring(0, limit) + '...';
+  // ✅ bersihkan HTML sebelum render
+  const cleanedText = cleanHtml(String(text || ""));
+
+  const shouldTruncate = cleanedText.length > limit;
+  const displayText =
+    isExpanded || !shouldTruncate
+      ? cleanedText
+      : cleanedText.substring(0, limit) + "...";
 
   return (
     <div className="expandable-text">
@@ -44,7 +52,7 @@ const ExpandableText = ({ text, limit = 100 }) => {
           onClick={() => setIsExpanded(!isExpanded)}
           className="text-blue-600 hover:text-blue-800 text-sm mt-1 focus:outline-none"
         >
-          {isExpanded ? 'Tutup' : 'Baca Selengkapnya'}
+          {isExpanded ? "Tutup" : "Baca Selengkapnya"}
         </button>
       )}
     </div>
