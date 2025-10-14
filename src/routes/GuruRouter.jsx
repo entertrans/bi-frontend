@@ -18,6 +18,7 @@ import DetailJawabanPage from "../pages/guru/testonline/daftarsiswa/DetailJawaba
 import RekapNilai from "../pages/guru/nilai/RekapNilai";
 import DetailTest from "../pages/guru/nilai/DetailTest";
 import DetailPesertaTest from "../pages/guru/nilai/DetailPesertaTest";
+import JawabanPageRb from "../pages/guru/rollback/RbDetailJawaban";
 
 export const guruRoutes = [
   { path: "/guru", element: <Home /> },
@@ -39,6 +40,7 @@ export const guruRoutes = [
   { path: "/guru/test-online/tugas", element: <TugasList /> },
   { path: "/guru/test-online/penilaian", element: <Penilaian /> },
   { path: "/guru/jawaban/siswa/:siswa_nis", element: <JawabanPage /> },
+  { path: "/guru/jawaban/rollback/siswa/:siswa_nis", element: <JawabanPageRb /> },
   {
     path: "/guru/jawaban/siswa/detail/:session_id",
     element: <DetailJawabanPage />,

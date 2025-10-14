@@ -166,7 +166,7 @@ const RbSiswa = () => {
                   <td className="px-4 py-3 text-center">
                     <button
                       onClick={() =>
-                        navigate(`/guru/jawaban/siswa/${siswa.siswa_nis}`)
+                        navigate(`/guru/jawaban/rollback/siswa/${siswa.siswa_nis}`)
                       }
                       className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
                     >
