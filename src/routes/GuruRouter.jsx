@@ -19,6 +19,7 @@ import RekapNilai from "../pages/guru/nilai/RekapNilai";
 import DetailTest from "../pages/guru/nilai/DetailTest";
 import DetailPesertaTest from "../pages/guru/nilai/DetailPesertaTest";
 import JawabanPageRb from "../pages/guru/rollback/RbDetailJawaban";
+import RbResetData from "../pages/guru/rollback/RbResetData";
 
 export const guruRoutes = [
   { path: "/guru", element: <Home /> },
@@ -35,6 +36,7 @@ export const guruRoutes = [
   // { path: "/guru/bank-soal-aktif", element: <BankSoal /> },
   { path: "/guru/siswa", element: <DaftarSiswa /> },
   { path: "/guru/rb/siswa", element: <RbSiswa /> },
+  { path: "/guru/rb/resetdata", element: <RbResetData /> },
   { path: "/guru/test-online/UB", element: <UlanganBulanan /> },
   { path: "/guru/test-online/TR", element: <TestReview /> },
   { path: "/guru/test-online/tugas", element: <TugasList /> },
