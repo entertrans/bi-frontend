@@ -74,3 +74,29 @@ export const getDetailPesertaTest = async (type, test_id, kelas_id) => {
   );
   return response.data; // response.data sekarang berisi { test_info: {}, data: [] }
 };
+
+// ✅ Ambil status semua tabel rollback
+export const getRollbackStatus = async () => {
+  const res = await axios.get(`/guru/rollback/status`);
+  return res.data;
+};
+
+// ✅ Import file SQL untuk tabel tertentu
+export const importRollbackSQL = async (tableName, file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await axios.post(`/guru/rollback/import/${tableName}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return res.data;
+};
+
+// ✅ Reset semua tabel rollback
+export const resetAllRollbackTables = async () => {
+  const res = await axios.post(`/guru/rollback/reset`);
+  return res.data;
+};

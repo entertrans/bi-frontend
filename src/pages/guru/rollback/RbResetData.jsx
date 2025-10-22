@@ -8,7 +8,11 @@ import {
   HiDocumentText,
 } from "react-icons/hi2";
 import Swal from "sweetalert2";
-import axios from "axios";
+import {
+  getRollbackStatus,
+  importRollbackSQL,
+  resetAllRollbackTables,
+} from "../../../api/guruAPI";
 
 const RbResetData = () => {
   const tables = [
@@ -31,10 +35,10 @@ const RbResetData = () => {
   // 🔹 Fetch status awal
   const fetchStatuses = async () => {
     try {
-      const res = await axios.get("/api/rollback/status");
-      setStatuses(res.data);
+      const data = await getRollbackStatus();
+      setStatuses(data);
     } catch (err) {
-      console.error(err);
+      console.error("Gagal mengambil status rollback:", err);
     }
   };
 
@@ -59,7 +63,7 @@ const RbResetData = () => {
 
     const confirm = await Swal.fire({
       title: `Import ${tableName}?`,
-      text: "Data akan ditimpa sesuai isi file SQL yang diupload.",
+      text: "Data akan ditimpa sesuai isi file SQL.",
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Ya, import!",
@@ -69,19 +73,13 @@ const RbResetData = () => {
 
     if (!confirm.isConfirmed) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
       setLoading((prev) => ({ ...prev, [tableName]: true }));
-
-      await axios.post(`/api/rollback/import/${tableName}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await importRollbackSQL(tableName, file);
 
       Swal.fire({
         icon: "success",
-        title: "Berhasil diimport!",
+        title: "Import berhasil!",
         text: `Data ${tableName} berhasil diupdate.`,
         timer: 2000,
         showConfirmButton: false,
@@ -101,7 +99,7 @@ const RbResetData = () => {
 
   const handleResetAll = async () => {
     const confirm = await Swal.fire({
-      title: "Yakin ingin mereset semua data rollback?",
+      title: "Yakin ingin reset semua data rollback?",
       text: "Tindakan ini akan menghapus SEMUA data rb_ dan tidak bisa dibatalkan!",
       icon: "warning",
       showCancelButton: true,
@@ -114,7 +112,7 @@ const RbResetData = () => {
 
     try {
       setIsResetting(true);
-      await axios.post("/api/rollback/reset");
+      await resetAllRollbackTables();
 
       Swal.fire({
         icon: "success",
