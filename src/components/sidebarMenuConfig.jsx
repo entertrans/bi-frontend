@@ -1,55 +1,59 @@
 // src/components/sidebar/sidebarMenuConfig.js
 import {
-  FaTachometerAlt,
-  FaCalendarAlt,
-  FaUniversity,
-  FaSatelliteDish,
-  FaUserTie,
-  FaUsers,
-  FaSignOutAlt,
-  FaBook,
-  FaMoneyBillWave,
-  FaClipboardList,
-  FaChartBar,
-  FaLaptopCode,
-  FaPenAlt,
-} from "react-icons/fa";
+  HiHome,
+  HiCalendar,
+  HiAcademicCap,
+  HiCloud,
+  HiUser,
+  HiUserGroup,
+  HiBookOpen,
+  HiChartBar,
+  HiComputerDesktop,
+  HiArchiveBox,
+  HiArrowPath,
+  HiCurrencyDollar,
+  HiClipboardDocumentList,
+  HiTableCells,
+  HiPencil,
+  HiArrowLeftOnRectangle,
+  HiPower,
+} from "react-icons/hi2";
 
 export const menuConfig = {
   admin: [
     {
       label: "Dashboard",
-      icon: <FaTachometerAlt className="mr-3" />,
+      icon: <HiHome className="mr-3" />,
       path: "/admin",
       key: "admin-dashboard",
     },
     {
       label: "Kalender",
-      icon: <FaCalendarAlt className="mr-3" />,
+      icon: <HiCalendar className="mr-3" />,
       path: "/admin/kalender",
       key: "admin-kalender",
     },
     {
       label: "Lembaga",
-      icon: <FaUniversity className="mr-3" />,
+      icon: <HiAcademicCap className="mr-3" />,
       path: "/admin/lembaga",
       key: "admin-lembaga",
     },
     {
       label: "Data Satelit",
-      icon: <FaSatelliteDish className="mr-3" />,
+      icon: <HiCloud className="mr-3" />,
       path: "/admin/data-satelit",
       key: "admin-data-satelit",
     },
     {
       label: "Pegawai",
-      icon: <FaUserTie className="mr-3" />,
+      icon: <HiUser className="mr-3" />,
       path: "/admin/pegawai",
       key: "admin-pegawai",
     },
     {
       label: "Kesiswaan",
-      icon: <FaUsers className="mr-3" />,
+      icon: <HiUserGroup className="mr-3" />,
       key: "admin-kesiswaan",
       children: [
         {
@@ -76,19 +80,19 @@ export const menuConfig = {
     },
     {
       label: "E-Raport",
-      icon: <FaClipboardList className="mr-3" />,
+      icon: <HiClipboardDocumentList className="mr-3" />,
       path: "/admin/eraport",
       key: "admin-eraport",
     },
     {
       label: "Kisi-Kisi",
-      icon: <FaBook className="mr-3" />,
+      icon: <HiTableCells className="mr-3" />,
       path: "/admin/kisi-kisi",
       key: "admin-kisi-kisi",
     },
     {
       label: "Keuangan",
-      icon: <FaMoneyBillWave className="mr-3" />,
+      icon: <HiCurrencyDollar className="mr-3" />,
       key: "admin-keuangan",
       children: [
         {
@@ -110,7 +114,7 @@ export const menuConfig = {
     },
     {
       label: "Petty Cash",
-      icon: <FaMoneyBillWave className="mr-3" />,
+      icon: <HiCurrencyDollar className="mr-3" />,
       key: "admin-pettycash",
       children: [
         {
@@ -127,7 +131,7 @@ export const menuConfig = {
     },
     {
       label: "Logout",
-      icon: <FaSignOutAlt className="mr-3 text-red-500" />,
+      icon: <HiArrowLeftOnRectangle className="mr-3 text-red-500" />,
       path: "/logout",
       key: "admin-logout",
     },
@@ -136,31 +140,54 @@ export const menuConfig = {
   guru: [
     {
       label: "Dashboard",
-      icon: <FaTachometerAlt className="mr-3" />,
+      icon: <HiHome className="mr-3" />,
       path: "/guru",
       key: "guru-dashboard",
     },
     {
       label: "Course",
-      icon: <FaBook className="mr-3" />,
+      icon: <HiBookOpen className="mr-3" />,
       path: "/guru/course",
       key: "guru-course",
     },
     {
+      label: "Kelas Online",
+      icon: <HiComputerDesktop className="mr-3" />,
+      path: "/guru/online",
+      key: "guru-kelas-online",
+    },
+    {
+      label: "Absensi",
+      icon: <HiClipboardDocumentList className="mr-3" />,
+      key: "absensi",
+      children: [
+        {
+          label: "Kelas Online",
+          path: "#",
+          key: "guru-absensi-online",
+        },
+        {
+          label: "Kelas Ofline",
+          path: "#",
+          key: "guru-absensi-ofline",
+        },
+      ],
+    },
+    {
       label: "Nilai",
-      icon: <FaChartBar className="mr-3" />,
+      icon: <HiChartBar className="mr-3" />,
       path: "/guru/nilai",
       key: "guru-nilai",
     },
     {
       label: "Kisi-Kisi",
-      icon: <FaClipboardList className="mr-3" />,
+      icon: <HiTableCells className="mr-3" />,
       path: "/guru/kisi-kisi",
       key: "guru-kisi-kisi",
     },
     {
       label: "Bank Soal",
-      icon: <FaLaptopCode className="mr-3" />,
+      icon: <HiArchiveBox className="mr-3" />,
       key: "guru-bank-soal",
       children: [
         {
@@ -177,7 +204,7 @@ export const menuConfig = {
     },
     {
       label: "Test Online",
-      icon: <FaLaptopCode className="mr-3" />,
+      icon: <HiPencil className="mr-3" />,
       key: "guru-test-online",
       children: [
         {
@@ -204,7 +231,7 @@ export const menuConfig = {
     },
     {
       label: "Roll Back TO",
-      icon: <FaLaptopCode className="mr-3" />,
+      icon: <HiArrowPath className="mr-3" />,
       key: "rb-test-online",
       children: [
         {
@@ -221,7 +248,7 @@ export const menuConfig = {
     },
     {
       label: "Logout",
-      icon: <FaSignOutAlt className="mr-3 text-red-500" />,
+      icon: <HiArrowLeftOnRectangle className="mr-3 text-red-500" />,
       path: "/logout",
       key: "guru-logout",
     },
