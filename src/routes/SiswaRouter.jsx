@@ -7,10 +7,14 @@ import InvoiceDetail from "../pages/siswa/keuangan/InvoiceDetail";
 import OnlineClassDashboard from "../pages/siswa/kelasonline/OnlineClassDashboard";
 import OnlineLibrary from "../pages/siswa/Modul/OnlineLibrary";
 import Dashboard from "../pages/siswa/Dashboard/mainDashboard";
+import DaftarKelasMapel from "../pages/siswa/kelasonline/DaftarKelasMapel";
+import DetailKelas from "../pages/siswa/kelasonline/DetailKelas";
 
 const siswaRoutes = [
   { path: "/siswa", element: <Dashboard /> },
   { path: "/siswa/online", element: <OnlineClassDashboard /> },
+  { path: "/siswa/online/kelas/:mapel", element: <DaftarKelasMapel /> },
+  { path: "/siswa/online/kelas/:mapel/:id", element: <DetailKelas  /> },
   { path: "/siswa/test", element: <ListUjian /> },
   { path: "/siswa/tugas", element: <ListTugas /> },
   { path: "/siswa/review", element: <TestReview /> },

@@ -1,14 +1,14 @@
 // src/pages/siswa/OnlineClassDashboard.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   HiCalendar,
   HiClock,
   HiUser,
   HiPlay,
-  HiCheckCircle,
-  HiClock as HiTime,
+  HiAcademicCap,
 } from "react-icons/hi";
-import { cardStyles, statusConfig, filterButtonStyles } from "../../../utils/CardStyles";
+import { cardStyles, statusConfig } from "../../../utils/CardStyles";
 
 const mockData = [
   {
@@ -41,163 +41,13 @@ const mockData = [
     status: "selesai",
     link: "https://meet.google.com/def",
   },
-  {
-    id: 4,
-    mapel: "Fisika",
-    guru: "Bu Dewi",
-    tanggal: "2025-09-19",
-    mulai: "15:00",
-    selesai: "16:30",
-    status: "belum",
-    link: "https://meet.google.com/ghi",
-  },
 ];
 
-// Komponen Kelas Card yang reusable
-const KelasCard = ({ kelas }) => {
-  const config = statusConfig[kelas.status];
-  const style = cardStyles[config.color];
-
-  const formatTanggal = (tanggal) => {
-    return new Date(tanggal).toLocaleDateString("id-ID", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  };
-
-  return (
-    <div className={`${cardStyles.base} ${style.container}`}>
-      {/* Status Badge */}
-      <div className="mb-4">
-        <span className={`px-3 py-1.5 text-xs rounded-full font-semibold ${style.badge}`}>
-          {config.icon} {config.text}
-        </span>
-      </div>
-
-      {/* Class Info */}
-      <div className="flex-1 mb-4">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-3">
-          {kelas.mapel}
-        </h2>
-
-        <div className="space-y-2">
-          <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-            <HiUser className="w-4 h-4 mr-2 text-blue-500" />
-            <span>{kelas.guru}</span>
-          </div>
-
-          <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-            <HiCalendar className="w-4 h-4 mr-2 text-green-500" />
-            <span>{formatTanggal(kelas.tanggal)}</span>
-          </div>
-
-          <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-            <HiClock className="w-4 h-4 mr-2 text-purple-500" />
-            <span>
-              {kelas.mulai} - {kelas.selesai}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Action Button */}
-      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        {kelas.status === "sedang" && (
-          <a
-            href={kelas.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`w-full ${style.button} px-4 py-2.5 rounded-lg font-semibold transition-colors flex items-center justify-center`}
-          >
-            <HiPlay className="w-5 h-5 mr-2" />
-            Join Kelas Sekarang
-          </a>
-        )}
-
-        {kelas.status === "belum" && (
-          <div className="space-y-2">
-            <div className="flex items-center text-sm text-blue-600 dark:text-blue-400">
-              <HiTime className="w-4 h-4 mr-1" />
-              <span>Kelas akan dimulai sebentar lagi</span>
-            </div>
-          </div>
-        )}
-
-        {kelas.status === "selesai" && (
-          <div className="text-center">
-            <HiCheckCircle className="w-8 h-8 text-gray-400 dark:text-gray-600 mx-auto mb-2" />
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Kelas telah selesai
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// Komponen Empty State
-const EmptyState = ({ filter }) => (
-  <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-md flex flex-col items-center justify-center text-center mt-12">
-    <div className="text-4xl mb-3">📭</div>
-    <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">
-      Tidak ada kelas{" "}
-      {filter !== "semua" ? `dengan status ${filter}` : "hari ini"}
-    </h3>
-    <p className="text-gray-600 dark:text-gray-400 text-sm">
-      Silakan cek jadwal untuk hari lainnya atau pilih filter berbeda.
-    </p>
-  </div>
-);
-
-// Komponen Filter Buttons
-const FilterButtons = ({ filter, setFilter, classes }) => {
-  const filterOptions = [
-    { key: "semua", label: `Semua (${classes.length})` },
-    { 
-      key: "sedang", 
-      label: `Sedang Berlangsung (${classes.filter((c) => c.status === "sedang").length})` 
-    },
-    { 
-      key: "belum", 
-      label: `Belum Dimulai (${classes.filter((c) => c.status === "belum").length})` 
-    },
-    { 
-      key: "selesai", 
-      label: `Selesai (${classes.filter((c) => c.status === "selesai").length})` 
-    },
-  ];
-
-  return (
-    <div className="mb-6 flex flex-wrap gap-2">
-      {filterOptions.map((option) => (
-        <button
-          key={option.key}
-          onClick={() => setFilter(option.key)}
-          className={`${filterButtonStyles.base} ${
-            filter === option.key 
-              ? filterButtonStyles.active[option.key] 
-              : filterButtonStyles.inactive
-          }`}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-};
-
 function OnlineClassDashboard() {
+  const navigate = useNavigate();
   const [classes] = useState(mockData);
   const [filter, setFilter] = useState("semua");
 
-  const filteredClasses =
-    filter === "semua"
-      ? classes
-      : classes.filter((cls) => cls.status === filter);
-
   const formatTanggal = (tanggal) => {
     return new Date(tanggal).toLocaleDateString("id-ID", {
       weekday: "long",
@@ -207,34 +57,153 @@ function OnlineClassDashboard() {
     });
   };
 
+  const formatWaktu = (mulai, selesai) => {
+    return `${mulai} - ${selesai}`;
+  };
+
+  const getStatusBadge = (status) => {
+    const config = statusConfig[status] || statusConfig.selesai;
+    return (
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${cardStyles[config.color].badge}`}>
+        <span className="mr-1">{config.icon}</span>
+        {config.text}
+      </span>
+    );
+  };
+
+  const getCardStyle = (status) => {
+    const config = statusConfig[status] || statusConfig.selesai;
+    return cardStyles[config.color];
+  };
+
+  const filteredClasses = classes.filter(kelas => 
+    filter === "semua" || kelas.status === filter
+  );
+
+  const filterButtons = [
+    { key: "semua", label: "Semua Kelas", icon: "📚" },
+    { key: "sedang", label: "Sedang Berlangsung", icon: "🟢" },
+    { key: "belum", label: "Akan Datang", icon: "⏰" },
+    { key: "selesai", label: "Selesai", icon: "✅" },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6 transition-colors">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">
-          📚 Jadwal Kelas Online
-        </h1>
+        <div className="flex items-center gap-3 mb-2">
+          <HiAcademicCap className="text-3xl text-indigo-600 dark:text-indigo-400" />
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
+            Kelas Online
+          </h1>
+        </div>
         <p className="text-gray-600 dark:text-gray-400">
-          Kelas online untuk hari {formatTanggal(new Date())}
+          Kelola dan ikuti kelas online dengan mudah
         </p>
       </div>
 
       {/* Filter Buttons */}
-      <FilterButtons 
-        filter={filter} 
-        setFilter={setFilter} 
-        classes={classes} 
-      />
-
-      {/* Class Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredClasses.map((kelas) => (
-          <KelasCard key={kelas.id} kelas={kelas} />
+      <div className="flex flex-wrap gap-3 mb-8">
+        {filterButtons.map(({ key, label, icon }) => (
+          <button
+            key={key}
+            onClick={() => setFilter(key)}
+            className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 ${
+              filter === key 
+                ? `bg-indigo-600 text-white shadow-md` 
+                : `bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700`
+            }`}
+          >
+            <span>{icon}</span>
+            {label}
+          </button>
         ))}
       </div>
 
-      {/* Empty State */}
-      {filteredClasses.length === 0 && <EmptyState filter={filter} />}
+      {/* Classes Grid */}
+      {filteredClasses.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">📚</div>
+          <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
+            Tidak ada kelas
+          </h3>
+          <p className="text-gray-500 dark:text-gray-500">
+            Tidak ada kelas dengan status "{filterButtons.find(f => f.key === filter)?.label.toLowerCase()}"
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredClasses.map((kelas) => {
+            const style = getCardStyle(kelas.status);
+            
+            return (
+              <div
+                key={kelas.id}
+                className={`${cardStyles.base} ${style.container} hover:scale-105 transition-transform duration-300`}
+              >
+                <div className="flex-1">
+                  {/* Header dengan mapel dan status */}
+                  <div className="flex justify-between items-start mb-4">
+                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 line-clamp-1">
+                      {kelas.mapel}
+                    </h2>
+                    {getStatusBadge(kelas.status)}
+                  </div>
+
+                  {/* Informasi guru */}
+                  <div className="flex items-center gap-2 mb-3 text-gray-600 dark:text-gray-400">
+                    <HiUser className="text-blue-500 flex-shrink-0" />
+                    <span className="text-sm">{kelas.guru}</span>
+                  </div>
+
+                  {/* Informasi tanggal */}
+                  <div className="flex items-center gap-2 mb-3 text-gray-600 dark:text-gray-400">
+                    <HiCalendar className="text-green-500 flex-shrink-0" />
+                    <span className="text-sm">{formatTanggal(kelas.tanggal)}</span>
+                  </div>
+
+                  {/* Informasi waktu */}
+                  <div className="flex items-center gap-2 mb-4 text-gray-600 dark:text-gray-400">
+                    <HiClock className="text-purple-500 flex-shrink-0" />
+                    <span className="text-sm">{formatWaktu(kelas.mulai, kelas.selesai)}</span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-4 flex gap-2">
+                  {kelas.status === "sedang" ? (
+                    <a
+                      href={kelas.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors duration-300 font-medium"
+                    >
+                      <HiPlay className="text-lg" />
+                      Join Kelas
+                    </a>
+                  ) : (
+                    <button
+                      className="flex-1 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-lg cursor-not-allowed font-medium"
+                      disabled
+                    >
+                      {kelas.status === "belum" ? "Belum Dimulai" : "Selesai"}
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() =>
+                      navigate(`/siswa/online/kelas/${encodeURIComponent(kelas.mapel)}`)
+                    }
+                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors duration-300 font-medium"
+                  >
+                    Detail Kelas
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
