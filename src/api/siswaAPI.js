@@ -508,3 +508,34 @@ export const getNotStartedTests = async (nis) => {
     return { data: [] };
   }
 };
+
+export const getKelasOnlineByKelasId = async (kelas_id) => {
+  try {
+    const response = await fetch(`http://localhost:8080/siswa/kelas-online/mapel/${kelas_id}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data; // langsung return array dari backend
+  } catch (error) {
+    console.error("Error fetching kelas online:", error);
+    return [];
+  }
+};
+
+export const getDetailKelasOnline = async (id_kelas_mapel) => {
+  try {
+    const response = await fetch(`http://localhost:8080/siswa/kelas-online/detail/${id_kelas_mapel}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching detail kelas online:", error);
+    throw error; // atau return null/object kosong sesuai kebutuhan
+  }
+};
+

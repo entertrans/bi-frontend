@@ -1,5 +1,6 @@
 // src/pages/siswa/OnlineClassDashboard.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
   HiCalendar,
@@ -9,47 +10,43 @@ import {
   HiAcademicCap,
 } from "react-icons/hi";
 import { cardStyles, statusConfig } from "../../../utils/CardStyles";
-
-const mockData = [
-  {
-    id: 1,
-    mapel: "Matematika",
-    guru: "Pak Budi",
-    tanggal: "2025-09-19",
-    mulai: "08:00",
-    selesai: "09:00",
-    status: "sedang",
-    link: "https://meet.google.com/abc",
-  },
-  {
-    id: 2,
-    mapel: "Bahasa Inggris",
-    guru: "Bu Sari",
-    tanggal: "2025-09-19",
-    mulai: "10:00",
-    selesai: "11:30",
-    status: "belum",
-    link: "https://meet.google.com/xyz",
-  },
-  {
-    id: 3,
-    mapel: "IPA",
-    guru: "Pak Andi",
-    tanggal: "2025-09-19",
-    mulai: "13:00",
-    selesai: "14:00",
-    status: "selesai",
-    link: "https://meet.google.com/def",
-  },
-];
+import { getKelasOnlineByKelasId } from "../../../api/siswaAPI"; // ✅ import API
 
 function OnlineClassDashboard() {
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [classes] = useState(mockData);
+  const [classes, setClasses] = useState([]);
   const [filter, setFilter] = useState("semua");
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (user && user.siswa && user.siswa.siswa_kelas_id) {
+      const kelasId = user.siswa.siswa_kelas_id;
+      // console.log("Ambil kelas online untuk kelas_id:", kelasId);
+
+      getKelasOnlineByKelasId(kelasId)
+        .then((data) => {
+          // console.log("Data kelas online:", data);
+          setClasses(data);
+        })
+        .catch((error) => {
+          console.error("Gagal fetch kelas online:", error);
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [user]);
+
 
   const formatTanggal = (tanggal) => {
-    return new Date(tanggal).toLocaleDateString("id-ID", {
+    if (!tanggal || tanggal === "-" || tanggal === "0001-01-01") {
+      return "-";
+    }
+
+    const dateObj = new Date(tanggal);
+    if (isNaN(dateObj.getTime())) {
+      return "-";
+    }
+
+    return dateObj.toLocaleDateString("id-ID", {
       weekday: "long",
       day: "numeric",
       month: "long",
@@ -58,13 +55,27 @@ function OnlineClassDashboard() {
   };
 
   const formatWaktu = (mulai, selesai) => {
+    if (
+      !mulai ||
+      !selesai ||
+      mulai === "-" ||
+      selesai === "-" ||
+      mulai === "" ||
+      selesai === ""
+    ) {
+      return "-";
+    }
     return `${mulai} - ${selesai}`;
   };
 
   const getStatusBadge = (status) => {
     const config = statusConfig[status] || statusConfig.selesai;
     return (
-      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${cardStyles[config.color].badge}`}>
+      <span
+        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+          cardStyles[config.color].badge
+        }`}
+      >
         <span className="mr-1">{config.icon}</span>
         {config.text}
       </span>
@@ -76,8 +87,8 @@ function OnlineClassDashboard() {
     return cardStyles[config.color];
   };
 
-  const filteredClasses = classes.filter(kelas => 
-    filter === "semua" || kelas.status === filter
+  const filteredClasses = classes.filter(
+    (kelas) => filter === "semua" || kelas.status === filter
   );
 
   const filterButtons = [
@@ -86,7 +97,16 @@ function OnlineClassDashboard() {
     { key: "belum", label: "Akan Datang", icon: "⏰" },
     { key: "selesai", label: "Selesai", icon: "✅" },
   ];
-
+ 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-gray-600 dark:text-gray-300 text-lg">
+          Memuat data kelas...
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
       {/* Header */}
@@ -109,8 +129,8 @@ function OnlineClassDashboard() {
             key={key}
             onClick={() => setFilter(key)}
             className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 ${
-              filter === key 
-                ? `bg-indigo-600 text-white shadow-md` 
+              filter === key
+                ? `bg-indigo-600 text-white shadow-md`
                 : `bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700`
             }`}
           >
@@ -128,14 +148,15 @@ function OnlineClassDashboard() {
             Tidak ada kelas
           </h3>
           <p className="text-gray-500 dark:text-gray-500">
-            Tidak ada kelas dengan status "{filterButtons.find(f => f.key === filter)?.label.toLowerCase()}"
+            Tidak ada kelas dengan status "
+            {filterButtons.find((f) => f.key === filter)?.label.toLowerCase()}"
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredClasses.map((kelas) => {
             const style = getCardStyle(kelas.status);
-            
+//  console.log("Kode Mapel:", kelas.id);
             return (
               <div
                 key={kelas.id}
@@ -159,13 +180,17 @@ function OnlineClassDashboard() {
                   {/* Informasi tanggal */}
                   <div className="flex items-center gap-2 mb-3 text-gray-600 dark:text-gray-400">
                     <HiCalendar className="text-green-500 flex-shrink-0" />
-                    <span className="text-sm">{formatTanggal(kelas.tanggal)}</span>
+                    <span className="text-sm">
+                      {formatTanggal(kelas.tanggal)}
+                    </span>
                   </div>
 
                   {/* Informasi waktu */}
                   <div className="flex items-center gap-2 mb-4 text-gray-600 dark:text-gray-400">
                     <HiClock className="text-purple-500 flex-shrink-0" />
-                    <span className="text-sm">{formatWaktu(kelas.mulai, kelas.selesai)}</span>
+                    <span className="text-sm">
+                      {formatWaktu(kelas.mulai, kelas.selesai)}
+                    </span>
                   </div>
                 </div>
 
@@ -192,7 +217,17 @@ function OnlineClassDashboard() {
 
                   <button
                     onClick={() =>
-                      navigate(`/siswa/online/kelas/${encodeURIComponent(kelas.mapel)}`)
+                      navigate(
+                        `/siswa/online/kelas/${encodeURIComponent(
+                          kelas.mapel
+                        )}`,
+                        {
+                          state: {
+                            id_kelas: kelas.id,
+                            // kelasData: kelas, // atau kirim seluruh data kelas
+                          },
+                        }
+                      )
                     }
                     className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors duration-300 font-medium"
                   >

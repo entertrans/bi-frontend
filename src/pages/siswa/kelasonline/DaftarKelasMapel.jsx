@@ -1,6 +1,7 @@
 // src/pages/siswa/DaftarKelasMapel.jsx
 import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams,useLocation } from "react-router-dom";
+import { useAuth } from "../../../contexts/AuthContext";
 import { 
   HiCalendar, 
   HiClock, 
@@ -61,10 +62,13 @@ const sesiDummy = [
 ];
 
 function DaftarKelasMapel() {
+    const location = useLocation();
+  const { id_kelas } = location.state || {};
+  // console.log("Kode Mapel:", id_kelas);
   const navigate = useNavigate();
   const { mapel } = useParams();
   const [filter, setFilter] = useState("semua");
-  
+   const { user } = useAuth();
   const sessions = sesiDummy.filter((s) => s.mapel === mapel);
   const filteredSessions = sessions.filter(sesi => 
     filter === "semua" || sesi.status === filter

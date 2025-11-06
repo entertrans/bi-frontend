@@ -1,6 +1,6 @@
 // src/pages/siswa/DetailKelas.jsx
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams,useLocation } from "react-router-dom";
 import { 
   HiArrowLeft, 
   HiDownload, 
