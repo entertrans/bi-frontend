@@ -1,105 +1,87 @@
 // src/pages/siswa/DaftarKelasMapel.jsx
-import React, { useState } from "react";
-import { useNavigate, useParams,useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useAuth } from "../../../contexts/AuthContext";
-import { 
-  HiCalendar, 
-  HiClock, 
-  HiUser, 
-  HiPlay, 
+import {
+  formatTanggalLengkap
+} from "../../../utils/format";
+import {
+  HiCalendar,
+  HiClock,
+  HiUser,
+  HiPlay,
   HiArrowLeft,
   HiAcademicCap,
-  HiBookOpen
+  HiBookOpen,
 } from "react-icons/hi";
-import { cardStyles, statusConfig, filterButtonStyles } from "../../../utils/CardStyles";
-
-const sesiDummy = [
-  {
-    id: 1,
-    mapel: "Matematika",
-    guru: "Pak Budi",
-    tanggal: "2025-09-09",
-    mulai: "08:00",
-    selesai: "09:00",
-    status: "selesai",
-    topik: "Aljabar Dasar",
-    deskripsi: "Memahami konsep dasar aljabar dan persamaan linear"
-  },
-  {
-    id: 2,
-    mapel: "Matematika",
-    guru: "Pak Budi",
-    tanggal: "2025-09-23",
-    mulai: "08:00",
-    selesai: "09:00",
-    status: "selesai",
-    topik: "Geometri Bangun Datar",
-    deskripsi: "Mempelajari sifat-sifat bangun datar dan perhitungan luas"
-  },
-  {
-    id: 3,
-    mapel: "Matematika",
-    guru: "Pak Budi",
-    tanggal: "2025-10-31",
-    mulai: "08:00",
-    selesai: "09:00",
-    status: "sedang",
-    link: "https://meet.google.com/abc",
-    topik: "Trigonometri",
-    deskripsi: "Konsep sinus, cosinus, dan tangen dalam segitiga"
-  },
-  {
-    id: 4,
-    mapel: "Matematika",
-    guru: "Pak Budi",
-    tanggal: "2025-11-15",
-    mulai: "08:00",
-    selesai: "09:00",
-    status: "belum",
-    topik: "Statistika",
-    deskripsi: "Pengolahan data dan interpretasi hasil statistik"
-  },
-];
+import {
+  cardStyles,
+  statusConfig,
+} from "../../../utils/CardStyles";
+import { getDetailKelasOnline } from "../../../api/siswaAPI";
 
 function DaftarKelasMapel() {
-    const location = useLocation();
-  const { id_kelas } = location.state || {};
-  // console.log("Kode Mapel:", id_kelas);
-  const navigate = useNavigate();
   const { mapel } = useParams();
+  const { state } = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const [sessions, setSessions] = useState([]);
   const [filter, setFilter] = useState("semua");
-   const { user } = useAuth();
-  const sessions = sesiDummy.filter((s) => s.mapel === mapel);
-  const filteredSessions = sessions.filter(sesi => 
-    filter === "semua" || sesi.status === filter
-  );
+  const [loading, setLoading] = useState(true);
+  const id_kelas = state?.id_kelas;
 
-  const formatTanggal = (tanggal) =>
-    new Date(tanggal).toLocaleDateString("id-ID", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+  useEffect(() => {
+    if (!id_kelas) return setLoading(false);
 
-  const formatWaktu = (mulai, selesai) => {
-    return `${mulai} - ${selesai}`;
-  };
+    const fetchData = async () => {
+      try {
+        const data = await getDetailKelasOnline(id_kelas);
+        const mapped = data.map((item) => ({
+          id: item.id_kelas_online,
+          mapel: item.nama_mapel,
+          guru: item.nama_guru || "Guru belum ditentukan",
+          tanggal: item.tanggal,
+          mulai: item.jam_mulai?.slice(0, 5) || "-",
+          selesai: item.jam_selesai?.slice(0, 5) || "-",
+          status: mapStatus(item.status),
+          link: item.link_kelas,
+          topik: item.judul_kelas || "Topik belum tersedia"
+        }));
+        setSessions(mapped);
+      } catch (err) {
+        console.error("Gagal fetch detail kelas online:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [id_kelas]);
+
+  /** 🔹 Helper Functions */
+  const mapStatus = (status) =>
+    ({
+      sedang_berlangsung: "sedang",
+      selesai: "selesai",
+      akan_datang: "belum",
+      belum_dimulai: "belum",
+    }[status] || "selesai");
+
+  const formatWaktu = (mulai, selesai) =>
+    !mulai || !selesai || [mulai, selesai].includes("-") ? "-" : `${mulai} - ${selesai}`;
 
   const getStatusBadge = (status) => {
-    const config = statusConfig[status] || statusConfig.selesai;
+    const { color, icon, text } = statusConfig[status] || statusConfig.selesai;
     return (
-      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${cardStyles[config.color].badge}`}>
-        <span className="mr-1 text-xs">{config.icon}</span>
-        {config.text}
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${cardStyles[color].badge}`}>
+        <span className="mr-1 text-xs">{icon}</span>{text}
       </span>
     );
   };
 
-  const getCardStyle = (status) => {
-    const config = statusConfig[status] || statusConfig.selesai;
-    return cardStyles[config.color];
-  };
+  const getCardStyle = (status) =>
+    cardStyles[statusConfig[status]?.color || "selesai"];
 
   const filterButtons = [
     { key: "semua", label: "Semua Sesi", icon: "📚" },
@@ -108,27 +90,30 @@ function DaftarKelasMapel() {
     { key: "selesai", label: "Selesai", icon: "✅" },
   ];
 
-  const getSessionStats = () => {
-    return {
-      total: sessions.length,
-      sedang: sessions.filter(s => s.status === "sedang").length,
-      belum: sessions.filter(s => s.status === "belum").length,
-      selesai: sessions.filter(s => s.status === "selesai").length,
-    };
-  };
+  const filteredSessions =
+    filter === "semua"
+      ? sessions
+      : sessions.filter((s) => s.status === filter);
 
-  const stats = getSessionStats();
+  /** 🔹 Loading UI */
+  if (loading)
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex justify-center items-center">
+        <p className="text-gray-600 dark:text-gray-300 text-lg">
+          Memuat data sesi kelas...
+        </p>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
-      {/* Header Section */}
+      {/* Header */}
       <div className="mb-8">
         <button
           onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 mb-6 transition-colors duration-300 font-medium"
+          className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 mb-6 font-medium transition"
         >
-          <HiArrowLeft className="text-lg" />
-          Kembali ke Dashboard
+          <HiArrowLeft /> Kembali ke Dashboard
         </button>
 
         <div className="flex items-center gap-4 mb-4">
@@ -136,97 +121,96 @@ function DaftarKelasMapel() {
             <HiAcademicCap className="text-2xl text-indigo-600 dark:text-indigo-400" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
-              {mapel}
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">{mapel}</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Kelas online dengan {sessions.length} sesi pembelajaran
+              {sessions.length
+                ? `Kelas online dengan ${sessions.length} sesi pembelajaran`
+                : "Belum ada sesi pembelajaran"}
             </p>
           </div>
         </div>
       </div>
 
-
-      {/* Sessions List */}
+      {/* Session List */}
       {filteredSessions.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
           <div className="text-6xl mb-4">📚</div>
           <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
             Tidak ada sesi kelas
           </h3>
-          <p className="text-gray-500 dark:text-gray-500 mb-4">
-            Tidak ada sesi dengan status "{filterButtons.find(f => f.key === filter)?.label.toLowerCase()}"
+          <p className="text-gray-500 mb-4">
+            {sessions.length === 0
+              ? "Belum ada sesi pembelajaran untuk mata pelajaran ini"
+              : `Tidak ada sesi dengan status "${
+                  filterButtons.find((f) => f.key === filter)?.label.toLowerCase()
+                }"`}
           </p>
-          <button
-            onClick={() => setFilter("semua")}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors duration-300"
-          >
-            Lihat Semua Sesi
-          </button>
+          {sessions.length > 0 && (
+            <button
+              onClick={() => setFilter("semua")}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition"
+            >
+              Lihat Semua Sesi
+            </button>
+          )}
         </div>
       ) : (
         <div className="space-y-4">
           {filteredSessions.map((sesi) => {
             const style = getCardStyle(sesi.status);
-            
             return (
               <div
                 key={sesi.id}
-                className={`${cardStyles.base} ${style.container} hover:shadow-lg transition-all duration-300`}
+                className={`${cardStyles.base} ${style.container} hover:shadow-lg transition`}
               >
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                  {/* Session Info */}
                   <div className="flex-1">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                    <div className="flex flex-col sm:flex-row sm:justify-between mb-3 gap-2">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-1">
+                        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
                           {sesi.topik}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                          {sesi.deskripsi}
-                        </p>
                       </div>
                       {getStatusBadge(sesi.status)}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <HiCalendar className="text-green-500 flex-shrink-0" />
-                        <span>{formatTanggal(sesi.tanggal)}</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center gap-2">
+                        <HiCalendar className="text-green-500" />
+                        <span>{formatTanggalLengkap(sesi.tanggal)}</span>
                       </div>
-                      
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <HiClock className="text-purple-500 flex-shrink-0" />
+                      <div className="flex items-center gap-2">
+                        <HiClock className="text-purple-500" />
                         <span>{formatWaktu(sesi.mulai, sesi.selesai)}</span>
                       </div>
-                      
-                      <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                        <HiUser className="text-blue-500 flex-shrink-0" />
+                      <div className="flex items-center gap-2">
+                        <HiUser className="text-blue-500" />
                         <span>{sesi.guru}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Action Button */}
+                  {/* Action */}
                   <div className="flex-shrink-0">
                     {sesi.status === "sedang" ? (
                       <a
                         href={sesi.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-300 font-medium whitespace-nowrap"
+                        className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium"
                       >
-                        <HiPlay className="text-lg" />
-                        Join Kelas
+                        <HiPlay /> Join Kelas
                       </a>
                     ) : (
                       <button
                         onClick={() =>
-                          navigate(`/siswa/online/kelas/${mapel}/${sesi.id}`)
+                          navigate(`/siswa/online/kelas/${mapel}/${sesi.id}`, {
+                            state: { sesiData: sesi, id_kelas_mapel: id_kelas },
+                          })
                         }
-                        className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg transition-colors duration-300 font-medium whitespace-nowrap"
+                        className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium"
                       >
-                        <HiBookOpen className="text-lg" />
+                        <HiBookOpen />
                         {sesi.status === "belum" ? "Detail Sesi" : "Lihat Materi"}
                       </button>
                     )}
