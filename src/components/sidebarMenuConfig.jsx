@@ -153,7 +153,7 @@ export const menuConfig = {
     {
       label: "Kelas Online",
       icon: <HiComputerDesktop className="mr-3" />,
-      path: "/guru/online",
+      path: "/guru/kelas-online",
       key: "guru-kelas-online",
     },
     {

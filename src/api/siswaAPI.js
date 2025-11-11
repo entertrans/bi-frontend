@@ -539,3 +539,20 @@ export const getDetailKelasOnline = async (id_kelas_mapel) => {
   }
 };
 
+
+export const getDetailMateriKelas = async (id_kelas_online) => {
+  try {
+    const response = await fetch(`http://localhost:8080/siswa/kelas-online/materi/${id_kelas_online}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching detail materi kelas:", error);
+    throw error;
+  }
+};
+

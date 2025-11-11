@@ -20,6 +20,8 @@ import DetailTest from "../pages/guru/nilai/DetailTest";
 import DetailPesertaTest from "../pages/guru/nilai/DetailPesertaTest";
 import JawabanPageRb from "../pages/guru/rollback/RbDetailJawaban";
 import RbResetData from "../pages/guru/rollback/RbResetData";
+import KoDashboard from "../pages/guru/kelasonline/KoDashboard";
+import GuruKelasOnline from "../pages/guru/kelasonline/GuruKelasOnline";
 
 export const guruRoutes = [
   { path: "/guru", element: <Home /> },
@@ -50,6 +52,7 @@ export const guruRoutes = [
   { path: "/guru/ulangan", element: <Ulangan /> },
   { path: "/guru/nilai/:type/:kelas_id/:mapel_id", element: <DetailTest /> },
   { path: "/guru/nilai/:type/peserta/:test_id/:kelas_id", element: <DetailPesertaTest /> },
+  { path: "/guru/kelas-online", element: <GuruKelasOnline /> },
 //   <Route path="/guru/nilai/:type/:kelas_id/:mapel_id" element={<DetailTest />} />
 // <Route path="/guru/nilai/:type/peserta/:test_id/:kelas_id" element={<DetailPesertaTest />} />
   { path: "/guru/logout", element: <Logout /> },

@@ -1,6 +1,5 @@
-// src/pages/siswa/DetailKelas.jsx
-import React from "react";
-import { useNavigate, useParams,useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { 
   HiArrowLeft, 
   HiDownload, 
@@ -12,105 +11,7 @@ import {
   HiUser
 } from "react-icons/hi";
 import { cardStyles } from "../../../utils/CardStyles";
-
-// Data dummy yang lebih lengkap
-const materiDummy = {
-  1: {
-    topik: "Trigonometri Dasar",
-    tanggal: "2025-10-31",
-    guru: "Pak Budi",
-    deskripsi: "Memahami konsep dasar trigonometri, sinus, cosinus, dan tangen dalam segitiga siku-siku",
-    materi: [
-      { 
-        id: 1, 
-        judul: "Trigonometri Dasar", 
-        tipe: "ppt", 
-        format: "PPT",
-        ukuran: "2.4 MB",
-        link: "#"
-      },
-      { 
-        id: 2, 
-        judul: "Latihan Soal Trigonometri", 
-        tipe: "pdf", 
-        format: "PDF",
-        ukuran: "1.8 MB",
-        link: "#"
-      },
-      { 
-        id: 3, 
-        judul: "Video Pembelajaran Trigonometri", 
-        tipe: "video", 
-        format: "YouTube",
-        durasi: "15:30",
-        link: "https://youtube.com/watch?v=contoh"
-      },
-      { 
-        id: 4, 
-        judul: "Modul Belajar Mandiri", 
-        tipe: "pdf", 
-        format: "PDF",
-        ukuran: "3.2 MB",
-        link: "#"
-      }
-    ]
-  },
-  2: {
-    topik: "Persamaan Kuadrat",
-    tanggal: "2025-09-23",
-    guru: "Pak Budi",
-    deskripsi: "Menyelesaikan persamaan kuadrat dengan berbagai metode: faktorisasi, rumus ABC, dan melengkapkan kuadrat sempurna",
-    materi: [
-      { 
-        id: 1, 
-        judul: "Materi Persamaan Kuadrat", 
-        tipe: "ppt", 
-        format: "PPT",
-        ukuran: "1.9 MB",
-        link: "#"
-      },
-      { 
-        id: 2, 
-        judul: "Video Pembahasan Soal", 
-        tipe: "video", 
-        format: "Google Drive",
-        durasi: "22:15",
-        link: "https://drive.google.com/file/contoh"
-      }
-    ]
-  },
-  3: {
-    topik: "Geometri Bangun Datar",
-    tanggal: "2025-09-09",
-    guru: "Pak Budi",
-    deskripsi: "Mempelajari sifat-sifat bangun datar dan perhitungan luas serta keliling berbagai bentuk geometri",
-    materi: [
-      { 
-        id: 1, 
-        judul: "Slide Presentasi Geometri", 
-        tipe: "ppt", 
-        format: "PPT",
-        ukuran: "3.1 MB",
-        link: "#"
-      },
-      { 
-        id: 2, 
-        judul: "Lembar Kerja Siswa", 
-        tipe: "pdf", 
-        format: "PDF",
-        ukuran: "2.1 MB",
-        link: "#"
-      },
-      { 
-        id: 3, 
-        judul: "Simulasi Interaktif", 
-        tipe: "link", 
-        format: "Website",
-        link: "https://geogebra.org/contoh"
-      }
-    ]
-  }
-};
+import { getDetailMateriKelas } from "../../../api/siswaAPI";
 
 const getIconByType = (tipe) => {
   switch (tipe) {
@@ -122,6 +23,8 @@ const getIconByType = (tipe) => {
       return <HiVideoCamera className="text-purple-500 text-xl" />;
     case 'link':
       return <HiExternalLink className="text-blue-500 text-xl" />;
+    case 'text':
+      return <HiDocument className="text-gray-500 text-xl" />;
     default:
       return <HiDocument className="text-gray-500 text-xl" />;
   }
@@ -132,14 +35,15 @@ const getTypeBadge = (tipe) => {
     ppt: "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200",
     pdf: "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200",
     video: "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200",
-    link: "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
+    link: "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200",
+    text: "bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200"
   };
   
   return typeStyles[tipe] || "bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200";
 };
 
 const getActionButton = (materi) => {
-  if (materi.tipe === 'link') {
+  if (materi.tipe === 'link' || materi.tipe === 'video') {
     return (
       <a
         href={materi.link}
@@ -153,30 +57,74 @@ const getActionButton = (materi) => {
     );
   }
   
+  if (materi.tipe === 'text') {
+    return (
+      <button 
+        className="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-300 text-sm font-medium cursor-not-allowed"
+        disabled
+      >
+        <HiDocument className="text-sm" />
+        Baca
+      </button>
+    );
+  }
+  
   return (
-    <button className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors duration-300 text-sm font-medium">
+    <a
+      href={materi.link}
+      download
+      className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors duration-300 text-sm font-medium"
+    >
       <HiDownload className="text-sm" />
       Unduh
-    </button>
+    </a>
   );
 };
 
 function DetailKelas() {
   const navigate = useNavigate();
   const { mapel, id } = useParams();
-  const kelasData = materiDummy[id];
-  const materi = kelasData?.materi || [];
+  const [kelasData, setKelasData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  console.log("Ambil kelas_online_id:", id);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const data = await getDetailMateriKelas(id);
+        setKelasData(data);
+      } catch (err) {
+        setError(err.message);
+        console.error("Error fetching materi:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchData();
+    }
+  }, [id]);
 
   const formatTanggal = (tanggal) => {
-    return new Date(tanggal).toLocaleDateString("id-ID", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    try {
+      // Handle format tanggal dari backend (2025-09-09 00:00:00 +0700 +07)
+      const datePart = tanggal.split(' ')[0]; // Ambil bagian tanggal saja
+      return new Date(datePart).toLocaleDateString("id-ID", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+    } catch (err) {
+      return tanggal; // Return as-is jika parsing gagal
+    }
   };
 
-  if (!kelasData) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
         <button
@@ -188,17 +136,44 @@ function DetailKelas() {
         </button>
         
         <div className="text-center py-12">
-          <div className="text-6xl mb-4">📚</div>
-          <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
-            Kelas Tidak Ditemukan
-          </h3>
-          <p className="text-gray-500 dark:text-gray-500">
-            Materi untuk sesi ini tidak tersedia.
-          </p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Memuat materi...</p>
         </div>
       </div>
     );
   }
+
+  if (error || !kelasData) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 mb-6 transition-colors duration-300 font-medium"
+        >
+          <HiArrowLeft className="text-lg" />
+          Kembali
+        </button>
+        
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">❌</div>
+          <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
+            {error ? "Terjadi Kesalahan" : "Kelas Tidak Ditemukan"}
+          </h3>
+          <p className="text-gray-500 dark:text-gray-500 mb-4">
+            {error || "Materi untuk sesi ini tidak tersedia."}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors duration-300"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const materi = kelasData.materi || [];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
@@ -224,7 +199,7 @@ function DetailKelas() {
               {mapel} - Pertemuan {id}
             </p>
             <p className="text-gray-700 dark:text-gray-300">
-              {kelasData.deskripsi}
+              {kelasData.deskripsi || "Tidak ada deskripsi materi"}
             </p>
           </div>
         </div>
@@ -246,7 +221,9 @@ function DetailKelas() {
               <HiCalendar className="text-green-500 text-xl" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Tanggal</p>
-                <p className="font-semibold text-gray-800 dark:text-gray-100">{formatTanggal(kelasData.tanggal)}</p>
+                <p className="font-semibold text-gray-800 dark:text-gray-100">
+                  {formatTanggal(kelasData.tanggal)}
+                </p>
               </div>
             </div>
           </div>
@@ -256,7 +233,9 @@ function DetailKelas() {
               <HiDocument className="text-purple-500 text-xl" />
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total Materi</p>
-                <p className="font-semibold text-gray-800 dark:text-gray-100">{materi.length} File</p>
+                <p className="font-semibold text-gray-800 dark:text-gray-100">
+                  {materi.length} {materi.length === 1 ? 'File' : 'File'}
+                </p>
               </div>
             </div>
           </div>
@@ -298,18 +277,15 @@ function DetailKelas() {
                         {m.judul}
                       </h3>
                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTypeBadge(m.tipe)} whitespace-nowrap flex-shrink-0`}>
-                        {m.format}
+                        {m.format || m.tipe.toUpperCase()}
                       </span>
                     </div>
                     
-                    <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                      {m.ukuran && (
-                        <p>Ukuran: {m.ukuran}</p>
-                      )}
-                      {m.durasi && (
-                        <p>Durasi: {m.durasi}</p>
-                      )}
-                    </div>
+                    {m.keterangan && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                        {m.keterangan}
+                      </p>
+                    )}
                     
                     <div className="mt-4">
                       {getActionButton(m)}
