@@ -1,83 +1,56 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { HiChevronLeft, HiChevronRight, HiEye, HiPlay } from "react-icons/hi";
+import React, { useEffect, useState } from "react";
+import { useNavigate} from "react-router-dom";
+import { HiEye, HiPlay } from "react-icons/hi";
 import Swal from "sweetalert2";
-import { fetchAllkelas, fetchAllMapelByKelas } from "../../../api/siswaAPI";
 import { showAlert } from "../../../utils/toast";
-
-// nanti ganti ini ke API sesungguhnya
-const dummyKelasOnline = [
-  {
-    id_kelas_online: 1,
-    kelas: "7A",
-    mapel: "Matematika",
-    guru: "Alvin Putra",
-    link: "",
-  },
-  {
-    id_kelas_online: 2,
-    kelas: "8B",
-    mapel: "IPA",
-    guru: "Nisrina Agustama",
-    link: "https://meet.google.com/xyz-abc-pqr",
-  },
-];
+import { getAllMapelList } from "../../../api/siswaAPI";
 
 const GuruKelasOnline = () => {
-  const [kelasList, setKelasList] = useState([]);
-  const [mapelList, setMapelList] = useState([]);
+  const [dataMapel, setDataMapel] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedKelas, setSelectedKelas] = useState("");
-  const [selectedMapel, setSelectedMapel] = useState("");
-  const [data, setData] = useState(dummyKelasOnline);
-  const [filteredData, setFilteredData] = useState(dummyKelasOnline);
-  const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  const loadKelas = useCallback(async () => {
-    try {
-      const data = await fetchAllkelas();
-      setKelasList(data.aktif || []);
-    } catch (err) {
-      console.error(err);
-    }
+  const [itemsPerPage] = useState(10);
+  const navigate = useNavigate();
+  useEffect(() => {
+    const fetchMapel = async () => {
+      try {
+        const res = await getAllMapelList();
+        setDataMapel(res);
+      } catch (err) {
+        console.error("Gagal ambil data mapel:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMapel();
   }, []);
 
-  const loadMapel = useCallback(async (kelasId) => {
-    try {
-      const data = await fetchAllMapelByKelas(kelasId);
-      setMapelList(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
+  // Filter berdasarkan kelas jika dipilih
+  const filteredData = selectedKelas
+    ? dataMapel.filter((item) => item.kelas_id === parseInt(selectedKelas))
+    : dataMapel;
 
-  useEffect(() => {
-    loadKelas();
-  }, [loadKelas]);
-
-  useEffect(() => {
-    let result = data;
-    if (selectedKelas) {
-      result = result.filter((d) => d.kelas === selectedKelas);
-    }
-    if (selectedMapel) {
-      result = result.filter((d) => d.mapel === selectedMapel);
-    }
-    setFilteredData(result);
-    setCurrentPage(1);
-  }, [selectedKelas, selectedMapel, data]);
-
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  // Pagination
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentData = filteredData.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-  const handlePageChange = (page) => setCurrentPage(page);
+  const goToPreviousPage = () =>
+    currentPage > 1 && setCurrentPage(currentPage - 1);
+  const goToNextPage = () =>
+    currentPage < totalPages && setCurrentPage(currentPage + 1);
+
+  // Aksi tombol
+  const handleDetail = (id) => {
+    showAlert(`Lihat detail pelajaran ID: ${id}`, "info");
+  };
 
   const handleOpenClass = (id) => {
     Swal.fire({
       title: "Aktifkan Kelas Online?",
-      text: "Kelas akan dianggap sedang berlangsung.",
+      text: "Kelas ini akan dianggap sedang berlangsung.",
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "Ya, buka kelas",
@@ -91,200 +64,114 @@ const GuruKelasOnline = () => {
     });
   };
 
-  const handleDetail = (id) => {
-    // nanti diarahkan ke halaman detail kelas
-    showAlert(`Menuju ke detail kelas ID: ${id}`, "info");
-  };
-
-  const getPaginationButtons = () => {
-    const range = [];
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) range.push(i);
-    } else {
-      if (currentPage <= 4) {
-        range.push(1, 2, 3, 4, 5, "...", totalPages);
-      } else if (currentPage >= totalPages - 3) {
-        range.push(
-          1,
-          "...",
-          totalPages - 4,
-          totalPages - 3,
-          totalPages - 2,
-          totalPages - 1,
-          totalPages
-        );
-      } else {
-        range.push(
-          1,
-          "...",
-          currentPage - 1,
-          currentPage,
-          currentPage + 1,
-          "...",
-          totalPages
-        );
-      }
-    }
-    return range;
-  };
-
-  if (loading) {
-    return (
-      <div className="p-4 bg-white dark:bg-gray-800 rounded shadow flex justify-center items-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">
-            Memuat data kelas online...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-4 bg-white dark:bg-gray-800 rounded shadow">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-          Manajemen Kelas Online
-        </h2>
-      </div>
+    <div className="p-4 bg-white dark:bg-gray-800 shadow rounded-lg">
+      <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4">
+        Daftar Kelas & Mapel
+      </h1>
 
-      {/* Filter */}
-      <div className="flex flex-wrap gap-4 mb-6">
+      {/* Filter Kelas */}
+      <div className="mb-4">
         <select
+          className="p-2 border rounded dark:bg-gray-700 dark:text-white"
           value={selectedKelas}
-          onChange={(e) => {
-            setSelectedKelas(e.target.value);
-            loadMapel(e.target.value);
-          }}
-          className="p-2 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
+          onChange={(e) => setSelectedKelas(e.target.value)}
         >
-          <option value="">Semua Kelas</option>
-          {kelasList.map((k) => (
-            <option key={k.kelas_id} value={k.kelas_nama}>
-              {k.kelas_nama}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={selectedMapel}
-          onChange={(e) => setSelectedMapel(e.target.value)}
-          className="p-2 border rounded dark:bg-gray-700 dark:text-white dark:border-gray-600"
-          disabled={!selectedKelas}
-        >
-          <option value="">Semua Mapel</option>
-          {mapelList.map((m) => (
-            <option key={m.kd_mapel} value={m.nm_mapel}>
-              {m.nm_mapel}
-            </option>
-          ))}
+          <option value="">-- Semua Kelas --</option>
+          {[...new Set(dataMapel.map((d) => d.kelas_id))].map((id) => {
+            const namaKelas = dataMapel.find((d) => d.kelas_id === id)
+              ?.kelas_nama;
+            return (
+              <option key={id} value={id}>
+                {namaKelas}
+              </option>
+            );
+          })}
         </select>
       </div>
 
-      {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
-          <thead>
-            <tr className="bg-gray-100 dark:bg-gray-700">
-              <th className="border p-3 text-left">No</th>
-              <th className="border p-3 text-left">Kelas</th>
-              <th className="border p-3 text-left">Mapel</th>
-              <th className="border p-3 text-left">Guru</th>
-              <th className="border p-3 text-left">Link Meet</th>
-              <th className="border p-3 text-center">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentData.length > 0 ? (
-              currentData.map((item, i) => (
-                <tr
-                  key={item.id_kelas_online}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <td className="border p-3">{indexOfFirst + i + 1}</td>
-                  <td className="border p-3">{item.kelas}</td>
-                  <td className="border p-3">{item.mapel}</td>
-                  <td className="border p-3">{item.guru}</td>
-                  <td className="border p-3 text-blue-600 dark:text-blue-400 truncate max-w-[200px]">
-                    {item.link || "Belum diatur"}
-                  </td>
-                  <td className="border p-3 text-center flex justify-center gap-3">
-                    <HiEye
-                      title="Detail Kelas"
-                      className="text-blue-600 cursor-pointer hover:text-blue-700 text-lg"
-                      onClick={() => handleDetail(item.id_kelas_online)}
-                    />
-                    <HiPlay
-                      title="Buka Kelas"
-                      className="text-green-600 cursor-pointer hover:text-green-700 text-lg"
-                      onClick={() => handleOpenClass(item.id_kelas_online)}
-                    />
+      {loading ? (
+        <p className="text-gray-500">Memuat data...</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-100 dark:bg-gray-700">
+              <tr>
+                <th className="px-6 py-3 text-left">Kelas</th>
+                <th className="px-6 py-3 text-left">Mapel</th>
+                <th className="px-6 py-3 text-left">Guru</th>
+                <th className="px-6 py-3 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {currentData.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="text-center py-4 text-gray-500 dark:text-gray-400"
+                  >
+                    Tidak ada data mapel.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan="6"
-                  className="border p-4 text-center text-gray-500 dark:text-gray-400"
-                >
-                  Tidak ada data kelas online
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : (
+                currentData.map((item) => (
+                  <tr key={item.pelajaran_id}>
+                    <td className="px-6 py-4">
+                      {item.kelas_nama.replace(/^Kelas\s*/i, "")}
+                    </td>
+                    <td className="px-6 py-4">{item.nm_mapel}</td>
+                    <td className="px-6 py-4">
+                      {item.guru_mapels || "Belum ada guru"}
+                    </td>
+                    <td className="p-3 flex justify-center gap-3">
+                      <HiEye
+                        title="Detail Kelas"
+                        className="text-blue-600 cursor-pointer hover:text-blue-700 text-lg"
+                        onClick={() =>
+                          navigate(`/guru/kelas-online/${item.kelas_id}/${item.nm_mapel}`, {
+                            state: { idpelajaran: item.pelajaran_id, mapel: item.nm_mapel },
+                          })
+                        }
+                      />
+                      {/* <HiEye
+                        title="Detail Kelas"
+                        className="text-blue-600 cursor-pointer hover:text-blue-700 text-lg"
+                        onClick={() => handleDetail(item.pelajaran_id)}
+                      /> */}
+                      <HiPlay
+                        title="Buka Kelas"
+                        className="text-green-600 cursor-pointer hover:text-green-700 text-lg"
+                        onClick={() => handleOpenClass(item.pelajaran_id)}
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center mt-6 gap-2 flex-wrap items-center text-sm">
-          <button
-            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className={`p-2 rounded ${
-              currentPage === 1
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-600"
-                : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white"
-            }`}
-          >
-            <HiChevronLeft className="h-4 w-4" />
-          </button>
-
-          {getPaginationButtons().map((num, index) =>
-            num === "..." ? (
-              <span key={index} className="px-3 py-1 text-gray-400">
-                ...
-              </span>
-            ) : (
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-6 items-center space-x-2">
               <button
-                key={index}
-                onClick={() => handlePageChange(num)}
-                className={`px-3 py-1 rounded ${
-                  num === currentPage
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white"
-                }`}
+                onClick={goToPreviousPage}
+                disabled={currentPage === 1}
+                className="px-3 py-2 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {num}
+                &lt;
               </button>
-            )
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Halaman {currentPage} dari {totalPages}
+              </span>
+              <button
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                &gt;
+              </button>
+            </div>
           )}
-
-          <button
-            onClick={() =>
-              handlePageChange(Math.min(totalPages, currentPage + 1))
-            }
-            disabled={currentPage === totalPages}
-            className={`p-2 rounded ${
-              currentPage === totalPages
-                ? "bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-600"
-                : "bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:hover:bg-gray-500 dark:text-white"
-            }`}
-          >
-            <HiChevronRight className="h-4 w-4" />
-          </button>
         </div>
       )}
     </div>

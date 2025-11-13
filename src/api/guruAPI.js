@@ -100,3 +100,42 @@ export const resetAllRollbackTables = async () => {
   const res = await axios.post(`/guru/rollback/reset`);
   return res.data;
 };
+
+export const getKelasOnlineByKelasMapel = async (kelasId, mapelId) => {
+  try {
+    const response = await fetch(`/guru/kelas-online/${kelasId}/${mapelId}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching kelas online:", error);
+    throw error;
+  }
+};
+
+// Update status kelas online
+export const updateStatusKelasOnline = async (idKelasOnline, status) => {
+  try {
+    const response = await fetch(`$/guru/kelas-online/${idKelasOnline}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error updating status:", error);
+    throw error;
+  }
+};

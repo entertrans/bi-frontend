@@ -556,3 +556,7 @@ export const getDetailMateriKelas = async (id_kelas_online) => {
   }
 };
 
+export const getAllMapelList = async () => {
+  const res = await axios.get(`http://localhost:8080/lookup/mapel/list`);
+  return res.data;
+};

@@ -53,6 +53,7 @@ export const guruRoutes = [
   { path: "/guru/nilai/:type/:kelas_id/:mapel_id", element: <DetailTest /> },
   { path: "/guru/nilai/:type/peserta/:test_id/:kelas_id", element: <DetailPesertaTest /> },
   { path: "/guru/kelas-online", element: <GuruKelasOnline /> },
+  { path: "/guru/kelas-online/:kelas/:mapel", element: <KoDashboard  /> },
 //   <Route path="/guru/nilai/:type/:kelas_id/:mapel_id" element={<DetailTest />} />
 // <Route path="/guru/nilai/:type/peserta/:test_id/:kelas_id" element={<DetailPesertaTest />} />
   { path: "/guru/logout", element: <Logout /> },
