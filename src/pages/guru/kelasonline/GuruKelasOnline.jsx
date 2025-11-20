@@ -133,11 +133,6 @@ const GuruKelasOnline = () => {
                           })
                         }
                       />
-                      {/* <HiEye
-                        title="Detail Kelas"
-                        className="text-blue-600 cursor-pointer hover:text-blue-700 text-lg"
-                        onClick={() => handleDetail(item.pelajaran_id)}
-                      /> */}
                       <HiPlay
                         title="Buka Kelas"
                         className="text-green-600 cursor-pointer hover:text-green-700 text-lg"

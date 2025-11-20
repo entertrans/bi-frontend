@@ -120,7 +120,7 @@ export const getKelasOnlineByKelasMapel = async (kelasId, mapelId) => {
 // Update status kelas online
 export const updateStatusKelasOnline = async (idKelasOnline, status) => {
   try {
-    const response = await fetch(`$/guru/kelas-online/${idKelasOnline}/status`, {
+    const response = await fetch(`/guru/kelas-online/${idKelasOnline}/status`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -136,6 +136,28 @@ export const updateStatusKelasOnline = async (idKelasOnline, status) => {
     return data;
   } catch (error) {
     console.error("Error updating status:", error);
+    throw error;
+  }
+};
+
+export const getKelasOnlineByMapel = async (idKelasMapel) => {
+  try {
+    const response = await axios.get(
+      `/guru/kelas-online/mapel/${idKelasMapel}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error getKelasOnlineByMapel:", error);
+    throw error;
+  }
+};
+
+export const getKelasOnlineById = async (kelasOnlineId) => {
+  try {
+    const response = await axios.get(`/guru/kelas-online/${kelasOnlineId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error getKelasOnlineById:", error);
     throw error;
   }
 };

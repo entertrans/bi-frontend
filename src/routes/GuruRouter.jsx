@@ -22,6 +22,7 @@ import JawabanPageRb from "../pages/guru/rollback/RbDetailJawaban";
 import RbResetData from "../pages/guru/rollback/RbResetData";
 import KoDashboard from "../pages/guru/kelasonline/KoDashboard";
 import GuruKelasOnline from "../pages/guru/kelasonline/GuruKelasOnline";
+import DetailKelasOnline from "../pages/guru/kelasonline/DetailKelasOnline";
 
 export const guruRoutes = [
   { path: "/guru", element: <Home /> },
@@ -53,7 +54,7 @@ export const guruRoutes = [
   { path: "/guru/nilai/:type/:kelas_id/:mapel_id", element: <DetailTest /> },
   { path: "/guru/nilai/:type/peserta/:test_id/:kelas_id", element: <DetailPesertaTest /> },
   { path: "/guru/kelas-online", element: <GuruKelasOnline /> },
-  { path: "/guru/kelas-online/:kelas/:mapel", element: <KoDashboard  /> },
+  { path: "/guru/kelas-online/:kelas/:mapel", element: <DetailKelasOnline  /> },
 //   <Route path="/guru/nilai/:type/:kelas_id/:mapel_id" element={<DetailTest />} />
 // <Route path="/guru/nilai/:type/peserta/:test_id/:kelas_id" element={<DetailPesertaTest />} />
   { path: "/guru/logout", element: <Logout /> },
