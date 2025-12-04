@@ -161,3 +161,55 @@ export const getKelasOnlineById = async (kelasOnlineId) => {
     throw error;
   }
 };
+
+// POST create kelas online
+export const createKelasOnline = async (payload) => {
+  // console.log(payload);
+  // console.log("guru buat:", payload);
+  const res = await axios.post("/guru/kelas-online", payload);
+  return res.data;
+};
+
+// PUT update kelas online
+export const updateKelasOnline = async (id, payload) => {
+  // const res = await axios.put(`/guru/kelas-online/${id}`, payload);
+  // return res.data;
+  console.log(payload);
+  
+};
+
+export const createMateri = async (payload) => {
+  try {
+    console.log('Creating materi with payload:', payload);
+    // const response = await api.post('/guru/materi', payload);
+    // console.log('Response from createMateri:', response.data);
+    // return response.data;
+  } catch (error) {
+    console.error('Error in createMateri:', error);
+    throw error;
+  }
+};
+
+export const updateMateri = async (id, payload) => {
+  try {
+    console.log('Updating materi ID:', id, 'with payload:', payload);
+    // const response = await api.put(`/guru/materi/${id}`, payload);
+    // console.log('Response from updateMateri:', response.data);
+    // return response.data;
+  } catch (error) {
+    console.error('Error in updateMateri:', error);
+    throw error;
+  }
+};
+
+export const deleteMateri = async (id) => {
+  try {
+    console.log('Deleting materi with ID:', id);
+    // const response = await api.delete(`/guru/materi/${id}`);
+    // console.log('Response from deleteMateri:', response.data);
+    // return response.data;
+  } catch (error) {
+    console.error('Error in deleteMateri:', error);
+    throw error;
+  }
+};

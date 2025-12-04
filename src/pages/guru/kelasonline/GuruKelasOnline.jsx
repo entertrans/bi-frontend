@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import { showAlert } from "../../../utils/toast";
 import { getAllMapelList } from "../../../api/siswaAPI";
 
+
 const GuruKelasOnline = () => {
   const [dataMapel, setDataMapel] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,6 +13,7 @@ const GuruKelasOnline = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
   const navigate = useNavigate();
+  
   useEffect(() => {
     const fetchMapel = async () => {
       try {

@@ -72,11 +72,17 @@ const SlideFormKelasOnline = ({ isOpen, onClose, onSubmit, editingData }) => {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validateForm()) {
-      onSubmit(formData);
-    }
-  };
+  e.preventDefault();
+  if (validateForm()) {
+    const payload = {
+      ...formData,
+      tanggal_kelas: formData.tanggal_kelas + "T00:00:00Z", // 👈 FIX FORMAT
+    };
+
+    onSubmit(payload);
+  }
+};
+
 
   const handleClose = () => {
     setErrors({});

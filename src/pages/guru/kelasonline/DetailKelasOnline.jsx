@@ -12,7 +12,13 @@ import {
 import Swal from "sweetalert2";
 import SlideFormKelasOnline from "./SlideFormKelasOnline";
 import SlideKelolaMateri from "./SlideKelolaMateri";
-import { getKelasOnlineByMapel } from "../../../api/guruAPI";
+import { formatTanggalLengkap } from "../../../utils/format";
+import {
+  getKelasOnlineByMapel,
+  updateKelasOnline,
+  createKelasOnline,
+} from "../../../api/guruAPI";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const DetailKelasOnline = () => {
   const { kelas_id, mapel } = useParams();
@@ -25,6 +31,16 @@ const DetailKelasOnline = () => {
   const [loading, setLoading] = useState(false);
   const [showMateri, setShowMateri] = useState(false);
   const [selectedKelasId, setSelectedKelasId] = useState(null);
+  const { user } = useAuth();
+  useEffect(() => {
+    // console.log(user);
+    // if (user && user.guru) {
+    //   console.log("guru data:", user.Guru.guru_id);
+    //   // console.log("Available keys in guru object:", Object.keys(user.guru));
+    // }
+  }, [user]);
+  // console.log(user);
+  // console.log(user.Guru.guru_id);
 
   // Dummy data
   useEffect(() => {
@@ -32,7 +48,7 @@ const DetailKelasOnline = () => {
       setLoading(true);
       try {
         const data = await getKelasOnlineByMapel(idpelajaran);
-        console.log(data);
+        // console.log(data);
         // Mapping response backend → listKelas
         const mapped = data.map((item) => ({
           id_kelas_online: item.id_kelas_online,
@@ -96,30 +112,45 @@ const DetailKelasOnline = () => {
   };
 
   // Simpan form
-  const handleSave = (formData) => {
-    if (formData.id_kelas_online) {
-      // Edit existing
-      setListKelas(
-        listKelas.map((x) =>
-          x.id_kelas_online === formData.id_kelas_online ? formData : x
-        )
-      );
-      Swal.fire("Berhasil!", "Kelas online berhasil diupdate.", "success");
-    } else {
-      // Tambah baru
-      const newData = {
-        ...formData,
-        id_kelas_online: Date.now(),
-        nama_guru: "Nisrina Agustama",
-        nama_mapel: mapel,
-        status: "akan_berlangsung",
-      };
-      setListKelas([...listKelas, newData]);
-      Swal.fire("Berhasil!", "Kelas online berhasil ditambahkan.", "success");
-    }
+  const handleSave = async (formData) => {
+    try {
+      if (formData.id_kelas_online) {
+        // UPDATE -------------------------------------
+        const updated = await updateKelasOnline(formData.id_kelas_online, {
+          ...formData,
+          guru_id: user.Guru.guru_id,
+          id_kelas_mapel: idpelajaran,
+        });
 
-    setShowForm(false);
-    setEditingData(null);
+        setListKelas(
+          listKelas.map((x) =>
+            x.id_kelas_online === updated.id_kelas_online ? updated : x
+          )
+        );
+
+        Swal.fire("Berhasil!", "Kelas online berhasil diupdate.", "success");
+      } else {
+        // Pisahkan id_kelas_online biar tidak terkirim
+        const { id_kelas_online, ...payload } = formData;
+
+        // CREATE --------------------------------------
+        const created = await createKelasOnline({
+          ...payload, // ← SUDAH AMAN
+          guru_id: user.Guru.guru_id,
+          id_kelas_mapel: idpelajaran,
+          status: "akan_berlangsung",
+        });
+
+        setListKelas([...listKelas, created]);
+        Swal.fire("Berhasil!", "Kelas online ditambahkan.", "success");
+      }
+
+      setShowForm(false);
+      setEditingData(null);
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", "Terjadi kesalahan pada server", "error");
+    }
   };
 
   // Format waktu
@@ -127,16 +158,6 @@ const DetailKelasOnline = () => {
     return jam ? jam.substring(0, 5) : "-";
   };
 
-  // Format tanggal
-  const formatTanggal = (tanggal) => {
-    if (!tanggal) return "-";
-    const date = new Date(tanggal);
-    return date.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  };
 
   // Get status badge
   const getStatusBadge = (status) => {
@@ -169,7 +190,7 @@ const DetailKelasOnline = () => {
   };
   // Function untuk handle simpan materi (dummy)
   const handleSaveMateri = (materiData) => {
-    console.log("Materi disimpan untuk kelas:", selectedKelasId, materiData);
+    // console.log("Materi disimpan untuk kelas:", selectedKelasId, materiData);
     // Di sini nanti akan integrate dengan API
     Swal.fire("Berhasil!", "Materi berhasil disimpan.", "success");
     setShowMateri(false);
@@ -263,7 +284,7 @@ const DetailKelasOnline = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      {formatTanggal(item.tanggal_kelas)}
+                      {formatTanggalLengkap(item.tanggal_kelas)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       <div className="flex items-center gap-1">
